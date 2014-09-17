@@ -1,0 +1,38 @@
+{
+  "name": "seward-park-map",
+  "description": "",
+  "version": "0.0.0",
+  "repository": {
+    "url": "git://github.com/sethvincent/seward-park-map.git"
+  },
+  "main": "map.js",
+  "scripts": {
+    "bundle-css": "rework-npm style.css -o assets/bundle.css",
+    "bundle-js": "browserify app.js -o assets/bundle.js -t brfs",
+    "bundle": "npm run bundle-css & npm run bundle-js",
+    "watch-js": "watchify app.js -o assets/bundle.js -t brfs",
+    "watch-css": "gazer -p style.css npm run bundle-css",
+    "watch": "npm run watch-js & npm run watch-css",
+    "start": "serve -p 3123 & npm run watch"
+  },
+  "dependencies": {
+    "component-delegate": "^0.2.3",
+    "element-class": "^0.1.1",
+    "fastclick": "^1.0.1",
+    "geolocation-stream": "0.0.1",
+    "handlebars": "~1.3.0",
+    "leaflet": "~0.7.2",
+    "leaflet-providers": "^1.0.3",
+    "mapbox.js": "^2.1.0",
+    "normalize-css": "git://github.com/sethvincent/normalize-css"
+  },
+  "devDependencies": {
+    "brfs": "^1.2.0",
+    "browserify": "^5.11.2",
+    "gazer": "0.0.3",
+    "myth": "~0.3.0",
+    "rework-npm-cli": "0.0.1",
+    "serve": "^1.4.0",
+    "watchify": "^0.8.3"
+  }
+}
