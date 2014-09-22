@@ -10,40 +10,125 @@ require('mapbox.js');
 var fastClick = require('fastclick');
 fastClick(document.body);
 
+var page = document.getElementById('page');
+var mapEl = document.getElementById('map');
+mapEl.style.height = (window.innerHeight - mapEl.offsetTop) + 'px';
+
+var data = require('./data.json');
+
 L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw';
 
 /* pull in template for showing info about a location */
-//var template = Handlebars.compile(fs.readFileSync('info-template.html'));
+var template = Handlebars.compile("<section class=\"location-info\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  <h2 class=\"location-title\"><a href=\"{{ url }}\" target=\"_blank\">{{ title }}</a></h2>\n  <div class=\"statement\">\n    {{{ text }}}\n  </div>\n  <!--\n  <p><b><a href=\"{{ link }}\" target=\"_blank\">Learn more</a></b></p>\n  -->\n</section>\n");
 
 /* set image path */
 L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
 /* create map using mapbox plugin */
-var map = L.mapbox.map('map', 'sethvincent.j0dohl2g');
+var satellite = L.mapbox.tileLayer('sethvincent.j0dohl2g');
+var terrain = L.mapbox.tileLayer('sethvincent.jii2nijj');
+var streets = L.mapbox.tileLayer('sethvincent.jii2ph3n');
+
+var map = L.map('map', {
+  center: [47.555, -122.252],
+  zoom: 15,
+  layers: [streets, terrain, satellite]
+});
+
+
+var baseMaps = {
+  'streets': streets,
+  'terrain': terrain,
+  'satellite': satellite
+};
+
+// L.control.layers(baseMaps).addTo(map);
+
+var location = L.marker([47, -122], {
+  icon: L.mapbox.marker.icon({
+    'marker-size': 'medium',
+    'marker-color': '#fa0'
+  })
+}).addTo(map);
 
 movement.on('data', function(data) {
-  console.log(data);
-  L.mapbox.featureLayer({
-    type: 'Feature',
-    geometry: {
-      type: 'Point',
-      coordinates: [
-        data.coords.longitude,
-        data.coords.latitude
-      ]
-    },
-    properties: {
-      'marker-size': 'large',
-      'marker-color': '#f4d123',
-    }
-  }).addTo(map);
+  location.setLatLng(new L.LatLng(data.coords.latitude, data.coords.longitude));
 });
 
 movement.on('error', function(err) {
   console.error(err)
 });
 
-},{"component-delegate":2,"element-class":7,"fastclick":8,"geolocation-stream":9,"handlebars":24,"leaflet":25,"mapbox.js":38}],2:[function(require,module,exports){
+on(document.body, '.map-types a', 'click', function (e) {
+  baseMaps[e.target.id].bringToFront();
+});
+
+data.forEach(addMarker);
+
+/* add a marker to map from json data */
+function addMarker (row, i) {
+  var latlng = { lat: row['lat'], lng: row['long'] };
+  var html = template(row);
+
+  var marker = L.marker(latlng, {
+    icon: L.mapbox.marker.icon({
+      'marker-size': 'small',
+      'marker-color': '#ff0000'
+    })
+  });
+
+  marker.addTo(map);
+
+  marker.on('click', function(e) {
+    if (document.querySelector('.modal')) {
+      page.removeChild(document.querySelector('.modal'));
+    }
+
+    var modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = html;
+    page.appendChild(modal);
+    var inner = document.querySelector('.location-info');
+
+    inner.style.width = (window.innerWidth - 95) + 'px';
+
+    if (window.innerWidth < 700) {
+      inner.style.height = window.innerHeight - 180 + 'px';
+    }
+    else {
+      inner.style.height = window.innerHeight - 80 + 'px';
+    }
+
+    on(document.body, '#close-modal', 'click', function (e) {
+      page.removeChild(modal);
+      e.preventDefault();
+    })
+  });
+}
+
+},{"./data.json":2,"component-delegate":3,"element-class":8,"fastclick":9,"geolocation-stream":10,"handlebars":25,"leaflet":26,"mapbox.js":39}],2:[function(require,module,exports){
+module.exports=[{"type":"Audio Recording (at Soundcloud), Text","audio":"<iframe width=\"100%\" height=\"166\" scrolling=\"no\" frameborder=\"no\" src=\"https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/166005226&amp;color=ff5500&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false\"></iframe>","link":"","photos":"\n","text":"On a day in early August, a group of children walked along with their two summer camp leaders, along Seward Park's Sqebeqsed Trail -- also known as the Spine Trail -- in southeast Seattle. A man stood in the forest, playing a sort of metal sitar and singing.","title":"Heard Along Sqebeqsed Trail","credit":"Wendy Call","lat":"47.549586","long":"-122.251114","??":""},
+{"type":"Photograph & Text","audio":"\n","link":"","photos":"https://lh6.googleusercontent.com/-laz6IzwfUwc/VAqNJ-qIzUI/AAAAAAAAAQc/1MfQi-BqSBk/s640/IMG_1581.JPG","text":"In 1923, the people of Yokohama sent us an eight-ton stone lantern as a thank-you for offering help after an earthquake killed thirty thousand Yokohamans. Two decades later, our bombs killed another eight thousand in that city. Nine decades later, the lantern stands amid Japanese maple and Pacific rhododendron; the scents of dogshit, human urine, and sun-wilted summer flowers swirl around it. The taiko-gata lantern was a gift, an oxidized plaque tells us, “symbolizing the peace and good-will that exists between Japan and the United States.” ","title":"Yokohama Taiko-Gata Lantern","credit":"Wendy Call","lat":"47.54976","long":"-122.257427","??":""},
+{"type":"Text & 2 Photographs","audio":"","link":"","photos":"https://lh3.googleusercontent.com/-WVjLlF6m0QY/VAqNS1g1VbI/AAAAAAAAASs/ebS0q9aTmIY/s800/ClayStudioWPAsign.jpg, https://lh5.googleusercontent.com/-l6WxUHEo6FE/VAqNUewl5bI/AAAAAAAAAS0/wVkZTYi4pjI/s912/AndrewsBay2012.jpg","text":"Turn to the east, face our past. Turn to the west, face your reflection.","title":"At the Clay Studio","credit":"Wendy Call","lat":"47.54976","long":"-122.257427","??":""},
+{"type":"Photograph & Text","audio":"\n","link":"","photos":"https://lh5.googleusercontent.com/-brrqjzTEO9E/VAqNWhuwxWI/AAAAAAAAARc/UvvoLYSGbec/s512/BathroomSkylight.jpg","text":"Bathroom view of Seattle sky: Moss molders. Leaves linger.","title":"Women's Room","credit":"Wendy Call","lat":"47.549759","long":"-122.256475","??":""},
+{"type":"Photograph & Text","audio":"","link":"","photos":"https://lh6.googleusercontent.com/--0gOlO0zoIQ/VAqNVp4pH8I/AAAAAAAAAS8/vCPl1L4SS_g/s912/MtRainierfromBikeRack.jpg","text":"People shout at one another; sausage dogs trot on tangled leashes; kids feel the sting of hand-slaps and admonishment. (“You are not an adult!”) Over it all, over Lake Washington, Tahoma hovers. Impervious and imperial. Our land bows down to our mountain. Vine maple branches frame the mountain peak, with Mercer Island to the east and the low bump of Rainier Beach to the southwest.","title":"Rainier, Bikerack View","credit":"Wendy Call","lat":"47.549564","long":"-122.256661","??":""},
+{"type":"Photograph & Text","audio":"","link":"","photos":"https://lh5.googleusercontent.com/-C8J91pcbMBY/VAvVb7YyQDI/AAAAAAAAATY/pLWwDLoZLr4/s640/Bedrock.JPG","text":"Alki Beach and Seward Park, cardinal points on Seattle’s east-west axis, are connected by an invisible, treacherous line: the Seattle fault. An eon ago, an earthquake sent forests sliding into Lake Washington and a twenty-foot cliff bursting from the earth of Bailey Peninsula. Here on the north side of Seward Park, as at Alki, the quake broke bedrock though clay and moss, to the dim light of Northwestern days. ","title":"Scar(p)","credit":"Wendy Call","lat":"47.536475","long":"-122.255967","??":""},
+{"type":"Link & Text","audio":"\n","link":"Link the words \"her final interview\" to: ","photos":"","text":"In the last interview of her life, poet Denise Levertov said of Mount Rainier, \"When it's out, I can see it from my work room and my kitchen window. I usually take paper and pencil in my pocket when I go down to the park. Often something starts as I'm walking around there.\"","title":"","credit":"","lat":"47.560208","long":"-122.255403","??":""},
+{"type":"Link & Text","audio":"","link":"http://poems.com/special_features/prose/essay_warn.php","photos":"","text":"Seattle poet Emily Warn writes of Mount Rainier's influence on Denise Levertov, one of the most famous poets ever to live in Seattle: \"If 'Nature' in her poetry is a metonymy for spiritual understanding, then 'the mountain' stands for a divine presence hidden within, yet not of this material world....\"","title":"","credit":"","lat":"47.565792","long":"-122.253936","??":""},
+{"type":"Photograph & Link","audio":"","link":"http://spectatorspots.blogspot.com/2012/06/we-come-looking.html","photos":"https://lh4.googleusercontent.com/-Xc65nmKJFOE/VAqNexWarzI/AAAAAAAAATE/pZhjCjL9QBY/s576/IMG_3088.JPG","text":"In June 2012, over three weekend afternoons, I led two dozen writers through a writing and nature walk at Seward Park. This is what one of them, Kristianne Huntsberger, wrote. ","title":"A Writing Spot","credit":"","lat":"47.555297","long":"-122.254394","??":""},
+{"type":"Photograph","audio":"","link":"","photos":"http://thomasbancroft.photoshelter.com/img/pixel.gif","text":"","title":"American Crow","credit":"Thomas Bancroft","lat":"47.548889","long":"-122.256389","??":""},
+{"type":"Photograph","audio":"","link":"","photos":"http://thomasbancroft.photoshelter.com/image?&_bqG=1&_bqH=eJxtj8tOwzAQRb.m2SGVlkgokheuZ5paTWzwo1LYjJKWKhuKKJF4fD2eqIIImMX43Du.tmb50G_ur47NR7euuvYdP82wJLCnzXFfLIpFXlzPUxWawCvRt29D_3w.ZZo8yICzfFXXsxzExABgA2BiNanY5DPZ.DuKf6P4f1Tp0IyfhTRmUDaa4BrS3rK0TqNJM20NS.3JYYXSI1zk3VR764Jw0myzcT2SBsSQOHp0pEFEXv3pdnuIL6V13U0a7bQLUVYkSzSq4UsZqRXp9HCKXjB.o1v_YM0oVRCvj.1532e7MV2OXXH_AmCScfw-&GI_ID=","text":"","title":"Hawthorn Berries","credit":"Thomas Bancroft","lat":"47.553611","long":"-122.250556","??":""},
+{"type":"Photograph","audio":"","link":"","photos":"http://thomasbancroft.photoshelter.com/image?&_bqG=12&_bqH=eJxtUEtrwzAM_jXNbZCtCS0BH1zLCSKJvflRyMm060ova9ZusL8_KZQtbNNB_h76bOS7fPW2OtZPVi3botjX52V9aZtx7M5jtc6rh7K6z6kqTOCVeH_53F0PGSYPMuhFuen7RQliJgCwADCTBioW.SRZ_47qv1H9f1RhGKbHAtkMlI0muCGht0ytQ23IQ2uYok9Od1p6DTf6OOfeuiCcNG02LZekAfFBOHrtEoKIvPjruj3ES2PdviBriy5E2SXZaKMGHsqS2iSkiyl6g_EbuvoH9gylCvSHu.vzKdtO6WbqivsX43NwTw--&GI_ID=","text":"","title":"High Bush Cranberry","credit":"Thomas Bancroft","lat":"47.551111","long":"-122.250833","??":""},
+{"type":"Photograph","audio":"","link":"","photos":"http://thomasbancroft.photoshelter.com/image?&_bqG=49&_bqH=eJxtUE1PwzAM_TXruUOrmCr1kMWhs9Ym4CSTyiUaLYgdOLAOEP8eu5qgAnxw3odfImd8Gj.9xe0dHYf7ftUM78c8nW3xdt2X67y8KsplzlViAq.r8fHjcBoyTB5UMIti07aLAqqZACACwEzquESUk2XzO2r.Rs3_UY2hmx4LbAvQLtpAXULvhDpCY9lDZ4WiT2Qao7yBC72dc.8oVKTsLpuWS8pCdWYcvaGEUEVZ_GW9G.Jr7ehhxdYeKUTVJFUbqzsZypLeJOSLOXqB8RvSzQ9sBSod.A8Pp_4520_peupa.he5yHGC&GI_ID=","text":"","title":"Mallard","credit":"Thomas Bancroft","lat":"47.548889","long":"-122.254722","??":""},
+{"type":"Photograph","audio":"","link":"","photos":"http://thomasbancroft.photoshelter.com/image?&_bqG=0&_bqH=eJxtUEtrwzAM_jXNbZCtCS0BH1zLCSKJvflRyMm060ova9ZusL8_KZQtbNNB_h76bOS7fPW2OtZPVi3botjX52V9aZtx7M5jtc6rh7K6z6kqTOCVeH_53F0PGSYPMuhFuen7RQliJgCwADCTBioW.SRZ_47qv1H9f1RhGKbHAtkMlI0muCGht0ytQ23IQ2uYok9Od1p6DTf6OOfeuiCcNG02LZekAfFBOHrtEoKIvPjruj3ES2PdviBriy5E2SXZaKMGHsqS2iSkiyl6g_EbuvoH9gylCvSHu.vzKdtO6WbqivsX43NwTw--&GI_ID=","text":"","title":"Sqebeqsed Trail","credit":"Thomas Bancroft","lat":"47.556667","long":"-122.251944","??":""},
+{"type":"Photograph","audio":"","link":"","photos":"http://thomasbancroft.photoshelter.com/image?&_bqG=2&_bqH=eJxtUEtrwzAM_jXNbZCtCS0BH1zLCSKJvflRyMm060ova9ZusL8_KZQtbNNB_h76bOS7fPW2OtZPVi3botjX52V9aZtx7M5jtc6rh7K6z6kqTOCVeH_53F0PGSYPMuhFuen7RQliJgCwADCTBioW.SRZ_47qv1H9f1RhGKbHAtkMlI0muCGht0ytQ23IQ2uYok9Od1p6DTf6OOfeuiCcNG02LZekAfFBOHrtEoKIvPjruj3ES2PdviBriy5E2SXZaKMGHsqS2iSkiyl6g_EbuvoH9gylCvSHu.vzKdtO6WbqivsX43NwTw--&GI_ID=","text":"","title":"Sunrise at South Beach","credit":"Thomas Bancroft","lat":"47.550278","long":"-122.248333","??":""},
+{"type":"Link & Text","audio":"","link":"","photos":"My June 2012 writing workshops inspired one participating writer, Robert Francis Flor, to create a one-act play based on his memories of annual picnics on Pinoy Hill. ","text":"The beginning of a one-act play, Pinoy Hill, Seward Park, 1957, by Robert Francis Flor\n\nScene I (Pinoy Hill in Seward Park, Seattle. 1957. Three picnic tables placed in a row. The table at one end is marked with a RESERVED sign. A teen boy sprawls across the center table.)\n\nMAX:  (Acts bored. Swears.) Why me? So unfair. (Pounds table.) It’s the same every year. Boring. Same old dances. Same old table. Same music. Same faces.  BORING! (Lays down on bench next to table and closes eyes.)\n\n(An older Pinay woman (late-forties to early fifties) enters. She carries a shopping bag. Noticing him, she makes disgusting grunting and grumbling noises and mutters as she puts the bag on the table on the remaining, unreserved table.)\n\nROSARIO: Psst! Psst!\n\nMAX: (Doesn’t respond. Ignores her.)\n\nROSARIO: Psst! Halo! Magandang umaga sa iyo! (Max continues to ignore her.)  Boy!  I said “Halo!”\n\nMAX: I don’t understand Filipino. An’ I’m not a boy.\n\nROSARIO: Oh, American-born. I see.  I said “Hello. Good morning.”\n\nMAX: (Sits up.) Can I help you?\n\nROSARIO: Are you saving that table?  I would like it.\n\nMAX: (Stands)  No can do, Auntie.\n\nROSARIO: Ha?  Why “no can do”?  You’re the only one here. You use it just for sleep. My family is coming.\n\nMAX: My dad would kill me if I gave up this table. I’m saving it for my family. It’s his orders.\n\n","title":"Pinoy Hill, Seward Park, 1957","credit":"Robert Francis Flor","lat":"47.551975","long":"-122.255494","??":""},
+{"type":"Text & Photograph","audio":"","link":"","photos":"","text":"In a circle of vine maples, encircled today by black-and-yellow caution tape: Put your left hand on top of your right, pull down. And if you want to stop, just let go. Are you doing alright? The only adult in the group says, “I am pretty terrified.” They swing in harnesses, suspended from high vine-maple branches in their own, private rope swings. One boy hoists himself nearly to tree top, alights, and climbs around in tree-sky. “Oh, wow. How high is he up there?” He’s probably about at fifty feet. That’s like standing on top of a telephone pole. OK, kids, you’ve got fifteen minutes left. Some want to go higher, some are more than ready to return to earth. The tree-swingers have drawn a small crowd: a family of three and an older couple with matching white sun hats. A great blue egret stands pencil-slim on a South Bay piling. The boy who climbed to top-of-telephone-pole height, skims to the ground and leaps from the harness. “I had a piece of bark in my pants. How did that happen?” \nAnother boy swings fifteen feet off the ground, feet up, head down. Anybody remember what kind of tree you’re in? Only one does; the other children cheer. Two men jog by, one pushing a stroller, talking of 30K and 60K races. The climbing-swinging children are replaced by another group ready to harness up. Still, the heron waits. \n","title":"At the Vine Maples","credit":"Wendy Call","lat":"47.548802","long":"-122.256936","??":""},
+{"type":"Text & Photograph","audio":"","link":"https://lh4.googleusercontent.com/-IraGuCoWVoA/VAqNPOxBwxI/AAAAAAAAAQ0/YOqE26Q3Lws/s720/IMG_2244.JPG","photos":"Everywhere in Seward Park you are close to speciessong and shitscent. Songs of speed walkers, Pacific wrens, plodding joggers, chestnut-baked chickadees, radios from yachts moored offshore. Shitscents of dog, mallard, toddler, Canada goose. Crows in the round-crowned garry oaks send down drifts of pollen and scraps of moss as they flap indignant wings. Walkers move at all speeds, carrying pocketbooks, or wrist weights, or a white parasol, or the leash of a loping Laborador. Far off, twin Jet-Skis whine; nearby, a solitary fire-orange wasp buzzes thimbleberry.","text":"","title":"Garry Oak Prairie","credit":"Wendy Call","lat":"47.549232","long":"-122.252981","??":""},
+{"type":"Photograph","audio":"","link":"https://lh4.googleusercontent.com/-dHPc0KFLzUA/VAqNLOzl8yI/AAAAAAAAAQk/rBdKA3zRBLk/s640/IMG_1604.JPG","photos":"","text":"","title":"Poison Oy","credit":"Wendy Call","lat":"47.549236","long":"-122.252372","??":""}
+]
+
+},{}],3:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -87,7 +172,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"closest":3,"event":6}],3:[function(require,module,exports){
+},{"closest":4,"event":7}],4:[function(require,module,exports){
 var matches = require('matches-selector')
 
 module.exports = function (element, selector, checkYoSelf, root) {
@@ -108,7 +193,7 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"matches-selector":4}],4:[function(require,module,exports){
+},{"matches-selector":5}],5:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -156,7 +241,7 @@ function match(el, selector) {
   return false;
 }
 
-},{"query":5}],5:[function(require,module,exports){
+},{"query":6}],6:[function(require,module,exports){
 function one(selector, el) {
   return el.querySelector(selector);
 }
@@ -179,7 +264,7 @@ exports.engine = function(obj){
   return exports;
 };
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -215,7 +300,7 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = function(opts) {
   return new ElementClass(opts)
 }
@@ -262,7 +347,7 @@ ElementClass.prototype.has = function(className) {
   return classes.indexOf(className) > -1
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /**
  * @preserve FastClick: polyfill to remove click delays on browsers with touch UIs.
  *
@@ -1085,7 +1170,7 @@ if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) 
 	window.FastClick = FastClick;
 }
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var stream = require('stream')
 var util = require('util')
 
@@ -1125,7 +1210,7 @@ GeolocationStream.prototype.onError = function(position) {
   this.emit('error', position)
 }
 
-},{"stream":60,"util":68}],10:[function(require,module,exports){
+},{"stream":61,"util":69}],11:[function(require,module,exports){
 "use strict";
 /*globals Handlebars: true */
 var Handlebars = require("./handlebars.runtime")["default"];
@@ -1163,7 +1248,7 @@ Handlebars = create();
 Handlebars.create = create;
 
 exports["default"] = Handlebars;
-},{"./handlebars.runtime":11,"./handlebars/compiler/ast":13,"./handlebars/compiler/base":14,"./handlebars/compiler/compiler":15,"./handlebars/compiler/javascript-compiler":16}],11:[function(require,module,exports){
+},{"./handlebars.runtime":12,"./handlebars/compiler/ast":14,"./handlebars/compiler/base":15,"./handlebars/compiler/compiler":16,"./handlebars/compiler/javascript-compiler":17}],12:[function(require,module,exports){
 "use strict";
 /*globals Handlebars: true */
 var base = require("./handlebars/base");
@@ -1196,7 +1281,7 @@ var Handlebars = create();
 Handlebars.create = create;
 
 exports["default"] = Handlebars;
-},{"./handlebars/base":12,"./handlebars/exception":20,"./handlebars/runtime":21,"./handlebars/safe-string":22,"./handlebars/utils":23}],12:[function(require,module,exports){
+},{"./handlebars/base":13,"./handlebars/exception":21,"./handlebars/runtime":22,"./handlebars/safe-string":23,"./handlebars/utils":24}],13:[function(require,module,exports){
 "use strict";
 var Utils = require("./utils");
 var Exception = require("./exception")["default"];
@@ -1377,7 +1462,7 @@ exports.log = log;var createFrame = function(object) {
   return obj;
 };
 exports.createFrame = createFrame;
-},{"./exception":20,"./utils":23}],13:[function(require,module,exports){
+},{"./exception":21,"./utils":24}],14:[function(require,module,exports){
 "use strict";
 var Exception = require("../exception")["default"];
 
@@ -1605,7 +1690,7 @@ var AST = {
 // Must be exported as an object rather than the root of the module as the jison lexer
 // most modify the object to operate properly.
 exports["default"] = AST;
-},{"../exception":20}],14:[function(require,module,exports){
+},{"../exception":21}],15:[function(require,module,exports){
 "use strict";
 var parser = require("./parser")["default"];
 var AST = require("./ast")["default"];
@@ -1621,7 +1706,7 @@ function parse(input) {
 }
 
 exports.parse = parse;
-},{"./ast":13,"./parser":17}],15:[function(require,module,exports){
+},{"./ast":14,"./parser":18}],16:[function(require,module,exports){
 "use strict";
 var Exception = require("../exception")["default"];
 
@@ -2091,7 +2176,7 @@ exports.precompile = precompile;function compile(input, options, env) {
 }
 
 exports.compile = compile;
-},{"../exception":20}],16:[function(require,module,exports){
+},{"../exception":21}],17:[function(require,module,exports){
 "use strict";
 var COMPILER_REVISION = require("../base").COMPILER_REVISION;
 var REVISION_CHANGES = require("../base").REVISION_CHANGES;
@@ -3034,7 +3119,7 @@ JavaScriptCompiler.isValidJavaScriptVariableName = function(name) {
 };
 
 exports["default"] = JavaScriptCompiler;
-},{"../base":12,"../exception":20}],17:[function(require,module,exports){
+},{"../base":13,"../exception":21}],18:[function(require,module,exports){
 "use strict";
 /* jshint ignore:start */
 /* Jison generated parser */
@@ -3525,7 +3610,7 @@ function Parser () { this.yy = {}; }Parser.prototype = parser;parser.Parser = Pa
 return new Parser;
 })();exports["default"] = handlebars;
 /* jshint ignore:end */
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
 var Visitor = require("./visitor")["default"];
 
@@ -3664,7 +3749,7 @@ PrintVisitor.prototype.content = function(content) {
 PrintVisitor.prototype.comment = function(comment) {
   return this.pad("{{! '" + comment.comment + "' }}");
 };
-},{"./visitor":19}],19:[function(require,module,exports){
+},{"./visitor":20}],20:[function(require,module,exports){
 "use strict";
 function Visitor() {}
 
@@ -3677,7 +3762,7 @@ Visitor.prototype = {
 };
 
 exports["default"] = Visitor;
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict";
 
 var errorProps = ['description', 'fileName', 'lineNumber', 'message', 'name', 'number', 'stack'];
@@ -3706,7 +3791,7 @@ function Exception(message, node) {
 Exception.prototype = new Error();
 
 exports["default"] = Exception;
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 "use strict";
 var Utils = require("./utils");
 var Exception = require("./exception")["default"];
@@ -3844,7 +3929,7 @@ exports.program = program;function invokePartial(partial, name, context, helpers
 exports.invokePartial = invokePartial;function noop() { return ""; }
 
 exports.noop = noop;
-},{"./base":12,"./exception":20,"./utils":23}],22:[function(require,module,exports){
+},{"./base":13,"./exception":21,"./utils":24}],23:[function(require,module,exports){
 "use strict";
 // Build out our basic SafeString type
 function SafeString(string) {
@@ -3856,7 +3941,7 @@ SafeString.prototype.toString = function() {
 };
 
 exports["default"] = SafeString;
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 "use strict";
 /*jshint -W004 */
 var SafeString = require("./safe-string")["default"];
@@ -3933,7 +4018,7 @@ exports.escapeExpression = escapeExpression;function isEmpty(value) {
 }
 
 exports.isEmpty = isEmpty;
-},{"./safe-string":22}],24:[function(require,module,exports){
+},{"./safe-string":23}],25:[function(require,module,exports){
 // USAGE:
 // var handlebars = require('handlebars');
 
@@ -3960,7 +4045,7 @@ if (typeof require !== 'undefined' && require.extensions) {
   require.extensions[".hbs"] = extension;
 }
 
-},{"../dist/cjs/handlebars":10,"../dist/cjs/handlebars/compiler/printer":18,"../dist/cjs/handlebars/compiler/visitor":19,"fs":52}],25:[function(require,module,exports){
+},{"../dist/cjs/handlebars":11,"../dist/cjs/handlebars/compiler/printer":19,"../dist/cjs/handlebars/compiler/visitor":20,"fs":53}],26:[function(require,module,exports){
 /*
  Leaflet, a JavaScript library for mobile-friendly interactive maps. http://leafletjs.com
  (c) 2010-2013, Vladimir Agafonkin
@@ -13141,7 +13226,7 @@ L.Map.include({
 
 
 }(window, document));
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 function corslite(url, callback, cors) {
     var sent = false;
 
@@ -13236,7 +13321,7 @@ function corslite(url, callback, cors) {
 
 if (typeof module !== 'undefined') module.exports = corslite;
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /*!
  * mustache.js - Logic-less {{mustache}} templates with JavaScript
  * http://github.com/janl/mustache.js
@@ -13789,7 +13874,7 @@ if (typeof module !== 'undefined') module.exports = corslite;
 
 }));
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 var html_sanitize = require('./sanitizer-bundle.js');
 
 module.exports = function(_) {
@@ -13809,7 +13894,7 @@ function cleanUrl(url) {
 
 function cleanId(id) { return id; }
 
-},{"./sanitizer-bundle.js":29}],29:[function(require,module,exports){
+},{"./sanitizer-bundle.js":30}],30:[function(require,module,exports){
 
 // Copyright (C) 2010 Google Inc.
 //
@@ -16257,7 +16342,7 @@ if (typeof module !== 'undefined') {
     module.exports = html_sanitize;
 }
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 module.exports={
   "author": {
     "name": "Mapbox"
@@ -16356,7 +16441,7 @@ module.exports={
   "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.0.tgz"
 }
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -16366,7 +16451,7 @@ module.exports = {
     REQUIRE_ACCESS_TOKEN: true
 };
 
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -16483,7 +16568,7 @@ module.exports.featureLayer = function(_, options) {
     return new FeatureLayer(_, options);
 };
 
-},{"./marker":45,"./request":46,"./simplestyle":48,"./url":50,"./util":51,"sanitize-caja":28}],33:[function(require,module,exports){
+},{"./marker":46,"./request":47,"./simplestyle":49,"./url":51,"./util":52,"sanitize-caja":29}],34:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -16582,7 +16667,7 @@ module.exports = function(url, options) {
     return geocoder;
 };
 
-},{"./request":46,"./url":50,"./util":51}],34:[function(require,module,exports){
+},{"./request":47,"./url":51,"./util":52}],35:[function(require,module,exports){
 'use strict';
 
 var geocoder = require('./geocoder'),
@@ -16771,7 +16856,7 @@ module.exports.geocoderControl = function(_, options) {
     return new GeocoderControl(_, options);
 };
 
-},{"./geocoder":33,"./util":51}],35:[function(require,module,exports){
+},{"./geocoder":34,"./util":52}],36:[function(require,module,exports){
 'use strict';
 
 function utfDecode(c) {
@@ -16789,7 +16874,7 @@ module.exports = function(data) {
     };
 };
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -16989,7 +17074,7 @@ module.exports.gridControl = function(_, options) {
     return new GridControl(_, options);
 };
 
-},{"./util":51,"mustache":27,"sanitize-caja":28}],37:[function(require,module,exports){
+},{"./util":52,"mustache":28,"sanitize-caja":29}],38:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -17215,11 +17300,11 @@ module.exports.gridLayer = function(_, options) {
     return new GridLayer(_, options);
 };
 
-},{"./grid":35,"./load_tilejson":42,"./request":46,"./url":50,"./util":51}],38:[function(require,module,exports){
+},{"./grid":36,"./load_tilejson":43,"./request":47,"./url":51,"./util":52}],39:[function(require,module,exports){
 require('./leaflet');
 require('./mapbox');
 
-},{"./leaflet":40,"./mapbox":44}],39:[function(require,module,exports){
+},{"./leaflet":41,"./mapbox":45}],40:[function(require,module,exports){
 'use strict';
 
 var InfoControl = L.Control.extend({
@@ -17335,10 +17420,10 @@ module.exports.infoControl = function(options) {
     return new InfoControl(options);
 };
 
-},{"sanitize-caja":28}],40:[function(require,module,exports){
+},{"sanitize-caja":29}],41:[function(require,module,exports){
 window.L = require('leaflet/dist/leaflet-src');
 
-},{"leaflet/dist/leaflet-src":25}],41:[function(require,module,exports){
+},{"leaflet/dist/leaflet-src":26}],42:[function(require,module,exports){
 'use strict';
 
 var LegendControl = L.Control.extend({
@@ -17407,7 +17492,7 @@ module.exports.legendControl = function(options) {
     return new LegendControl(options);
 };
 
-},{"sanitize-caja":28}],42:[function(require,module,exports){
+},{"sanitize-caja":29}],43:[function(require,module,exports){
 'use strict';
 
 var request = require('./request'),
@@ -17433,7 +17518,7 @@ module.exports = {
     }
 };
 
-},{"./request":46,"./url":50,"./util":51}],43:[function(require,module,exports){
+},{"./request":47,"./url":51,"./util":52}],44:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -17614,7 +17699,7 @@ module.exports.map = function(element, _, options) {
     return new LMap(element, _, options);
 };
 
-},{"./feature_layer":32,"./grid_control":36,"./grid_layer":37,"./info_control":39,"./legend_control":41,"./load_tilejson":42,"./share_control":47,"./tile_layer":49,"./util":51}],44:[function(require,module,exports){
+},{"./feature_layer":33,"./grid_control":37,"./grid_layer":38,"./info_control":40,"./legend_control":42,"./load_tilejson":43,"./share_control":48,"./tile_layer":50,"./util":52}],45:[function(require,module,exports){
 'use strict';
 
 var geocoderControl = require('./geocoder_control'),
@@ -17666,7 +17751,7 @@ window.L.Icon.Default.imagePath =
     '//api.tiles.mapbox.com/mapbox.js/' + 'v' +
     require('../package.json').version + '/images';
 
-},{"../package.json":30,"./config":31,"./feature_layer":32,"./geocoder":33,"./geocoder_control":34,"./grid_control":36,"./grid_layer":37,"./info_control":39,"./legend_control":41,"./map":43,"./marker":45,"./share_control":47,"./simplestyle":48,"./tile_layer":49,"mustache":27,"sanitize-caja":28}],45:[function(require,module,exports){
+},{"../package.json":31,"./config":32,"./feature_layer":33,"./geocoder":34,"./geocoder_control":35,"./grid_control":37,"./grid_layer":38,"./info_control":40,"./legend_control":42,"./map":44,"./marker":46,"./share_control":48,"./simplestyle":49,"./tile_layer":50,"mustache":28,"sanitize-caja":29}],46:[function(require,module,exports){
 'use strict';
 
 var url = require('./url'),
@@ -17733,7 +17818,7 @@ module.exports = {
     createPopup: createPopup
 };
 
-},{"./url":50,"./util":51,"sanitize-caja":28}],46:[function(require,module,exports){
+},{"./url":51,"./util":52,"sanitize-caja":29}],47:[function(require,module,exports){
 'use strict';
 
 var corslite = require('corslite'),
@@ -17765,7 +17850,7 @@ module.exports = function(url, callback) {
     }
 };
 
-},{"./config":31,"./util":51,"corslite":26}],47:[function(require,module,exports){
+},{"./config":32,"./util":52,"corslite":27}],48:[function(require,module,exports){
 'use strict';
 
 var urlhelper = require('./url');
@@ -17868,7 +17953,7 @@ module.exports.shareControl = function(_, options) {
     return new ShareControl(_, options);
 };
 
-},{"./load_tilejson":42,"./url":50}],48:[function(require,module,exports){
+},{"./load_tilejson":43,"./url":51}],49:[function(require,module,exports){
 'use strict';
 
 // an implementation of the simplestyle spec for polygon and linestring features
@@ -17915,7 +18000,7 @@ module.exports = {
     defaults: defaults
 };
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -18012,7 +18097,7 @@ module.exports.tileLayer = function(_, options) {
     return new TileLayer(_, options);
 };
 
-},{"./load_tilejson":42,"./url":50,"./util":51}],50:[function(require,module,exports){
+},{"./load_tilejson":43,"./url":51,"./util":52}],51:[function(require,module,exports){
 'use strict';
 
 var config = require('./config'),
@@ -18056,7 +18141,7 @@ module.exports.tileJSON = function(urlOrMapID, accessToken) {
     return url;
 };
 
-},{"../package.json":30,"./config":31}],51:[function(require,module,exports){
+},{"../package.json":31,"./config":32}],52:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -18103,9 +18188,9 @@ function contains(item, list) {
     return false;
 }
 
-},{}],52:[function(require,module,exports){
-
 },{}],53:[function(require,module,exports){
+
+},{}],54:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -19216,7 +19301,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":54,"ieee754":55}],54:[function(require,module,exports){
+},{"base64-js":55,"ieee754":56}],55:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -19338,7 +19423,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],55:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -19424,7 +19509,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],56:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19727,7 +19812,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],57:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -19752,7 +19837,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -19817,7 +19902,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19891,7 +19976,7 @@ function onend() {
   });
 }
 
-},{"./readable.js":63,"./writable.js":65,"inherits":57,"process/browser.js":61}],60:[function(require,module,exports){
+},{"./readable.js":64,"./writable.js":66,"inherits":58,"process/browser.js":62}],61:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20020,7 +20105,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"./duplex.js":59,"./passthrough.js":62,"./readable.js":63,"./transform.js":64,"./writable.js":65,"events":56,"inherits":57}],61:[function(require,module,exports){
+},{"./duplex.js":60,"./passthrough.js":63,"./readable.js":64,"./transform.js":65,"./writable.js":66,"events":57,"inherits":58}],62:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -20075,7 +20160,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20118,7 +20203,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./transform.js":64,"inherits":57}],63:[function(require,module,exports){
+},{"./transform.js":65,"inherits":58}],64:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -21055,7 +21140,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("qvMYcC"))
-},{"./index.js":60,"buffer":53,"events":56,"inherits":57,"process/browser.js":61,"qvMYcC":58,"string_decoder":66}],64:[function(require,module,exports){
+},{"./index.js":61,"buffer":54,"events":57,"inherits":58,"process/browser.js":62,"qvMYcC":59,"string_decoder":67}],65:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21261,7 +21346,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./duplex.js":59,"inherits":57}],65:[function(require,module,exports){
+},{"./duplex.js":60,"inherits":58}],66:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21649,7 +21734,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./index.js":60,"buffer":53,"inherits":57,"process/browser.js":61}],66:[function(require,module,exports){
+},{"./index.js":61,"buffer":54,"inherits":58,"process/browser.js":62}],67:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21842,14 +21927,14 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":53}],67:[function(require,module,exports){
+},{"buffer":54}],68:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],68:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -22439,4 +22524,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("qvMYcC"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":67,"inherits":57,"qvMYcC":58}]},{},[1])
+},{"./support/isBuffer":68,"inherits":58,"qvMYcC":59}]},{},[1])
