@@ -15,7 +15,6 @@ mapEl.style.height = (window.innerHeight - mapEl.offsetTop) + 'px';
 
 var data = require('./data.json');
 data = createImageArrays(data);
-console.log(data)
 
 L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw';
 
@@ -61,11 +60,11 @@ movement.on('data', function(data) {
 });
 
 movement.on('error', function(err) {
-  console.error(err)
+  //console.error(err)
 });
 
 on(document.body, '.nav a', 'click', function (e) {
-  console.log(e.target.id)
+  //console.log(e.target.id)
 });
 
 window.onresize = function (e) {
@@ -140,7 +139,6 @@ function createImageArrays (data) {
       else images[i] = images[i].replace(/ /g,'');
     });
     item.images = images;
-    console.log(item.images)
   });
   
   return data;
