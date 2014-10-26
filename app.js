@@ -70,7 +70,8 @@ movement.on('error', function(err) {
 });
 
 on(document.body, '.nav a', 'click', function (e) {
-  //console.log(e.target.id)
+  var content = templates.list({ locations: data });
+  modal(content);
 });
 
 window.onresize = function (e) {
