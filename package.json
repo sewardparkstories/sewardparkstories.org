@@ -7,6 +7,7 @@
   },
   "main": "map.js",
   "scripts": {
+    "parse-csv": "node bin/parse-csv.js",
     "bundle-css": "rework-npm style.css -o assets/bundle.css",
     "bundle-js": "browserify app.js -o assets/bundle.js -t brfs",
     "bundle": "npm run bundle-css & npm run bundle-js",
@@ -17,7 +18,6 @@
   },
   "dependencies": {
     "component-delegate": "^0.2.3",
-    "csvtojson": "^0.3.13",
     "element-class": "^0.1.1",
     "fastclick": "^1.0.1",
     "geolocation-stream": "0.0.1",
@@ -30,6 +30,7 @@
   "devDependencies": {
     "brfs": "^1.2.0",
     "browserify": "^5.11.2",
+    "csv-parser": "^1.4.6",
     "gazer": "0.0.3",
     "myth": "~0.3.0",
     "rework-npm-cli": "0.0.1",

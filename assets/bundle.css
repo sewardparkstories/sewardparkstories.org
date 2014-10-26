@@ -422,6 +422,27 @@ table {
   border-spacing: 0;
 }
 
+html,
+body,
+input,
+button,
+select,
+textarea {
+  font: 16px/1.2 "Open Sans", "Helvetica Neue", Helvetica, arial, sans-serif;
+  color: #444;
+  -webkit-font-smoothing: antialiased;
+  font-smoothing: antialiased;
+  font-weight: 300;
+}
+
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
 body,
 html {
   height: 100%;
@@ -451,23 +472,23 @@ h1 {
   margin-top: 28px;
 }
 
-.map-types {
+.nav {
   text-align: center;
   margin: 26px 0px 0px 0px;
   padding: 0px;
   height: 40px;
 }
 
-.map-types h4 {
+.nav h4 {
   display: inline-block;
 }
 
-.map-types li {
+.nav li {
   display: inline-block;
 }
 
-.map-types li a {
-  padding: 6px 10px;
+.nav li a {
+  padding: 8px 10px 7px 10px;
   background-color: #f4f4f1;
   color: #535350;
   border: 1px solid #f4f4f1;
@@ -475,8 +496,8 @@ h1 {
   text-decoration: none;
 }
 
-.map-types li a:hover,
-.map-types li a:focus {
+.nav li a:hover,
+.nav li a:focus {
   background-color: #f0f0ea;
   color: #333;
   border: 1px solid #f0f0ea;
@@ -484,12 +505,14 @@ h1 {
 
 .modal {
   position: fixed;
-  top: 120px;
-  left: 45px;
+  top: 122px;
+  left: 0;
   padding: 10px;
   background-color: #fff;
   border: 1px solid #fff;
   border-radius: 3px;
+  z-index: 1000;
+  margin-left: 10px;
 }
 
 .modal a {
@@ -497,15 +520,23 @@ h1 {
   color: #444;
 }
 
-.modal h2 {
+.modal .location-title {
   font-weight: 500;
+  margin-top: 10px;
+}
+
+.modal .text {
+  line-height: 1.6;
 }
 
 #close-modal {
   font-weight: 300;
-  font-size: 16px;
+  font-size: 25px;
   float: right;
   line-height: 1;
+  background-color: #efefef;
+  padding: 4px 12px 6px 12px;
+  border-radius: 3px;
 }
 
 .location-info {
@@ -514,10 +545,7 @@ h1 {
 }
 
 .location-info .image {
-  width: 100px;
   display: block;
-  float: right;
-  margin-left: 20px;
 }
 
 .location-info .image img {
@@ -535,11 +563,11 @@ h1 {
     float: left;
   }
 
-  .map-types {
+  .nav {
     float: right;
   }
 
   .modal {
-    top: 77px;
+    top: 76px;
   }
 }
