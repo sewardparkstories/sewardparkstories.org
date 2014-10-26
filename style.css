@@ -47,7 +47,7 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 15px;
-  margin-top: 28px;
+  margin-top: 25px;
 }
 
 .nav {
@@ -83,7 +83,7 @@ h1 {
 
 .modal {
   position: fixed;
-  top: 122px;
+  top: 119px;
   left: 0;
   padding: 10px;
   background-color: #fff;

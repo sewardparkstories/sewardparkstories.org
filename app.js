@@ -23,8 +23,14 @@ L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4
 * pull in template for showing info about a location
 */
 
-var template = Handlebars.compile(
+var templates = {};
+
+templates.info = Handlebars.compile(
   fs.readFileSync('info-template.html', 'utf8')
+);
+
+templates.list = Handlebars.compile(
+  fs.readFileSync('list-template.html', 'utf8')
 );
 
 
@@ -81,7 +87,7 @@ data.forEach(addMarker);
 
 function addMarker (row, i) {
   var latlng = { lat: row['lat'], lng: row['long'] };
-  var content = template(row);
+  var content = templates.info(row);
 
   var marker = L.marker(latlng, {
     icon: L.mapbox.marker.icon({
@@ -121,10 +127,10 @@ function resizeModal () {
   content.style.width = (window.innerWidth - 44) + 'px';
 
   if (window.innerWidth < 470) {
-    content.style.height = window.innerHeight - 166 + 'px';
+    content.style.height = window.innerHeight - 152 + 'px';
   }
   else {
-    content.style.height = window.innerHeight - 126 + 'px';
+    content.style.height = window.innerHeight - 107 + 'px';
   }
 }
 
