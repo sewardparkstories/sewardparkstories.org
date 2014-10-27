@@ -79,7 +79,6 @@ on(document.body, '.nav a', 'click', function (e) {
   
   else {
     var content = templates.list({ locations: data });
-    console.log(content)
     modal(content);
   }
 });
@@ -127,7 +126,6 @@ function modal (content) {
   resizeModal();
   
   on(document.body, '#close-modal', 'click', function (e) {
-    console.log('waaaaaat')
     page.removeChild(modal);
     e.preventDefault();
   });
