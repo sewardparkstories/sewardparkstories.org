@@ -125,13 +125,13 @@ function modal (content) {
   modal.innerHTML = content;
   page.appendChild(modal);
   resizeModal();
-  
-  on(document.body, '#close-modal', 'click', function (e) {
-    page.removeChild(modal);
-    e.preventDefault();
-  });
 }
 
+on(document.body, '#close-modal', 'click', function (e) {
+  var modal = document.querySelector('.modal');
+  page.removeChild(modal);
+  e.preventDefault();
+});
 
 function resizeModal () {
   var content = document.querySelector('.modal-inner');
