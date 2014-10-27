@@ -27,11 +27,11 @@ L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4
 var templates = {};
 
 templates.info = Handlebars.compile(
-  "<section class=\"location-info\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  <h2 class=\"location-title\">{{ title }}</h2>\n  \n  {{#each images}}\n  <div class=\"image\">\n    <img src=\"{{ this }}\">\n  </div>\n  {{/each}}\n  \n  <div class=\"text\">\n    {{{ text }}}\n  </div>\n  <!--\n  <p><b><a href=\"{{ link }}\" target=\"_blank\">Learn more</a></b></p>\n  -->\n</section>\n"
+  "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  <h2 class=\"location-title\">{{ title }}</h2>\n  \n  {{#each images}}\n  <div class=\"image\">\n    <img src=\"{{ this }}\">\n  </div>\n  {{/each}}\n  \n  <div class=\"text\">\n    {{{ text }}}\n  </div>\n  <!--\n  <p><b><a href=\"{{ link }}\" target=\"_blank\">Learn more</a></b></p>\n  -->\n</section>\n"
 );
 
 templates.list = Handlebars.compile(
-  "<section class=\"location-info\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"locations\">\n  {{#each locations}}\n    <div class=\"list-item\">\n      <h2>{{ title }}</h2>\n    </div>\n  {{/each}}\n  </div>\n\n</section"
+  "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"locations\">\n  {{#each locations}}\n    <div class=\"list-item\">\n      <h2>{{ title }}</h2>\n    </div>\n  {{/each}}\n  </div>\n\n</section"
 );
 
 
@@ -71,8 +71,18 @@ movement.on('error', function(err) {
 });
 
 on(document.body, '.nav a', 'click', function (e) {
-  var content = templates.list({ locations: data });
-  modal(content);
+  var id = e.target.id;
+  
+  if (id === 'about-view') {
+    var content = "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"modal-content\">\n    <h2>About the Seward Park Project</h2>\n    <p>Documentation of the history, culture, & art of Seward Park</p>\n  </div>\n\n</section>";
+    modal(content);
+  }
+  
+  else {
+    var content = templates.list({ locations: data });
+    console.log(content)
+    modal(content);
+  }
 });
 
 window.onresize = function (e) {
@@ -118,6 +128,7 @@ function modal (content) {
   resizeModal();
   
   on(document.body, '#close-modal', 'click', function (e) {
+    console.log('waaaaaat')
     page.removeChild(modal);
     e.preventDefault();
   });
@@ -125,7 +136,7 @@ function modal (content) {
 
 
 function resizeModal () {
-  var content = document.querySelector('.modal .location-info');
+  var content = document.querySelector('.modal-inner');
   content.style.width = (window.innerWidth - 44) + 'px';
 
   if (window.innerWidth < 470) {

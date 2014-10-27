@@ -117,16 +117,16 @@ h1 {
   border-radius: 3px;
 }
 
-.location-info {
+.modal-inner {
   overflow: scroll;
   padding: 10px;
 }
 
-.location-info .image {
+.modal-inner .image {
   display: block;
 }
 
-.location-info .image img {
+.modal-inner .image img {
   width: 100%;
   height: auto;
 }

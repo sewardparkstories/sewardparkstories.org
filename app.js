@@ -70,8 +70,18 @@ movement.on('error', function(err) {
 });
 
 on(document.body, '.nav a', 'click', function (e) {
-  var content = templates.list({ locations: data });
-  modal(content);
+  var id = e.target.id;
+  
+  if (id === 'about-view') {
+    var content = fs.readFileSync('about.html', 'utf8');
+    modal(content);
+  }
+  
+  else {
+    var content = templates.list({ locations: data });
+    console.log(content)
+    modal(content);
+  }
 });
 
 window.onresize = function (e) {
@@ -117,6 +127,7 @@ function modal (content) {
   resizeModal();
   
   on(document.body, '#close-modal', 'click', function (e) {
+    console.log('waaaaaat')
     page.removeChild(modal);
     e.preventDefault();
   });
@@ -124,7 +135,7 @@ function modal (content) {
 
 
 function resizeModal () {
-  var content = document.querySelector('.modal .location-info');
+  var content = document.querySelector('.modal-inner');
   content.style.width = (window.innerWidth - 44) + 'px';
 
   if (window.innerWidth < 470) {
