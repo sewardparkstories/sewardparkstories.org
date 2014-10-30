@@ -45,7 +45,7 @@ L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 * create map using mapbox plugin 
 */
 
-var streets = L.mapbox.tileLayer('sethvincent.jii2ph3n');
+var streets = L.mapbox.tileLayer('sethvincent.de840f5b');
 
 var map = L.map('map', {
   center: [47.555, -122.252],
@@ -101,8 +101,8 @@ function addMarker (row, i) {
 
   var marker = L.marker(latlng, {
     icon: L.mapbox.marker.icon({
-      'marker-size': 'small',
-      'marker-color': '#ff0000'
+      'marker-size': 'large',
+      'marker-color': '#aa3c3c'
     })
   });
 
