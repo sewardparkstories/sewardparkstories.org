@@ -2,7 +2,8 @@ var fs = require('fs');
 var Handlebars = require('handlebars');
 var elClass = require('element-class');
 var on = require('component-delegate').bind;
-var movement = require('geolocation-stream')()
+var movement = require('geolocation-stream')();
+var Scrollbar = require('scrollbar');
 var Leaflet = require('leaflet');
 require('mapbox.js');
 
@@ -15,6 +16,7 @@ mapEl.style.height = (window.innerHeight - mapEl.offsetTop) + 'px';
 
 var data = require('./data.json');
 data = createImageArrays(data);
+console.log('weeeeeeeee', data)
 
 L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw';
 
@@ -40,6 +42,32 @@ templates.list = Handlebars.compile(
 
 L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
+
+/* 
+* categories
+*/
+
+var checkedCategories = [];
+var menu = document.getElementById('menu');
+categories = getAllCategories(data);
+console.log(categories);
+if (categories.length > 0) {
+  menu.appendChild(document.createTextNode('Filter by category: '));
+}
+categories.forEach(function addCheckbox(item) {
+  var checkbox = document.createElement('input');
+  checkbox.className = 'categoryCheckbox';
+  checkbox.type = 'checkbox';
+  checkbox.name = item;
+  checkbox.value = item;
+  checkbox.addEventListener('change', updateWithFilters);
+  
+  var label = document.createElement('label');
+  label.appendChild(document.createTextNode(item));
+  
+  menu.appendChild(checkbox);
+  menu.appendChild(label);
+})
 
 /* 
 * create map using mapbox plugin 
@@ -88,26 +116,31 @@ window.onresize = function (e) {
   if (modal) resizeModal();
 };
 
-data.forEach(addMarker);
+
 
 
 /* 
 * add a marker to map from json data 
 */
 
+var markerGroup = new L.FeatureGroup();
+data.forEach(addMarker);
+
+updateWithFilters();
+
 function addMarker (row, i) {
   var latlng = { lat: row['lat'], lng: row['long'] };
   var content = templates.info(row);
-
+  
   var marker = L.marker(latlng, {
     icon: L.mapbox.marker.icon({
       'marker-size': 'large',
       'marker-color': '#aa3c3c'
     })
   });
-
-  marker.addTo(map);
-
+  
+  markerGroup.addLayer(marker);
+  
   marker.on('click', function(e) {
     modal(content);
   });
@@ -146,16 +179,62 @@ function resizeModal () {
 
 function createImageArrays (data) {
   data.forEach(function (item) {
-    if (!item.photos) return;
-    var images = item.photos.split(',');
+    if (!item.image) return;
+    var images = item.image.split(' ');
     images.forEach(function(image, i) {
-      if (!images[i].match('http')) {
-        images.splice(i, 1);
+      if (images[i].length > 0) {
+        images[i] = images[i].replace(/ /g,'');
       }
-      else images[i] = images[i].replace(/ /g,'');
     });
     item.images = images;
   });
   
   return data;
+}
+
+function updateWithFilters() {
+  checkedCategories = [];
+  var categoryCheckboxes = document.getElementsByClassName('categoryCheckbox');
+  for (var i = 0; i < categoryCheckboxes.length; i++) {
+    if (categoryCheckboxes[i].checked) {
+      checkedCategories.push(categoryCheckboxes[i].value);
+    }
+  }
+  console.log('checked:' + checkedCategories);
+  markerGroup.clearLayers();
+  map.removeLayer(markerGroup);
+  if (checkedCategories.length > 0) {
+    data.filter(filterByCategory).forEach(addMarker);
+  } else {
+    data.forEach(addMarker);
+  }
+  map.addLayer(markerGroup);
+}
+
+function filterByCategory(element) {
+  console.log(element.category);
+  console.log(checkedCategories);
+  for (var i = 0; i < checkedCategories.length; i++) {
+    if (checkedCategories[i] === element.category) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function containsCategory(categories, c) {
+  for (var i = 0; i < categories.length; i++) {
+    if (categories[i] === c) return true;
+  }
+  return false;
+}
+
+function getAllCategories(data) {
+  var categories = [];
+  for (var i = 0; i < data.length; i++) {
+    if (!containsCategory(categories, data[i].category)) {
+      categories.push(data[i].category);
+    }
+  }
+  return categories;
 }

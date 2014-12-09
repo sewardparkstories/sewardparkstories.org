@@ -6,6 +6,11 @@
     "url": "git://github.com/sethvincent/seward-park-map.git"
   },
   "main": "map.js",
+  "browserify": {
+    "transform": [
+      "brfs"
+    ]
+  },
   "scripts": {
     "parse-csv": "node bin/parse-csv.js",
     "bundle-css": "rework-npm style.css -o assets/bundle.css",

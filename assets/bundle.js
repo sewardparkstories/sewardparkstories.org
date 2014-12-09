@@ -3,7 +3,8 @@
 var Handlebars = require('handlebars');
 var elClass = require('element-class');
 var on = require('component-delegate').bind;
-var movement = require('geolocation-stream')()
+var movement = require('geolocation-stream')();
+var Scrollbar = require('scrollbar');
 var Leaflet = require('leaflet');
 require('mapbox.js');
 
@@ -16,6 +17,7 @@ mapEl.style.height = (window.innerHeight - mapEl.offsetTop) + 'px';
 
 var data = require('./data.json');
 data = createImageArrays(data);
+console.log('weeeeeeeee', data)
 
 L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw';
 
@@ -41,6 +43,32 @@ templates.list = Handlebars.compile(
 
 L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
+
+/* 
+* categories
+*/
+
+var checkedCategories = [];
+var menu = document.getElementById('menu');
+categories = getAllCategories(data);
+console.log(categories);
+if (categories.length > 0) {
+  menu.appendChild(document.createTextNode('Filter by category: '));
+}
+categories.forEach(function addCheckbox(item) {
+  var checkbox = document.createElement('input');
+  checkbox.className = 'categoryCheckbox';
+  checkbox.type = 'checkbox';
+  checkbox.name = item;
+  checkbox.value = item;
+  checkbox.addEventListener('change', updateWithFilters);
+  
+  var label = document.createElement('label');
+  label.appendChild(document.createTextNode(item));
+  
+  menu.appendChild(checkbox);
+  menu.appendChild(label);
+})
 
 /* 
 * create map using mapbox plugin 
@@ -74,7 +102,7 @@ on(document.body, '.nav a', 'click', function (e) {
   var id = e.target.id;
   
   if (id === 'about-view') {
-    var content = "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"modal-content\">\n    <h2>About the Seward Park Project</h2>\n    <p>Documentation of the history, culture, & art of Seward Park</p>\n  </div>\n\n</section>";
+    var content = "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"modal-content\">\n    \n    <h2>About <b>Sqebeqsed Stories</b></h2>\n    <p>Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.</p>\n    <p>“Place is a story happening many times.” So say the Kwakiutl people of coastal British Columbia.</p>\n    <p>Seward Park is stories happening over and over, many at once. People come here to celebrate, congregate, meditate, race, run, walk, swim, climb, picnic, play, reflect, relax, make art, learn, unlearn, unwind. This place has sustained local residents for ten thousand years.</p>\n    <p>Before it was named “Seward Park” a century ago, this forested peninsula jutting into Lake Washington was known as “Sqebeqsed,” or “fat nose” in the local language, Lushootseed. And so Seward Park Stories are <b>Sqebeqsed Stories</b>.</p>\n    <p>Here, you will find stories about life in Sqebeqsed and the many lives that intersect with it, both human and non-human, present and past.</p>\n    \n    \n    <hr>\n    \n    <p>Sqebeqsed Stories is created and curated by <a href=\"http://www.wendycall.com/\">Wendy Call</a>, in collaboration with photographer <a href=\"http://www.thomasbancroft.com/\">G. Thomas Bancroft</a>, researcher <a href=\"https://plu.academia.edu/ChristinaMontilla\">Christina Montilla</a>, web developer <a href=\"http://sethvincent.com\">Seth Vincent</a>, and many others who love Sqebeqsed. Made possible by an Individual Artist grant from <a href=\"http://www.4culture.org/\">4Culture</a>, with in-kind support from <a href=\"http://www.sewardpark.org/index.html\">Friends of Seward Park</a> and the <a href=\"http://sewardpark.audubon.org/\">Seward Park Audubon Center</a>.</p>\n  </div>\n\n</section>";
     modal(content);
   }
   
@@ -89,26 +117,31 @@ window.onresize = function (e) {
   if (modal) resizeModal();
 };
 
-data.forEach(addMarker);
+
 
 
 /* 
 * add a marker to map from json data 
 */
 
+var markerGroup = new L.FeatureGroup();
+data.forEach(addMarker);
+
+updateWithFilters();
+
 function addMarker (row, i) {
   var latlng = { lat: row['lat'], lng: row['long'] };
   var content = templates.info(row);
-
+  
   var marker = L.marker(latlng, {
     icon: L.mapbox.marker.icon({
       'marker-size': 'large',
       'marker-color': '#aa3c3c'
     })
   });
-
-  marker.addTo(map);
-
+  
+  markerGroup.addLayer(marker);
+  
   marker.on('click', function(e) {
     modal(content);
   });
@@ -147,21 +180,67 @@ function resizeModal () {
 
 function createImageArrays (data) {
   data.forEach(function (item) {
-    if (!item.photos) return;
-    var images = item.photos.split(',');
+    if (!item.image) return;
+    var images = item.image.split(' ');
     images.forEach(function(image, i) {
-      if (!images[i].match('http')) {
-        images.splice(i, 1);
+      if (images[i].length > 0) {
+        images[i] = images[i].replace(/ /g,'');
       }
-      else images[i] = images[i].replace(/ /g,'');
     });
     item.images = images;
   });
   
   return data;
 }
-},{"./data.json":2,"component-delegate":3,"element-class":8,"fastclick":9,"geolocation-stream":10,"handlebars":25,"leaflet":26,"mapbox.js":39}],2:[function(require,module,exports){
-module.exports=[{"type":"Audio Recording (at Soundcloud), Text","audio":"<iframe width=\"100%\" height=\"166\" scrolling=\"no\" frameborder=\"no\" src=\"https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/166005226&amp;color=ff5500&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false\"></iframe>","link":"","photos":"\n","text":"On a day in early August, a group of children walked along with their two summer camp leaders, along Seward Park's Sqebeqsed Trail -- also known as the Spine Trail -- in southeast Seattle. A man stood in the forest, playing a sort of metal sitar and singing.","title":"Heard Along Sqebeqsed Trail","credit":"Wendy Call","lat":"47.549586","long":"-122.251114","??":""},{"type":"Photograph & Text","audio":"\n","link":"","photos":"https://lh6.googleusercontent.com/-laz6IzwfUwc/VAqNJ-qIzUI/AAAAAAAAAQc/1MfQi-BqSBk/s640/IMG_1581.JPG","text":"In 1923, the people of Yokohama sent us an eight-ton stone lantern as a thank-you for offering help after an earthquake killed thirty thousand Yokohamans. Two decades later, our bombs killed another eight thousand in that city. Nine decades later, the lantern stands amid Japanese maple and Pacific rhododendron; the scents of dogshit, human urine, and sun-wilted summer flowers swirl around it. The taiko-gata lantern was a gift, an oxidized plaque tells us, “symbolizing the peace and good-will that exists between Japan and the United States.” ","title":"Yokohama Taiko-Gata Lantern","credit":"Wendy Call","lat":"47.54976","long":"-122.257427","??":""},{"type":"Text & 2 Photographs","audio":"","link":"","photos":"https://lh3.googleusercontent.com/-WVjLlF6m0QY/VAqNS1g1VbI/AAAAAAAAASs/ebS0q9aTmIY/s800/ClayStudioWPAsign.jpg, https://lh5.googleusercontent.com/-l6WxUHEo6FE/VAqNUewl5bI/AAAAAAAAAS0/wVkZTYi4pjI/s912/AndrewsBay2012.jpg","text":"Turn to the east, face our past. Turn to the west, face your reflection.","title":"At the Clay Studio","credit":"Wendy Call","lat":"47.54976","long":"-122.257427","??":""},{"type":"Photograph & Text","audio":"\n","link":"","photos":"https://lh5.googleusercontent.com/-brrqjzTEO9E/VAqNWhuwxWI/AAAAAAAAARc/UvvoLYSGbec/s512/BathroomSkylight.jpg","text":"Bathroom view of Seattle sky: Moss molders. Leaves linger.","title":"Women's Room","credit":"Wendy Call","lat":"47.549759","long":"-122.256475","??":""},{"type":"Photograph & Text","audio":"","link":"","photos":"https://lh6.googleusercontent.com/--0gOlO0zoIQ/VAqNVp4pH8I/AAAAAAAAAS8/vCPl1L4SS_g/s912/MtRainierfromBikeRack.jpg","text":"People shout at one another; sausage dogs trot on tangled leashes; kids feel the sting of hand-slaps and admonishment. (“You are not an adult!”) Over it all, over Lake Washington, Tahoma hovers. Impervious and imperial. Our land bows down to our mountain. Vine maple branches frame the mountain peak, with Mercer Island to the east and the low bump of Rainier Beach to the southwest.","title":"Rainier, Bikerack View","credit":"Wendy Call","lat":"47.549564","long":"-122.256661","??":""},{"type":"Photograph & Text","audio":"","link":"","photos":"https://lh5.googleusercontent.com/-C8J91pcbMBY/VAvVb7YyQDI/AAAAAAAAATY/pLWwDLoZLr4/s640/Bedrock.JPG","text":"Alki Beach and Seward Park, cardinal points on Seattle’s east-west axis, are connected by an invisible, treacherous line: the Seattle fault. An eon ago, an earthquake sent forests sliding into Lake Washington and a twenty-foot cliff bursting from the earth of Bailey Peninsula. Here on the north side of Seward Park, as at Alki, the quake broke bedrock though clay and moss, to the dim light of Northwestern days. ","title":"Scar(p)","credit":"Wendy Call","lat":"47.536475","long":"-122.255967","??":""},{"type":"Link & Text","audio":"\n","link":"Link the words \"her final interview\" to: ","photos":"","text":"In the last interview of her life, poet Denise Levertov said of Mount Rainier, \"When it's out, I can see it from my work room and my kitchen window. I usually take paper and pencil in my pocket when I go down to the park. Often something starts as I'm walking around there.\"","title":"","credit":"","lat":"47.560208","long":"-122.255403","??":""},{"type":"Link & Text","audio":"","link":"http://poems.com/special_features/prose/essay_warn.php","photos":"","text":"Seattle poet Emily Warn writes of Mount Rainier's influence on Denise Levertov, one of the most famous poets ever to live in Seattle: \"If 'Nature' in her poetry is a metonymy for spiritual understanding, then 'the mountain' stands for a divine presence hidden within, yet not of this material world....\"","title":"","credit":"","lat":"47.565792","long":"-122.253936","??":""},{"type":"Photograph & Link","audio":"","link":"http://spectatorspots.blogspot.com/2012/06/we-come-looking.html","photos":"https://lh4.googleusercontent.com/-Xc65nmKJFOE/VAqNexWarzI/AAAAAAAAATE/pZhjCjL9QBY/s576/IMG_3088.JPG","text":"In June 2012, over three weekend afternoons, I led two dozen writers through a writing and nature walk at Seward Park. This is what one of them, Kristianne Huntsberger, wrote. ","title":"A Writing Spot","credit":"","lat":"47.555297","long":"-122.254394","??":""},{"type":"Photograph","audio":"","link":"","photos":"http://cdn.c.photoshelter.com/img-get/I0000gcOguCU6ejo/s/900/900/American-Crow-portrait-Seward-Park-Seattle-9687.jpg","text":"","title":"American Crow","credit":"Thomas Bancroft","lat":"47.548889","long":"-122.256389","??":""},{"type":"Photograph","audio":"","link":"","photos":"http://cdn.c.photoshelter.com/img-get/I0000Rqic3mwa2Dw/s/900/900/Hawthorn-berries-Seward-Park-Seattle.jpg","text":"","title":"Hawthorn Berries","credit":"Thomas Bancroft","lat":"47.553611","long":"-122.250556","??":""},{"type":"Photograph","audio":"","link":"","photos":"http://cdn.c.photoshelter.com/img-get/I0000P0OCn0WSZAA/s/900/900/High-Bush-Craneberry-Seward-Park-Seattle.jpg","text":"","title":"High Bush Cranberry","credit":"Thomas Bancroft","lat":"47.551111","long":"-122.250833","??":""},{"type":"Photograph","audio":"","link":"","photos":"http://cdn.c.photoshelter.com/img-get/I00006tb8RILewic/s/900/900/Mallard-Seward-Park-Seattle-9465.jpg","text":"","title":"Mallard","credit":"Thomas Bancroft","lat":"47.548889","long":"-122.254722","??":""},{"type":"Photograph","audio":"","link":"","photos":"http://cdn.c.photoshelter.com/img-get/I0000TKsIYVed2cM/s/900/900/Seward-Park-Trail-Seward-Park-Seattle-1645.jpg","text":"","title":"Sqebeqsed Trail","credit":"Thomas Bancroft","lat":"47.556667","long":"-122.251944","??":""},{"type":"Photograph","audio":"","link":"","photos":"http://cdn.c.photoshelter.com/img-get/I0000oD1aRx_6ofk/s/900/900/Sunrise-at-Seward-Park-Seward-Park-Seattle.jpg","text":"","title":"Sunrise at South Beach","credit":"Thomas Bancroft","lat":"47.550278","long":"-122.248333","??":""},{"type":"Link & Text","audio":"","link":"","photos":"\n","text":"<p>My June 2012 writing workshops inspired one participating writer, Robert\n Francis Flor, to create a one-act play based on his memories of annual \npicnics on Pinoy Hill. </p><p style=\"text-align: center;\"><span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\">The beginning of a one-act play</span><em><span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"> Pinoy Hill, Seward Park, 1957 </span></em><span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\">by Robert Francis Flor</span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<strong><span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\">Scene I </span></strong></p>\n<p><em><span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\">(Pinoy Hill in Seward Park, Seattle. 1957. Three picnic tables placed in a row. The table at one end is marked with a RESERVED sign. A teen boy sprawls across the center table.)</span></em><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>MAX:</strong> <em>(Acts bored. Swears.)</em> Why me? So unfair. <em>(Pounds table.) </em>It&rsquo;s the same every year. Boring. Same old dances. Same old table. Same music. Same faces. BORING! <em>(Lays down on bench next to table and closes eyes.)</em></span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<em><span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\">(An older Pinay woman (late-forties to early fifties) enters. She carries a shopping bag. Noticing him, she makes disgusting grunting and grumbling noises and mutters as she puts the bag on the table on the remaining, unreserved table.)</span></em><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>ROSARIO:</strong> Psst! Psst!</span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>MAX: </strong><em>(Doesn&rsquo;t respond. Ignores her.)</em></span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>ROSARIO:</strong> Psst! Halo! Magandang umaga sa iyo! <em>(MAX continues to ignore her.) </em>Boy! I said &ldquo;Halo!&rdquo;</span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>MAX:</strong> I don&rsquo;t understand Filipino. An&rsquo; I&rsquo;m not a boy.</span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>ROSARIO:</strong> Oh, American-born. I see. I said &ldquo;Hello. Good morning.&rdquo;</span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>MAX: </strong><em>(Sits up.)</em> Can I help you?</span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>ROSARIO:</strong> Are you saving that table? I would like it.</span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>MAX:</strong> <em>(Stands.) </em>No can do, Auntie.</span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>ROSARIO:</strong> Ha? Why &ldquo;no can do&rdquo;? You&rsquo;re the only one here. You use it just for sleep. My family is coming.</span><br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<br style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\" />\n<span style=\"font-family: calibri, arial, sans, sans-serif; font-size: 14px; white-space: pre-wrap;\"><strong>MAX:</strong> My dad would kill me if I gave up this table. I&rsquo;m saving it for my family. It&rsquo;s his orders.</span></p>\n\n","title":"Pinoy Hill, Seward Park, 1957","credit":"Robert Francis Flor","lat":"47.551975","long":"-122.255494","??":""},{"type":"Text & Photograph","audio":"","link":"","photos":"","text":"In a circle of vine maples, encircled today by black-and-yellow caution tape: Put your left hand on top of your right, pull down. And if you want to stop, just let go. Are you doing alright? The only adult in the group says, “I am pretty terrified.” They swing in harnesses, suspended from high vine-maple branches in their own, private rope swings. One boy hoists himself nearly to tree top, alights, and climbs around in tree-sky. “Oh, wow. How high is he up there?” He’s probably about at fifty feet. That’s like standing on top of a telephone pole. OK, kids, you’ve got fifteen minutes left. Some want to go higher, some are more than ready to return to earth. The tree-swingers have drawn a small crowd: a family of three and an older couple with matching white sun hats. A great blue egret stands pencil-slim on a South Bay piling. The boy who climbed to top-of-telephone-pole height, skims to the ground and leaps from the harness. “I had a piece of bark in my pants. How did that happen?” \nAnother boy swings fifteen feet off the ground, feet up, head down. Anybody remember what kind of tree you’re in? Only one does; the other children cheer. Two men jog by, one pushing a stroller, talking of 30K and 60K races. The climbing-swinging children are replaced by another group ready to harness up. Still, the heron waits. \n","title":"At the Vine Maples","credit":"Wendy Call","lat":"47.548802","long":"-122.256936","??":""},{"type":"Text & Photograph","audio":"","link":"","photos":"https://lh4.googleusercontent.com/-IraGuCoWVoA/VAqNPOxBwxI/AAAAAAAAAQ0/YOqE26Q3Lws/s720/IMG_2244.JPG","text":"Everywhere in Seward Park you are close to speciessong and shitscent. Songs of speed walkers, Pacific wrens, plodding joggers, chestnut-baked chickadees, radios from yachts moored offshore. Shitscents of dog, mallard, toddler, Canada goose. Crows in the round-crowned garry oaks send down drifts of pollen and scraps of moss as they flap indignant wings. Walkers move at all speeds, carrying pocketbooks, or wrist weights, or a white parasol, or the leash of a loping Laborador. Far off, twin Jet-Skis whine; nearby, a solitary fire-orange wasp buzzes thimbleberry.","title":"Garry Oak Prairie","credit":"Wendy Call","lat":"47.549232","long":"-122.252981","??":""},{"type":"Photograph","audio":"","link":"","photos":"https://lh4.googleusercontent.com/-dHPc0KFLzUA/VAqNLOzl8yI/AAAAAAAAAQk/rBdKA3zRBLk/s640/IMG_1604.JPG","text":"","title":"Poison Oy","credit":"Wendy Call","lat":"47.549236","long":"-122.252372","??":""}]
+
+function updateWithFilters() {
+  checkedCategories = [];
+  var categoryCheckboxes = document.getElementsByClassName('categoryCheckbox');
+  for (var i = 0; i < categoryCheckboxes.length; i++) {
+    if (categoryCheckboxes[i].checked) {
+      checkedCategories.push(categoryCheckboxes[i].value);
+    }
+  }
+  console.log('checked:' + checkedCategories);
+  markerGroup.clearLayers();
+  map.removeLayer(markerGroup);
+  if (checkedCategories.length > 0) {
+    data.filter(filterByCategory).forEach(addMarker);
+  } else {
+    data.forEach(addMarker);
+  }
+  map.addLayer(markerGroup);
+}
+
+function filterByCategory(element) {
+  console.log(element.category);
+  console.log(checkedCategories);
+  for (var i = 0; i < checkedCategories.length; i++) {
+    if (checkedCategories[i] === element.category) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function containsCategory(categories, c) {
+  for (var i = 0; i < categories.length; i++) {
+    if (categories[i] === c) return true;
+  }
+  return false;
+}
+
+function getAllCategories(data) {
+  var categories = [];
+  for (var i = 0; i < data.length; i++) {
+    if (!containsCategory(categories, data[i].category)) {
+      categories.push(data[i].category);
+    }
+  }
+  return categories;
+}
+},{"./data.json":2,"component-delegate":3,"element-class":8,"fastclick":9,"geolocation-stream":10,"handlebars":25,"leaflet":26,"mapbox.js":39,"scrollbar":53}],2:[function(require,module,exports){
+module.exports=[{"type":"Audio &Text","audio":"<iframe width=\"100%\" height=\"166\" scrolling=\"no\" frameborder=\"no\" src=\"https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/166005226&amp;color=ff5500&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false\"></iframe>","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"On a day in early August, a group of children walked along with their two summer camp leaders, along Seward Park's Sqebeqsed Trail -- also known as the Spine Trail -- in southeast Seattle. A man stood in the forest, playing a sort of metal sitar and singing.","excerpt":"On a day in early August, a group of children walked along with their two summer camp leaders, along Seward Park's Sqebeqsed Trail…. ","title":"Heard Along Sqebeqsed Trail","credit":"Wendy Call, 2014","lat":"47.549586","long":"-122.251114","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":" https://lh6.googleusercontent.com/-laz6IzwfUwc/VAqNJ-qIzUI/AAAAAAAAAQc/1MfQi-BqSBk/s640/IMG_1581.JPG","text":"In 1923, the people of Yokohama sent us an eight-ton stone lantern as a thank-you for offering help after an earthquake killed thirty thousand Yokohamans. Two decades later, our bombs killed another eight thousand in that city. Nine decades later, the lantern stands amid Japanese maple and Pacific rhododendron; the scents of dogshit, human urine, and sun-wilted summer flowers swirl around it. The taiko-gata lantern was a gift, an oxidized plaque tells us, “symbolizing the peace and good-will that exists between Japan and the United States.”","excerpt":"In 1923, the people of Yokohama sent us an eight-ton stone lantern as a thank-you for offering help after an earthquake killed thirty thousand Yokohamans. ","title":"Yokohama Taiko-Gata Lantern","credit":"Wendy Call, 2012","lat":"47.54976","long":"-122.257427","category":"culture"},{"type":"Images (2) & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":" https://lh3.googleusercontent.com/-WVjLlF6m0QY/VAqNS1g1VbI/AAAAAAAAASs/ebS0q9aTmIY/s800/ClayStudioWPAsign.jpg, https://lh5.googleusercontent.com/-l6WxUHEo6FE/VAqNUewl5bI/AAAAAAAAAS0/wVkZTYi4pjI/s912/AndrewsBay2012.jpg","text":"Turn to the east, face our past. Turn to the west, face your reflection.","excerpt":"Turn to the east, face our past. Turn to the west, face your reflection.","title":"At the Clay Studio","credit":"Wendy Call, 2014","lat":"47.54976","long":"-122.257427","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":" https://lh5.googleusercontent.com/-brrqjzTEO9E/VAqNWhuwxWI/AAAAAAAAARc/UvvoLYSGbec/s512/BathroomSkylight.jpg","text":"Bathroom view of Seattle sky: Moss molders. Leaves linger.","excerpt":"Bathroom view of Seattle sky: Moss molders. Leaves linger.","title":"Women's Room","credit":"Wendy Call, 2014","lat":"47.549759","long":"-122.256475","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://thomasbancroft.photoshelter.com/gallery-image/02-February/G0000bfN54TJ3GJc/I0000drj78Ba9TxY/C0000w8rPocZeArE","text":"People shout at one another; sausage dogs trot on tangled leashes; kids feel the sting of hand-slaps and admonishment. (“You are not an adult!”) Over it all, over Lake Washington, Tahoma hovers. Impervious and imperial. Our land bows down to our mountain. Vine maple branches frame the mountain peak, with Mercer Island to the east and the low bump of Rainier Beach to the southwest.","excerpt":"People shout at one another; sausage dogs trot on tangled leashes; kids feel the sting of hand-slaps and admonishment. ","title":"Rainier, Bikerack View","credit":"Thomas Bancroft, 2014","lat":"47.549564","long":"-122.256661","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/114539162694454678520/SewardPark2014#6056168799704596530","text":"Alki Beach and Seward Park, cardinal points on Seattle’s east-west axis, are connected by an invisible, treacherous line: the Seattle fault. An eon ago, an earthquake sent forests sliding into Lake Washington and a twenty-foot cliff bursting from the earth of Bailey Peninsula. Here on the north side of Seward Park, as at Alki, the quake broke bedrock though clay and moss, to the dim light of Northwestern days.","excerpt":"Alki Beach and Seward Park, cardinal points on Seattle’s east-west axis, are connected by an invisible, treacherous line….","title":"Scar(p)","credit":"Wendy Call, 2014","lat":"47.536475","long":"-122.255967","category":"landscape"},{"type":"Link & Text","audio":"","hyperlink_1":"Link the words \"her final interview\" to: ","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"In the last interview of her life, poet Denise Levertov said of Mount Rainier, \"When it's out, I can see it from my work room and my kitchen window. I usually take paper and pencil in my pocket when I go down to the park. Often something starts as I'm walking around there.\"","excerpt":"In the last interview of her life, poet Denise Levertov said of Mount Rainier, \"When it's out, I can see it from my work room and my kitchen window….\" ","title":"Levertov's Rainier","credit":"Thomas Bancroft, 2014","lat":"47.560208","long":"-122.255403","category":"landscape"},{"type":"Link & Text","audio":"","hyperlink_1":"http://poems.com/special_features/prose/essay_warn.php","hyperlink_1_text":"writes of Mount Rainier's influence on Denise Levertov","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"Seattle poet Emily Warn writes of Mount Rainier's influence on Denise Levertov, one of the most famous poets ever to live in Seattle: \"If 'Nature' in her poetry is a metonymy for spiritual understanding, then 'the mountain' stands for a divine presence hidden within, yet not of this material world....\"","excerpt":"Seattle poet Emily Warn writes of Mount Rainier's influence on Denise Levertov, one of the most famous poets ever to live in Seattle….","title":"Divine Presence","credit":"Emily Warn, 2011","lat":"47.565792","long":"-122.253936","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"http://spectatorspots.blogspot.com/2012/06/we-come-looking.html","hyperlink_1_text":"wrote a short essay, \"We Come Looking,\"","hyperlink_2":"","hyperlink_2_text":"","image":"https://lh4.googleusercontent.com/-Xc65nmKJFOE/VAqNexWarzI/AAAAAAAAATE/pZhjCjL9QBY/s576/IMG_3088.JPG","text":"In June 2012, over three weekend afternoons, I led two dozen writers through a writing and nature walk at Seward Park. One of them, Kristianne Huntsberger, wrote a short essay, \"We Come Looking,\" duing our walk.","excerpt":"In June 2012, over three weekend afternoons, I led two dozen writers through a writing and nature walk at Seward Park. One of them, Kristianne Huntsberger, wrote a short essay, \"We Come Looking,\" duing our walk.","title":"A Writing Spot","credit":"Kristianne Huntsberger and Wendy Call, 2012","lat":"47.555297","long":"-122.254394","category":"culture"},{"type":"Image & Text & Link","audio":"","hyperlink_1":"http://depts.washington.edu/uwcrows/","hyperlink_1_text":"some ornithologists celebrate them","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000gcOguCU6ejo/s/900/900/American-Crow-portrait-Seward-Park-Seattle-9687.jpg","text":"A century ago, Audubon Society members dreamed of keeping crows out of Seward Park. Now, some ornithologists celebrate them.","excerpt":"A century ago, Audubon Society members dreamed of keeping crows out of Seward Park. Now, ornithologists celebrate them.","title":"American Crow","credit":"Thomas Bancroft, 2014","lat":"47.548889","long":"-122.256389","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000Rqic3mwa2Dw/s/900/900/Hawthorn-berries-Seward-Park-Seattle.jpg","text":"","excerpt":"","title":"Hawthorn Berries","credit":"Thomas Bancroft, 2014","lat":"47.553611","long":"-122.250556","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000P0OCn0WSZAA/s/900/900/High-Bush-Craneberry-Seward-Park-Seattle.jpg","text":"","excerpt":"","title":"High Bush Cranberry","credit":"Thomas Bancroft, 2014","lat":"47.551111","long":"-122.250833","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000kFIPNWL0xbU/s/900/900/Glaucous-winged-Gull-Seward-Park-Seattle-9761.jpg","text":"","excerpt":"","title":"Glaucous Winged Gull Feeds in Shallow Water","credit":"Thomas Bancroft, 2014","lat":"47.548808","long":"-122.256442","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000TKsIYVed2cM/s/900/900/Seward-Park-Trail-Seward-Park-Seattle-1645.jpg","text":"","excerpt":"","title":"Sqebeqsed Trail","credit":"Thomas Bancroft, 2014","lat":"47.556667","long":"-122.251944","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000oD1aRx_6ofk/s/900/900/Sunrise-at-Seward-Park-Seward-Park-Seattle.jpg","text":"","excerpt":"","title":"Sunrise at South Beach","credit":"Thomas Bancroft, 2014","lat":"47.550278","long":"-122.248333","category":"landscape"},{"type":"Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"The beginning of a one-act play, Pinoy Hill, Seward Park, 1957, by Robert Francis Flor\n\nScene I (Pinoy Hill in Seward Park, Seattle. 1957. Three picnic tables placed in a row. The table at one end is marked with a RESERVED sign. A teen boy sprawls across the center table.)\n\nMAX:  (Acts bored. Swears.) Why me? So unfair. (Pounds table.) It’s the same every year. Boring. Same old dances. Same old table. Same music. Same faces.  BORING! (Lays down on bench next to table and closes eyes.)\n\n(An older Pinay woman (late-forties to early fifties) enters. She carries a shopping bag. Noticing him, she makes disgusting grunting and grumbling noises and mutters as she puts the bag on the table on the remaining, unreserved table.)\n\nROSARIO: Psst! Psst!\n\nMAX: (Doesn’t respond. Ignores her.)\n\nROSARIO: Psst! Halo! Magandang umaga sa iyo! (Max continues to ignore her.)  Boy!  I said “Halo!”\n\nMAX: I don’t understand Filipino. An’ I’m not a boy.\n\nROSARIO: Oh, American-born. I see.  I said “Hello. Good morning.”\n\nMAX: (Sits up.) Can I help you?\n\nROSARIO: Are you saving that table?  I would like it.\n\nMAX: (Stands)  No can do, Auntie.\n\nROSARIO: Ha?  Why “no can do”?  You’re the only one here. You use it just for sleep. My family is coming.\n\nMAX: My dad would kill me if I gave up this table. I’m saving it for my family. It’s his orders.","excerpt":"Scene I (Pinoy Hill in Seward Park, Seattle. 1957. Three picnic tables placed in a row. The table at one end is marked with a RESERVED sign. A teen boy sprawls across the center table.)","title":"Pinoy Hill - a play","credit":"Thomas Bancroft, 2014","lat":"47° 33'07.11\" N","long":"122° 15'19.78\"W","category":"culture"},{"type":"Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"In a circle of vine maples, encircled today by black-and-yellow caution tape: Put your left hand on top of your right, pull down. And if you want to stop, just let go. Are you doing alright? The only adult in the group says, “I am pretty terrified.” They swing in harnesses, suspended from high vine-maple branches in their own, private rope swings. One boy hoists himself nearly to tree top, alights, and climbs around in tree-sky. “Oh, wow. How high is he up there?” He’s probably about at fifty feet. That’s like standing on top of a telephone pole. OK, kids, you’ve got fifteen minutes left. Some want to go higher, some are more than ready to return to earth. The tree-swingers have drawn a small crowd: a family of three and an older couple with matching white sun hats. A great blue egret stands pencil-slim on a South Bay piling. The boy who climbed to top-of-telephone-pole height, skims to the ground and leaps from the harness. “I had a piece of bark in my pants. How did that happen?” \nAnother boy swings fifteen feet off the ground, feet up, head down. Anybody remember what kind of tree you’re in? Only one does; the other children cheer. Two men jog by, one pushing a stroller, talking of 30K and 60K races. The climbing-swinging children are replaced by another group ready to harness up. Still, the heron waits.","excerpt":"In a circle of vine maples, encircled today by black-and-yellow caution tape: Put your left hand on top of your right, pull down. ","title":"At the Vine Maples","credit":"Wendy Call, 2014","lat":"47° 32'55.69\" N","long":"122° 15'24.97\"W","category":"culture"},{"type":"Image &Text","audio":"","hyperlink_1":"https://lh4.googleusercontent.com/-IraGuCoWVoA/VAqNPOxBwxI/AAAAAAAAAQ0/YOqE26Q3Lws/s720/IMG_2244.JPG","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/i7InGb91Ll8FL3TRAd5tMNMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Everywhere in Seward Park you are close to speciessong and shitscent. Songs of speed walkers, Pacific wrens, plodding joggers, chestnut-baked chickadees, radios from yachts moored offshore. Shitscents of dog, mallard, toddler, Canada goose. Crows in the round-crowned garry oaks send down drifts of pollen and scraps of moss as they flap indignant wings. Walkers move at all speeds, carrying pocketbooks, or wrist weights, or a white parasol, or the leash of a loping Laborador. Far off, twin Jet-Skis whine; nearby, a solitary fire-orange wasp buzzes thimbleberry.","excerpt":"","title":"Garry Oak Prairie","credit":"Wendy Call, 2014","lat":"47.549232","long":"-122.252981","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"https://lh4.googleusercontent.com/-dHPc0KFLzUA/VAqNLOzl8yI/AAAAAAAAAQk/rBdKA3zRBLk/s640/IMG_1604.JPG","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/3j_2v7Hf1icjFaMsJ4zArdMTjNZETYmyPJy0liipFm0?feat=directlink","text":"","excerpt":"","title":"Poison Oy","credit":"Wendy Call, 2014","lat":"47.549236","long":"-122.252372","category":"culture"},{"type":"Link & Text","audio":"","hyperlink_1":"http://pugetopolis.blogspot.com/2009/11/reading-at-seward-park.html","hyperlink_1_text":"","hyperlink_2":"been inspired by Seward Park","hyperlink_2_text":"","image":"","text":"Knute Berger, \"Mossback,\" is one of Northwest writers who has been inpsired by Seward Park over a half-century of visits.","excerpt":"Knute Berger, \"Mossback,\" is one of Northwest writers who has been inpsired by Seward Park over a half-century of visits.","title":"Mossback","credit":"Knute Berger, 2011","lat":"47.549722","long":"-122.256389","category":"culture"},{"type":"Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"\"Bailey Peninsula, southeast of the city, forms the most available large tract of land that is uniformly and beautifully covered with woods, and should be secured eventually, and, of course, before the woods are injured.\"","excerpt":"\"Bailey Peninsula, southeast of the city, forms the most available large tract of land that is uniformly and beautifully covered with woods...\" Here, at Trip Vine Crossing, you are about to enter the Magnificent Forest.","title":"From the Park Commissioners' Report","credit":"Olmstead Brothers, 1908","lat":"47.554722","long":"-122.250278","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/ZRdIgSpLolv0ktIJWCIcVdMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Julie Chinitz and Heidi Stahl participate in a writing workshop with Wendy Call in June 2012. Julie has run the nine-mile loop from her house in the Central District to Seward Park for years. When asked to name the most important place in the park, she said, \"The water fountain?\"","excerpt":"Julie Chinitz and Heidi Stahl participate in a writing workshop with Wendy Call in June 2012. Julie has run the nine-mile loop from her house in the Central District to Seward Park for years. When asked to name the most important place in the park, she said, \"The water fountain?\"","title":"Word-working","credit":"Wendy Call, 2012","lat":"47.561696","long":"-122.254172","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/fJcE5PgtKNkAxA8OwHhmMNMTjNZETYmyPJy0liipFm0?feat=directlink","text":"At the Andrew's Bay beach, climb into the lifeguard's chair. This is the place where much of what you are reading here, at Sqebeqsed Stories, was written.","excerpt":"At the Andrew's Bay beach, climb into the lifeguard's chair. This is the place where much of what you are reading here, at Sqebeqsed Stories, was written.","title":"Field Office, with a View","credit":"Wendy Call, 2012","lat":"47.551389","long":"-122.2575","category":"culture"},{"type":"Link & Text","audio":"","hyperlink_1":"http://www.sewardpark.org/history.html","hyperlink_1_text":"was born on the shores of Lake Washington","hyperlink_2":"","hyperlink_2_text":"","image":"http://upload.wikimedia.org/wikipedia/commons/b/b8/General_history%2C_Alaska_Yukon_Pacific_Exposition%2C_fully_illustrated_-_meet_me_in_Seattle_1909_-_Page_33.jpg","text":"Kick-is-om-lo, Chief Seattle's daughter, who later came to known as Princess Angeline, was born on the shores of Lake Washington south of the Sqebeqsed Peninsula, near what we now call Atlantic Park, but was then called Tuxwoo'kwib, place of the loons.","excerpt":"Kick-is-om-lo, Chief Seattle's daughter, who later came to known as Princess Angeline, was born on the shores of Lake Washington south of the Sqebeqsed Peninsula","title":"Princess Angeline's Birthplace","credit":"Friends of Seward Park","lat":"47.542557","long":"-122.260952","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/MJghV4v341oEOdGO_XULK9MTjNZETYmyPJy0liipFm0?feat=directlink","text":"For a half-century, from the 1930s to the 1980s, developers threatened to build a bridge from Seward Park to Mercer Island. In the 1930s, the plan was to build it from this point on the south side of the park. A half century later, the planned location had moved south of the park. Imagine: the view of Mount Rainier slashed by a bridge.","excerpt":"For a half-century, from the 1930s to the 1980s, developers threatened to build a bridge from Seward Park to Mercer Island.","title":"Bridge to Mercer Island?","credit":"Seattle Times, 1981","lat":"47.539167","long":"-122.226111","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/EgOCCzEaIatnmDjvKoZhfNMTjNZETYmyPJy0liipFm0?feat=directlink","text":"\"I wish more folks understood. There are humane socities for dogs and kittens. They can cry when they are hurt. These flowers, too, are living things, but have no way to protest or escape. I wish all children might be taught to plant, and to protect.\" --Jacob L. Umlauff, long-time Seattle Parks gardener, 1930 (Mr. Umlauff planted the holly that has become such a terrible invasive plant in the park.)","excerpt":"\"The flowers, too, are living things, but have no way to protest or escape.\"","title":"A Voice for Flowers","credit":"Seattle Daily Times","lat":"47.549722","long":"-122.256667","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://lh4.googleusercontent.com/-yt4RN3WTvic/VIUz2lDI8FI/AAAAAAAAAZg/cwcRgu1wu9k/h120/Salal-Seward%2BPark-TBancroft.jpg","text":"\"Of course all the men detest everything wild except the big leaved maple tree and madronas. Bushes are to them merely weeds to be trampled down and destroyed so grass can be grown. It seems especially queer that they cannot appreciate the beautiful evergreen undergrowth they have here--the Oregon grape, the Sallal, and the evergreen huckleberry.\" --John Charles Olmstead, 1908","excerpt":"\"It seems epecially queer that they cannot apprciate the beautiful evergreen undergrowth they have here....\"","title":"Salal","credit":"Thomas Bancroft, 2014","lat":"47.554203","long":"-122.250115","category":"landscape"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://www.historylink.org/index.cfm?DisplayPage=output.cfm&file_id=3141","hyperlink_1_text":"a quarter-million trout swam from Seward Park hatchery ponds","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/ERvk-40QjbYeqXs0R1zYgdMTjNZETYmyPJy0liipFm0?feat=directlink  https://picasaweb.google.com/114539162694454678520/SewardPark5Sept14#6090366686192234898","text":"In the mid-1940s, a quarter-million trout swam from Seward Park hatchery ponds into Lake Washington every year. By the 1970s, we understood that fisherman's paradise as a sort of pollution.","excerpt":"In the 1940s, a quarter-million trout swam from Seward Park hatchery ponds","title":"","credit":"Seattle Times, 1945 & Wendy Call, 2014","lat":"47.556111","long":"-122.251111","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/c8d9xAg92Kfo3Ibwki6K9_eEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"A bird sweeps so low overhead I feel its wind and smell its wings. A young bald eagle. In August, the fledglings they are still unsteady on branch and wing. If lumbering were possible on the wing, this huge brown bird would be lumbering. It swoops to an unsteady landing on a tenuous branch, just below another young bald eagle. Second bird hops up to perch by first. Together, they tear at leaves around them, raining leaf-litter down onto my face, onto tree roots and blackberry, onto someone’s left-behind paper napkins and a yellow \"WARNING buried cable\" sign.","excerpt":"A bird sweeps so low overhead I feel its wind and smell its wings. A young bald eagle. In August, the fledglings they are still unsteady on \nbranch and wing.","title":"Eagle Hunting Roost","credit":"Wendy Call, 2014","lat":"47.560556","long":"-122.255","category":"ecology"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://dartofphysics.ie/physics-darts/we-are-all-made-stardust","hyperlink_1_text":"were forged by dying stars","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/aBE6nAht2Jz2J75fXH2Py_eEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"The land we walk here at Seward Park, the madrona and thimbleberry, our own bodies resting or sweating, are made of stardust. The atoms of our bodies were forged by dying stars.","excerpt":"The land we walk here at Seward Park, the madrona and thimbleberry, our own bodies resting or sweating, are made of stardust. The atoms of our bodies were forged by dying stars.","title":"Stardust","credit":"Wendy Call, 2014","lat":"47.549444","long":"-122.249722","category":"ecology"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://www.historylink.org/index.cfm?DisplayPage=output.cfm&file_id=3172","hyperlink_1_text":"Forty-five years later, the first Black family finally moved in","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/h5NSwzarAtf5w7rHKT7w6PeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"In 1925, Seattle developers planned a new neighborhood on the steep hills just west of Seward Park. Forty-five years later, the first African American family built a house there--despite their neighbors best efforts to keep them out. Owned by the family of Dr. Jorn Henry, a surgeon, the house was designed by African American architect Benjamin McAdoo.","excerpt":"In 1925, Seattle developers planned a new neighborhood on the steep hills just west of Seward Park.","title":"Seward Park Uplands: Showplace of the (Racist) West","credit":"Seattle Daily Times, 1925","lat":"47.545","long":"-122.259167","category":"culture"},{"type":"Text & Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/gfUs31i2FxQDq-beWWTdvtMTjNZETYmyPJy0liipFm0?feat=directlink","text":"\"Seward Park will be made, as near as possible, into a pace of absolute security for Seattle song birds. In fact the officers of the Audubon Society hope that its fame will spread abroad and he feathered tourists may be converted into permanent residents. The plan for the bird sanctuary started before the United States declared war on Germany. ... Seward Park was selected because of its ideal location and because Lake Washington at that point is already a government preserve. ... Its beauty is of the sort that birds like--not artificially made lawns and carefully planted flower beds--but of Nature's outlay of scraggly trees, with a generous smattering of berry bushes. ...As soon as weather conditions permit the entrance to the park will be decorated with a beautiful archway.... Boys with airguns cannot enter. It will be the deadline for cat.s The members of the society are thinking of ways and means to make crows and blackbirds know they are not wanted. ... Permission to kill cats has been denied the Audubon Society, but the enactment of an ordinance requiring the licensing of cats, it is believed, will eliminate the one big enemy of the birds.\"","excerpt":"\"Seward Park will be made, as near as possible, into a pace of absolute security for Seattle song birds.\"","title":"\"Seward Park is Made Inviting for Songsters\"","credit":"Seattle Sunday Times, 1919","lat":"47.558416","long":"-122.253249","category":"culture"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://www.seattle.gov/util/EnvironmentConservation/ClimateChangeProgram/ProjectedChanges/Sea-LevelRiseMap/index.htm","hyperlink_1_text":"Ever higher.","hyperlink_2":"","hyperlink_2_text":"","image":"\"http://cdn.c.photoshelter.com/img-get/I0000fLFFZPeXyQ8/s/900/900/Mew-Gull-Seward-Park-Seattle-9703.jpg","text":"The coast draws us all--children, elders, dogs, mew gulls. The water pulls us. Our actions pull the water. Ever higher.","excerpt":"The coast draws us all--children, elders, dogs, mew gulls. The water pulls us. Our actions pull the water. Ever higher.","title":"In Shallow Water","credit":"Thomas Bancroft, 2014","lat":"47.548805","long":"-122.256403","category":"ecology"},{"type":"Text & Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/MTwF_4TLs7X7EQUB1eBDfPeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"In the aftermath of World War I, the Mount Baker neighborhood (just northwest of Seward Park) decided to forbid Japanese-American residents. Reverend U.G. Murphy, of the Columbia Congregational Church, tried to stop them. He failed. He continued his pro-tolerance campaign through World War Ii.","excerpt":"In the aftermath of World War I, the Mount Baker neighborhood (just northwest of Seward Park) decided to forbid Japanese-American residents.","title":"Reverend Murphy's Fishing Pier","credit":"Wendy Call, 2014","lat":"47.560833","long":"-122.255278","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/zUAoHYnMu-GPduU616a6pfeEGFXQ55vgHsSHvukXYs4?feat=directlink  https://picasaweb.google.com/lh/photo/MhHNHNMrX208wH1uVnukv9MTjNZETYmyPJy0liipFm0?feat=directlink","text":"In the 1930s, white neighbors of Seward Park complained about Japanese Americans moving to the neighborhood. In the 1970s, the Japanese prime minister gifted Seattle with one thousand cherry trees and these lanterns. These days, people sometimes tuck into the lanterns burning slips of paper on which they have written their regrets.","excerpt":"In the 1970s, the Japanese prime minister gifted Seattle with one thousand cherry trees and these lanterns.","title":"Lanterns Over Andrew's Bay","credit":"Wendy Call, 2014","lat":"47.550833","long":"-122.26","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/tWZximpXJNYvTcxmhz8gbtMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Camas lilies were a crucial food source for those the  Xachua'bsh who lived near the Sqebeqsed peninsula. They would not grow if the forest was allowed to grow up around them.","excerpt":"Camas lilies were a crucial food source for those the  Xachua'bsh who lived near the Sqebeqsed peninsula.","title":"Camas Lilies","credit":"Wendy Call, 2014","lat":"47.549167","long":"-122.252778","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/0Nszej5lhVF6OlRfB4ZXsveEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"The Xachua'bsh (Lake People) who lived hear Sqebeqsed burned parts of the forest, so the landscape would give them sustenance. Fire swept the peninsula in the late 1400s and in the early 1800s.","excerpt":"The Xachua'bsh (Lake People) who lived hear Sqebeqsed burned parts of the forest, so the landscape would give them sustenance. Fire swept the peninsula in the late 1400s and in the early 1800s.","title":"Corey Hydrant","credit":"Wendy Call, 2014","lat":"47.561111","long":"-122.254722","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/kIBPae9RUON3ms1PfgrAbdMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Al Smith comes to the park nearly every day to pull out invasives. He has done this for years. \"After the Parks Department removed the ivy and blackberry, they hoped the bleeding heart would spread. But instead, the fancy ragwort, creeping buttercup, and other noxious weeds did.\" Al Smith, May 4, 2013","excerpt":"Al Smith comes to the park nearly every day to pull out invasives. He has done this for years.","title":"No Bleeding Heart","credit":"Wendy Call, 2013","lat":"47.549167","long":"-122.252778","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/HE40KGGFak0Z4BFqFBC85tMTjNZETYmyPJy0liipFm0?feat=directlink  https://picasaweb.google.com/lh/photo/bZUZKSEcIYG5DlNiAd0ywfeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"The Seward Park Uplands neighborhood was to be framed by four stone gateways. \"Four artistically developed entrance to the Uplands are being developed,\" the Seattle Times told readers in 1925. One had been already been completed, \"built of Wisconsin sandstone, imported here at great expense to carry out exactly the design and ideas of the architect.\" Only one of the four locations has a gateway.","excerpt":"The Seward Park Uplands neighborhood was to be framed by four stone gateways. \"Four artistically developed entrance to the Uplands are being developed,\" the Seattle Times told readers in 1925. ","title":"Juneau Street Uplands Entrance","credit":"Wendy Call, 2014","lat":"47.549444","long":"-122.267222","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/wfusjtYe6uq0Hbhngd33ofeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"I had always wondered about the grand gateway at the intersection of Orcas and Seward Park Ave. Why an entrance to the park so far from the park? It wasn't to welcome people to the park at all, but to enclose the Seward Park Uplands neighborhood.","excerpt":"I had always wondered about the grand gateway at the intersection of Orcas and Seward Park Ave. Why an entrance to the park so far from the park? ","title":"Orcas Street Uplands Entrance","credit":"Wendy Call, 2014","lat":"47.550833","long":"-122.261944","category":"landscape"}]
 },{}],3:[function(require,module,exports){
 /**
  * Module dependencies.
@@ -1244,7 +1323,7 @@ GeolocationStream.prototype.onError = function(position) {
   this.emit('error', position)
 }
 
-},{"stream":61,"util":69}],11:[function(require,module,exports){
+},{"stream":90,"util":98}],11:[function(require,module,exports){
 "use strict";
 /*globals Handlebars: true */
 var Handlebars = require("./handlebars.runtime")["default"];
@@ -4079,7 +4158,7 @@ if (typeof require !== 'undefined' && require.extensions) {
   require.extensions[".hbs"] = extension;
 }
 
-},{"../dist/cjs/handlebars":11,"../dist/cjs/handlebars/compiler/printer":19,"../dist/cjs/handlebars/compiler/visitor":20,"fs":53}],26:[function(require,module,exports){
+},{"../dist/cjs/handlebars":11,"../dist/cjs/handlebars/compiler/printer":19,"../dist/cjs/handlebars/compiler/visitor":20,"fs":82}],26:[function(require,module,exports){
 /*
  Leaflet, a JavaScript library for mobile-friendly interactive maps. http://leafletjs.com
  (c) 2010-2013, Vladimir Agafonkin
@@ -18223,8 +18302,2020 @@ function contains(item, list) {
 }
 
 },{}],53:[function(require,module,exports){
+/**
+ * Module dependencies
+ */
 
-},{}],54:[function(require,module,exports){
+var domify = require( 'domify' );
+var css = require( 'component-css' );
+var events = require( 'component-events' );
+var template = "<div class='scrollbar-scroll-box'>\n  <div class='scrollbar-thumb'></div>\n  <div class='scrollbar-content-view'></div>\n</div>\n";
+
+/**
+ * Expose `Scrollbar`
+ */
+
+module.exports = Scrollbar;
+
+/**
+ * Initialize `Scrollbar`
+ *
+ * @param {Element} el Element to attach scroll bar
+ */
+
+function Scrollbar( el, option ) {
+  
+  if( !( this instanceof Scrollbar ) ) return new Scrollbar( el );
+  if( !el ) throw new TypeError( 'element is required' );
+  
+  this.el        = el;
+  this.option    = option || { padding: 0 };
+  this.scrollTop = 0;
+  this.container = domify( template );
+  console.log(this.container)
+  this.view      = this.container.querySelector( '.scrollbar-content-view' );
+  this.thumb     = this.container.querySelector( '.scrollbar-thumb' );
+  this.width     = this.el.clientWidth,
+  this.height    = this.el.clientHeight,
+
+  this.el.parentNode.insertBefore( this.container, this.el );
+  this.view.appendChild( this.el );
+  this.setupStyles();
+  
+  this.bind();
+}
+
+/**
+ * Setup dom styles
+ *
+ * @api private
+ */
+
+Scrollbar.prototype.setupStyles = function( ) {
+  
+  css( this.container, {
+    width: this.width
+  } );
+
+  css( this.view, {
+    width:  this.width,
+    height: this.height
+  } );
+
+  css( this.el, {
+    width:    'auto',
+    height:   'auto',
+    position: 'relative',
+    visibility: 'visible'
+  } );
+  
+  this.updateHeight();
+  
+  css( this.thumb, {
+    top: this.option.padding,
+    height: this.thumbHeight,
+  } );
+
+  if ( this.thumbHeight > this.el.clientHeight ){
+    this.container.classList.add( 'scrollbar-no-scroll' )
+  }
+};
+
+
+/**
+ * Bind DOM Events
+ *
+ * @api private
+ */
+
+Scrollbar.prototype.bind = function( ) {
+  events( this.container, this ).bind( 'mousewheel' );
+  events( this.container, this ).bind( 'DOMMouseScroll', 'onmousewheel' );
+};
+
+/**
+ * Updates the height
+ *
+ * For the case where length of content dynamically changes.
+ *
+ * @api public
+ */
+
+Scrollbar.prototype.updateHeight = function( ) {
+  this.scrollHeight = this.view.scrollHeight;
+  this.thumbHeight  = Math.round( this.height / this.scrollHeight * this.height ) - this.option.padding * 2;
+};
+
+/**
+ * Mousewheel event handler
+ *
+ * Updates scroll position, and thumb position.
+ *
+ * @api private
+ */
+
+Scrollbar.prototype.onmousewheel = function( e ) {
+
+  var bottom = this.scrollHeight - this.height,
+      delta = e.wheelDelta ? e.wheelDelta / 120 : -e.detail / 3;
+
+  this.scrollTop -= delta * 40;
+  if( this.scrollTop < 0 ){ this.scrollTop = 0; }
+  if( this.scrollTop > bottom ){ this.scrollTop = bottom; }
+
+  css( this.thumb, {
+    top: Math.round( this.scrollTop / this.scrollHeight * ( this.height ) + this.option.padding )
+  } );
+
+  this.el.style.top = -this.scrollTop + 'px';
+};
+
+},{"component-css":54,"component-events":75,"domify":81}],54:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var debug = require('debug')('css');
+var set = require('./lib/style');
+var get = require('./lib/css');
+
+/**
+ * Expose `css`
+ */
+
+module.exports = css;
+
+/**
+ * Get and set css values
+ *
+ * @param {Element} el
+ * @param {String|Object} prop
+ * @param {Mixed} val
+ * @return {Element} el
+ * @api public
+ */
+
+function css(el, prop, val) {
+  if (!el) return;
+
+  if (undefined !== val) {
+    var obj = {};
+    obj[prop] = val;
+    debug('setting styles %j', obj);
+    return setStyles(el, obj);
+  }
+
+  if ('object' == typeof prop) {
+    debug('setting styles %j', prop);
+    return setStyles(el, prop);
+  }
+
+  debug('getting %s', prop);
+  return get(el, prop);
+}
+
+/**
+ * Set the styles on an element
+ *
+ * @param {Element} el
+ * @param {Object} props
+ * @return {Element} el
+ */
+
+function setStyles(el, props) {
+  for (var prop in props) {
+    set(el, prop, props[prop]);
+  }
+
+  return el;
+}
+
+},{"./lib/css":56,"./lib/style":59,"debug":68}],55:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var debug = require('debug')('css:computed');
+var withinDocument = require('within-document');
+var styles = require('./styles');
+
+/**
+ * Expose `computed`
+ */
+
+module.exports = computed;
+
+/**
+ * Get the computed style
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {Array} precomputed (optional)
+ * @return {Array}
+ * @api private
+ */
+
+function computed(el, prop, precomputed) {
+  var computed = precomputed || styles(el);
+  var ret;
+  
+  if (!computed) return;
+
+  if (computed.getPropertyValue) {
+    ret = computed.getPropertyValue(prop) || computed[prop];
+  } else {
+    ret = computed[prop];
+  }
+
+  if ('' === ret && !withinDocument(el)) {
+    debug('element not within document, try finding from style attribute');
+    var style = require('./style');
+    ret = style(el, prop);
+  }
+
+  debug('computed value of %s: %s', prop, ret);
+
+  // Support: IE
+  // IE returns zIndex value as an integer.
+  return undefined === ret ? ret : ret + '';
+}
+
+},{"./style":59,"./styles":60,"debug":68,"within-document":74}],56:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var debug = require('debug')('css:css');
+var camelcase = require('to-camel-case');
+var computed = require('./computed');
+var property = require('./prop');
+
+/**
+ * Expose `css`
+ */
+
+module.exports = css;
+
+/**
+ * CSS Normal Transforms
+ */
+
+var cssNormalTransform = {
+  letterSpacing: 0,
+  fontWeight: 400
+};
+
+/**
+ * Get a CSS value
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {Mixed} extra
+ * @param {Array} styles
+ * @return {String}
+ */
+
+function css(el, prop, extra, styles) {
+  var hooks = require('./hooks');
+  var orig = camelcase(prop);
+  var style = el.style;
+  var val;
+
+  prop = property(prop, style);
+  var hook = hooks[prop] || hooks[orig];
+
+  // If a hook was provided get the computed value from there
+  if (hook && hook.get) {
+    debug('get hook provided. use that');
+    val = hook.get(el, true, extra);
+  }
+
+  // Otherwise, if a way to get the computed value exists, use that
+  if (undefined == val) {
+    debug('fetch the computed value of %s', prop);
+    val = computed(el, prop);
+  }
+
+  if ('normal' == val && cssNormalTransform[prop]) {
+    val = cssNormalTransform[prop];
+    debug('normal => %s', val);
+  }
+
+  // Return, converting to number if forced or a qualifier was provided and val looks numeric
+  if ('' == extra || extra) {
+    debug('converting value: %s into a number', val);
+    var num = parseFloat(val);
+    return true === extra || isNumeric(num) ? num || 0 : val;
+  }
+
+  return val;
+}
+
+/**
+ * Is Numeric
+ *
+ * @param {Mixed} obj
+ * @return {Boolean}
+ */
+
+function isNumeric(obj) {
+  return !isNan(parseFloat(obj)) && isFinite(obj);
+}
+
+},{"./computed":55,"./hooks":57,"./prop":58,"debug":68,"to-camel-case":71}],57:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var each = require('each');
+var css = require('./css');
+var cssShow = { position: 'absolute', visibility: 'hidden', display: 'block' };
+var pnum = (/[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/).source;
+var rnumnonpx = new RegExp( '^(' + pnum + ')(?!px)[a-z%]+$', 'i');
+var rnumsplit = new RegExp( '^(' + pnum + ')(.*)$', 'i');
+var rdisplayswap = /^(none|table(?!-c[ea]).+)/;
+var styles = require('./styles');
+var support = require('./support');
+var swap = require('./swap');
+var computed = require('./computed');
+var cssExpand = [ "Top", "Right", "Bottom", "Left" ];
+
+/**
+ * Height & Width
+ */
+
+each(['width', 'height'], function(name) {
+  exports[name] = {};
+
+  exports[name].get = function(el, compute, extra) {
+    if (!compute) return;
+    // certain elements can have dimension info if we invisibly show them
+    // however, it must have a current display style that would benefit from this
+    return 0 == el.offsetWidth && rdisplayswap.test(css(el, 'display'))
+      ? swap(el, cssShow, function() { return getWidthOrHeight(el, name, extra); })
+      : getWidthOrHeight(el, name, extra);
+  }
+
+  exports[name].set = function(el, val, extra) {
+    var styles = extra && styles(el);
+    return setPositiveNumber(el, val, extra
+      ? augmentWidthOrHeight(el, name, extra, 'border-box' == css(el, 'boxSizing', false, styles), styles)
+      : 0
+    );
+  };
+
+});
+
+/**
+ * Opacity
+ */
+
+exports.opacity = {};
+exports.opacity.get = function(el, compute) {
+  if (!compute) return;
+  var ret = computed(el, 'opacity');
+  return '' == ret ? '1' : ret;
+}
+
+/**
+ * Utility: Set Positive Number
+ *
+ * @param {Element} el
+ * @param {Mixed} val
+ * @param {Number} subtract
+ * @return {Number}
+ */
+
+function setPositiveNumber(el, val, subtract) {
+  var matches = rnumsplit.exec(val);
+  return matches ?
+    // Guard against undefined 'subtract', e.g., when used as in cssHooks
+    Math.max(0, matches[1]) + (matches[2] || 'px') :
+    val;
+}
+
+/**
+ * Utility: Get the width or height
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {Mixed} extra
+ * @return {String}
+ */
+
+function getWidthOrHeight(el, prop, extra) {
+  // Start with offset property, which is equivalent to the border-box value
+  var valueIsBorderBox = true;
+  var val = prop === 'width' ? el.offsetWidth : el.offsetHeight;
+  var styles = computed(el);
+  var isBorderBox = support.boxSizing && css(el, 'boxSizing') === 'border-box';
+
+  // some non-html elements return undefined for offsetWidth, so check for null/undefined
+  // svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
+  // MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
+  if (val <= 0 || val == null) {
+    // Fall back to computed then uncomputed css if necessary
+    val = computed(el, prop, styles);
+
+    if (val < 0 || val == null) {
+      val = el.style[prop];
+    }
+
+    // Computed unit is not pixels. Stop here and return.
+    if (rnumnonpx.test(val)) {
+      return val;
+    }
+
+    // we need the check for style in case a browser which returns unreliable values
+    // for getComputedStyle silently falls back to the reliable el.style
+    valueIsBorderBox = isBorderBox && (support.boxSizingReliable() || val === el.style[prop]);
+
+    // Normalize ', auto, and prepare for extra
+    val = parseFloat(val) || 0;
+  }
+
+  // use the active box-sizing model to add/subtract irrelevant styles
+  extra = extra || (isBorderBox ? 'border' : 'content');
+  val += augmentWidthOrHeight(el, prop, extra, valueIsBorderBox, styles);
+  return val + 'px';
+}
+
+/**
+ * Utility: Augment the width or the height
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {Mixed} extra
+ * @param {Boolean} isBorderBox
+ * @param {Array} styles
+ */
+
+function augmentWidthOrHeight(el, prop, extra, isBorderBox, styles) {
+  // If we already have the right measurement, avoid augmentation,
+  // Otherwise initialize for horizontal or vertical properties
+  var i = extra === (isBorderBox ? 'border' : 'content') ? 4 : 'width' == prop ? 1 : 0;
+  var val = 0;
+
+  for (; i < 4; i += 2) {
+    // both box models exclude margin, so add it if we want it
+    if (extra === 'margin') {
+      val += css(el, extra + cssExpand[i], true, styles);
+    }
+
+    if (isBorderBox) {
+      // border-box includes padding, so remove it if we want content
+      if (extra === 'content') {
+        val -= css(el, 'padding' + cssExpand[i], true, styles);
+      }
+
+      // at this point, extra isn't border nor margin, so remove border
+      if (extra !== 'margin') {
+        val -= css(el, 'border' + cssExpand[i] + 'Width', true, styles);
+      }
+    } else {
+      // at this point, extra isn't content, so add padding
+      val += css(el, 'padding' + cssExpand[i], true, styles);
+
+      // at this point, extra isn't content nor padding, so add border
+      if (extra !== 'padding') {
+        val += css(el, 'border' + cssExpand[i] + 'Width', true, styles);
+      }
+    }
+  }
+
+  return val;
+}
+
+},{"./computed":55,"./css":56,"./styles":60,"./support":61,"./swap":62,"each":64}],58:[function(require,module,exports){
+/**
+ * Module dependencies
+ */
+
+var debug = require('debug')('css:prop');
+var camelcase = require('to-camel-case');
+var vendor = require('./vendor');
+
+/**
+ * Export `prop`
+ */
+
+module.exports = prop;
+
+/**
+ * Normalize Properties
+ */
+
+var cssProps = {
+  'float': 'cssFloat' in document.documentElement.style ? 'cssFloat' : 'styleFloat'
+};
+
+/**
+ * Get the vendor prefixed property
+ *
+ * @param {String} prop
+ * @param {String} style
+ * @return {String} prop
+ * @api private
+ */
+
+function prop(prop, style) {
+  prop = cssProps[prop] || (cssProps[prop] = vendor(prop, style));
+  debug('transform property: %s => %s', prop, style);
+  return prop;
+}
+
+},{"./vendor":63,"debug":68,"to-camel-case":71}],59:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var debug = require('debug')('css:style');
+var camelcase = require('to-camel-case');
+var support = require('./support');
+var property = require('./prop');
+var hooks = require('./hooks');
+
+/**
+ * Expose `style`
+ */
+
+module.exports = style;
+
+/**
+ * Possibly-unitless properties
+ *
+ * Don't automatically add 'px' to these properties
+ */
+
+var cssNumber = {
+  "columnCount": true,
+  "fillOpacity": true,
+  "fontWeight": true,
+  "lineHeight": true,
+  "opacity": true,
+  "order": true,
+  "orphans": true,
+  "widows": true,
+  "zIndex": true,
+  "zoom": true
+};
+
+/**
+ * Set a css value
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {Mixed} val
+ * @param {Mixed} extra
+ */
+
+function style(el, prop, val, extra) {
+  // Don't set styles on text and comment nodes
+  if (!el || el.nodeType === 3 || el.nodeType === 8 || !el.style ) return;
+
+  var orig = camelcase(prop);
+  var style = el.style;
+  var type = typeof val;
+
+  if (!val) return get(el, prop, orig, extra);
+
+  prop = property(prop, style);
+
+  var hook = hooks[prop] || hooks[orig];
+
+  // If a number was passed in, add 'px' to the (except for certain CSS properties)
+  if ('number' == type && !cssNumber[orig]) {
+    debug('adding "px" to end of number');
+    val += 'px';
+  }
+
+  // Fixes jQuery #8908, it can be done more correctly by specifying setters in cssHooks,
+  // but it would mean to define eight (for every problematic property) identical functions
+  if (!support.clearCloneStyle && '' === val && 0 === prop.indexOf('background')) {
+    debug('set property (%s) value to "inherit"', prop);
+    style[prop] = 'inherit';
+  }
+
+  // If a hook was provided, use that value, otherwise just set the specified value
+  if (!hook || !hook.set || undefined !== (val = hook.set(el, val, extra))) {
+    // Support: Chrome, Safari
+    // Setting style to blank string required to delete "style: x !important;"
+    debug('set hook defined. setting property (%s) to %s', prop, val);
+    style[prop] = '';
+    style[prop] = val;
+  }
+
+}
+
+/**
+ * Get the style
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {String} orig
+ * @param {Mixed} extra
+ * @return {String}
+ */
+
+function get(el, prop, orig, extra) {
+  var style = el.style;
+  var hook = hooks[prop] || hooks[orig];
+  var ret;
+
+  if (hook && hook.get && undefined !== (ret = hook.get(el, false, extra))) {
+    debug('get hook defined, returning: %s', ret);
+    return ret;
+  }
+
+  ret = style[prop];
+  debug('getting %s', ret);
+  return ret;
+}
+
+},{"./hooks":57,"./prop":58,"./support":61,"debug":68,"to-camel-case":71}],60:[function(require,module,exports){
+/**
+ * Expose `styles`
+ */
+
+module.exports = styles;
+
+/**
+ * Get all the styles
+ *
+ * @param {Element} el
+ * @return {Array}
+ */
+
+function styles(el) {
+  if (window.getComputedStyle) {
+    return el.ownerDocument.defaultView.getComputedStyle(el, null);
+  } else {
+    return el.currentStyle;
+  }
+}
+
+},{}],61:[function(require,module,exports){
+/**
+ * Support values
+ */
+
+var reliableMarginRight;
+var boxSizingReliableVal;
+var pixelPositionVal;
+var clearCloneStyle;
+
+/**
+ * Container setup
+ */
+
+var docElem = document.documentElement;
+var container = document.createElement('div');
+var div = document.createElement('div');
+
+/**
+ * Clear clone style
+ */
+
+div.style.backgroundClip = 'content-box';
+div.cloneNode(true).style.backgroundClip = '';
+exports.clearCloneStyle = div.style.backgroundClip === 'content-box';
+
+container.style.cssText = 'border:0;width:0;height:0;position:absolute;top:0;left:-9999px;margin-top:1px';
+container.appendChild(div);
+
+/**
+ * Pixel position
+ *
+ * Webkit bug: https://bugs.webkit.org/show_bug.cgi?id=29084
+ * getComputedStyle returns percent when specified for top/left/bottom/right
+ * rather than make the css module depend on the offset module, we just check for it here
+ */
+
+exports.pixelPosition = function() {
+  if (undefined == pixelPositionVal) computePixelPositionAndBoxSizingReliable();
+  return pixelPositionVal;
+}
+
+/**
+ * Reliable box sizing
+ */
+
+exports.boxSizingReliable = function() {
+  if (undefined == boxSizingReliableVal) computePixelPositionAndBoxSizingReliable();
+  return boxSizingReliableVal;
+}
+
+/**
+ * Reliable margin right
+ *
+ * Support: Android 2.3
+ * Check if div with explicit width and no margin-right incorrectly
+ * gets computed margin-right based on width of container. (#3333)
+ * WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
+ * This support function is only executed once so no memoizing is needed.
+ *
+ * @return {Boolean}
+ */
+
+exports.reliableMarginRight = function() {
+  var ret;
+  var marginDiv = div.appendChild(document.createElement("div" ));
+
+  marginDiv.style.cssText = div.style.cssText = divReset;
+  marginDiv.style.marginRight = marginDiv.style.width = "0";
+  div.style.width = "1px";
+  docElem.appendChild(container);
+
+  ret = !parseFloat(window.getComputedStyle(marginDiv, null).marginRight);
+
+  docElem.removeChild(container);
+
+  // Clean up the div for other support tests.
+  div.innerHTML = "";
+
+  return ret;
+}
+
+/**
+ * Executing both pixelPosition & boxSizingReliable tests require only one layout
+ * so they're executed at the same time to save the second computation.
+ */
+
+function computePixelPositionAndBoxSizingReliable() {
+  // Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
+  div.style.cssText = "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;" +
+    "box-sizing:border-box;padding:1px;border:1px;display:block;width:4px;margin-top:1%;" +
+    "position:absolute;top:1%";
+  docElem.appendChild(container);
+
+  var divStyle = window.getComputedStyle(div, null);
+  pixelPositionVal = divStyle.top !== "1%";
+  boxSizingReliableVal = divStyle.width === "4px";
+
+  docElem.removeChild(container);
+}
+
+
+
+},{}],62:[function(require,module,exports){
+/**
+ * Export `swap`
+ */
+
+module.exports = swap;
+
+/**
+ * Initialize `swap`
+ *
+ * @param {Element} el
+ * @param {Object} options
+ * @param {Function} fn
+ * @param {Array} args
+ * @return {Mixed}
+ */
+
+function swap(el, options, fn, args) {
+  // Remember the old values, and insert the new ones
+  for (var key in options) {
+    old[key] = el.style[key];
+    el.style[key] = options[key];
+  }
+
+  ret = fn.apply(el, args || []);
+
+  // Revert the old values
+  for (key in options) {
+    el.style[key] = old[key];
+  }
+
+  return ret;
+}
+
+},{}],63:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var prefixes = ['Webkit', 'O', 'Moz', 'ms'];
+
+/**
+ * Expose `vendor`
+ */
+
+module.exports = vendor;
+
+/**
+ * Get the vendor prefix for a given property
+ *
+ * @param {String} prop
+ * @param {Object} style
+ * @return {String}
+ */
+
+function vendor(prop, style) {
+  // shortcut for names that are not vendor prefixed
+  if (style[prop]) return prop;
+
+  // check for vendor prefixed names
+  var capName = prop[0].toUpperCase() + prop.slice(1);
+  var original = prop;
+  var i = prefixes.length;
+
+  while (i--) {
+    prop = prefixes[i] + capName;
+    if (prop in style) return prop;
+  }
+
+  return original;
+}
+
+},{}],64:[function(require,module,exports){
+
+/**
+ * Module dependencies.
+ */
+
+try {
+  var type = require('type');
+} catch (err) {
+  var type = require('component-type');
+}
+
+var toFunction = require('to-function');
+
+/**
+ * HOP reference.
+ */
+
+var has = Object.prototype.hasOwnProperty;
+
+/**
+ * Iterate the given `obj` and invoke `fn(val, i)`
+ * in optional context `ctx`.
+ *
+ * @param {String|Array|Object} obj
+ * @param {Function} fn
+ * @param {Object} [ctx]
+ * @api public
+ */
+
+module.exports = function(obj, fn, ctx){
+  fn = toFunction(fn);
+  ctx = ctx || this;
+  switch (type(obj)) {
+    case 'array':
+      return array(obj, fn, ctx);
+    case 'object':
+      if ('number' == typeof obj.length) return array(obj, fn, ctx);
+      return object(obj, fn, ctx);
+    case 'string':
+      return string(obj, fn, ctx);
+  }
+};
+
+/**
+ * Iterate string chars.
+ *
+ * @param {String} obj
+ * @param {Function} fn
+ * @param {Object} ctx
+ * @api private
+ */
+
+function string(obj, fn, ctx) {
+  for (var i = 0; i < obj.length; ++i) {
+    fn.call(ctx, obj.charAt(i), i);
+  }
+}
+
+/**
+ * Iterate object keys.
+ *
+ * @param {Object} obj
+ * @param {Function} fn
+ * @param {Object} ctx
+ * @api private
+ */
+
+function object(obj, fn, ctx) {
+  for (var key in obj) {
+    if (has.call(obj, key)) {
+      fn.call(ctx, key, obj[key]);
+    }
+  }
+}
+
+/**
+ * Iterate array-ish.
+ *
+ * @param {Array|Object} obj
+ * @param {Function} fn
+ * @param {Object} ctx
+ * @api private
+ */
+
+function array(obj, fn, ctx) {
+  for (var i = 0; i < obj.length; ++i) {
+    fn.call(ctx, obj[i], i);
+  }
+}
+
+},{"component-type":65,"to-function":66,"type":65}],65:[function(require,module,exports){
+
+/**
+ * toString ref.
+ */
+
+var toString = Object.prototype.toString;
+
+/**
+ * Return the type of `val`.
+ *
+ * @param {Mixed} val
+ * @return {String}
+ * @api public
+ */
+
+module.exports = function(val){
+  switch (toString.call(val)) {
+    case '[object Function]': return 'function';
+    case '[object Date]': return 'date';
+    case '[object RegExp]': return 'regexp';
+    case '[object Arguments]': return 'arguments';
+    case '[object Array]': return 'array';
+    case '[object String]': return 'string';
+  }
+
+  if (val === null) return 'null';
+  if (val === undefined) return 'undefined';
+  if (val && val.nodeType === 1) return 'element';
+  if (val === Object(val)) return 'object';
+
+  return typeof val;
+};
+
+},{}],66:[function(require,module,exports){
+var expr;
+try {
+    expr = void 0;
+} catch (e) {
+    expr = require('component-props');
+}
+module.exports = toFunction;
+function toFunction(obj) {
+    switch ({}.toString.call(obj)) {
+    case '[object Object]':
+        return objectToFunction(obj);
+    case '[object Function]':
+        return obj;
+    case '[object String]':
+        return stringToFunction(obj);
+    case '[object RegExp]':
+        return regexpToFunction(obj);
+    default:
+        return defaultToFunction(obj);
+    }
+}
+function defaultToFunction(val) {
+    return function (obj) {
+        return val === obj;
+    };
+}
+function regexpToFunction(re) {
+    return function (obj) {
+        return re.test(obj);
+    };
+}
+function stringToFunction(str) {
+    if (/^ *\W+/.test(str))
+        return new Function('_', 'return _ ' + str);
+    return new Function('_', 'return ' + get(str));
+}
+function objectToFunction(obj) {
+    var match = {};
+    for (var key in obj) {
+        match[key] = typeof obj[key] === 'string' ? defaultToFunction(obj[key]) : toFunction(obj[key]);
+    }
+    return function (val) {
+        if (typeof val !== 'object')
+            return false;
+        for (var key in match) {
+            if (!(key in val))
+                return false;
+            if (!match[key](val[key]))
+                return false;
+        }
+        return true;
+    };
+}
+function get(str) {
+    var props = expr(str);
+    if (!props.length)
+        return '_.' + str;
+    var val, i, prop;
+    for (i = 0; i < props.length; i++) {
+        prop = props[i];
+        val = '_.' + prop;
+        val = '(\'function\' == typeof ' + val + ' ? ' + val + '() : ' + val + ')';
+        str = stripNested(prop, str, val);
+    }
+    return str;
+}
+function stripNested(prop, str, val) {
+    return str.replace(new RegExp('(\\.)?' + prop, 'g'), function ($0, $1) {
+        return $1 ? $0 : val;
+    });
+}
+},{"component-props":67}],67:[function(require,module,exports){
+/**
+ * Global Names
+ */
+
+var globals = /\b(Array|Date|Object|Math|JSON)\b/g;
+
+/**
+ * Return immediate identifiers parsed from `str`.
+ *
+ * @param {String} str
+ * @param {String|Function} map function or prefix
+ * @return {Array}
+ * @api public
+ */
+
+module.exports = function(str, fn){
+  var p = unique(props(str));
+  if (fn && 'string' == typeof fn) fn = prefixed(fn);
+  if (fn) return map(str, p, fn);
+  return p;
+};
+
+/**
+ * Return immediate identifiers in `str`.
+ *
+ * @param {String} str
+ * @return {Array}
+ * @api private
+ */
+
+function props(str) {
+  return str
+    .replace(/\.\w+|\w+ *\(|"[^"]*"|'[^']*'|\/([^/]+)\//g, '')
+    .replace(globals, '')
+    .match(/[a-zA-Z_]\w*/g)
+    || [];
+}
+
+/**
+ * Return `str` with `props` mapped with `fn`.
+ *
+ * @param {String} str
+ * @param {Array} props
+ * @param {Function} fn
+ * @return {String}
+ * @api private
+ */
+
+function map(str, props, fn) {
+  var re = /\.\w+|\w+ *\(|"[^"]*"|'[^']*'|\/([^/]+)\/|[a-zA-Z_]\w*/g;
+  return str.replace(re, function(_){
+    if ('(' == _[_.length - 1]) return fn(_);
+    if (!~props.indexOf(_)) return _;
+    return fn(_);
+  });
+}
+
+/**
+ * Return unique array.
+ *
+ * @param {Array} arr
+ * @return {Array}
+ * @api private
+ */
+
+function unique(arr) {
+  var ret = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    if (~ret.indexOf(arr[i])) continue;
+    ret.push(arr[i]);
+  }
+
+  return ret;
+}
+
+/**
+ * Map with prefix `str`.
+ */
+
+function prefixed(str) {
+  return function(_){
+    return str + _;
+  };
+}
+
+},{}],68:[function(require,module,exports){
+
+/**
+ * This is the web browser implementation of `debug()`.
+ *
+ * Expose `debug()` as the module.
+ */
+
+exports = module.exports = require('./debug');
+exports.log = log;
+exports.formatArgs = formatArgs;
+exports.save = save;
+exports.load = load;
+exports.useColors = useColors;
+
+/**
+ * Colors.
+ */
+
+exports.colors = [
+  'lightseagreen',
+  'forestgreen',
+  'goldenrod',
+  'dodgerblue',
+  'darkorchid',
+  'crimson'
+];
+
+/**
+ * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+ * and the Firebug extension (any Firefox version) are known
+ * to support "%c" CSS customizations.
+ *
+ * TODO: add a `localStorage` variable to explicitly enable/disable colors
+ */
+
+function useColors() {
+  // is webkit? http://stackoverflow.com/a/16459606/376773
+  return ('WebkitAppearance' in document.documentElement.style) ||
+    // is firebug? http://stackoverflow.com/a/398120/376773
+    (window.console && (console.firebug || (console.exception && console.table))) ||
+    // is firefox >= v31?
+    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+    (navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31);
+}
+
+/**
+ * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+ */
+
+exports.formatters.j = function(v) {
+  return JSON.stringify(v);
+};
+
+
+/**
+ * Colorize log arguments if enabled.
+ *
+ * @api public
+ */
+
+function formatArgs() {
+  var args = arguments;
+  var useColors = this.useColors;
+
+  args[0] = (useColors ? '%c' : '')
+    + this.namespace
+    + (useColors ? ' %c' : ' ')
+    + args[0]
+    + (useColors ? '%c ' : ' ')
+    + '+' + exports.humanize(this.diff);
+
+  if (!useColors) return args;
+
+  var c = 'color: ' + this.color;
+  args = [args[0], c, 'color: inherit'].concat(Array.prototype.slice.call(args, 1));
+
+  // the final "%c" is somewhat tricky, because there could be other
+  // arguments passed either before or after the %c, so we need to
+  // figure out the correct index to insert the CSS into
+  var index = 0;
+  var lastC = 0;
+  args[0].replace(/%[a-z%]/g, function(match) {
+    if ('%%' === match) return;
+    index++;
+    if ('%c' === match) {
+      // we only are interested in the *last* %c
+      // (the user may have provided their own)
+      lastC = index;
+    }
+  });
+
+  args.splice(lastC, 0, c);
+  return args;
+}
+
+/**
+ * Invokes `console.log()` when available.
+ * No-op when `console.log` is not a "function".
+ *
+ * @api public
+ */
+
+function log() {
+  // This hackery is required for IE8,
+  // where the `console.log` function doesn't have 'apply'
+  return 'object' == typeof console
+    && 'function' == typeof console.log
+    && Function.prototype.apply.call(console.log, console, arguments);
+}
+
+/**
+ * Save `namespaces`.
+ *
+ * @param {String} namespaces
+ * @api private
+ */
+
+function save(namespaces) {
+  try {
+    if (null == namespaces) {
+      localStorage.removeItem('debug');
+    } else {
+      localStorage.debug = namespaces;
+    }
+  } catch(e) {}
+}
+
+/**
+ * Load `namespaces`.
+ *
+ * @return {String} returns the previously persisted debug modes
+ * @api private
+ */
+
+function load() {
+  var r;
+  try {
+    r = localStorage.debug;
+  } catch(e) {}
+  return r;
+}
+
+/**
+ * Enable namespaces listed in `localStorage.debug` initially.
+ */
+
+exports.enable(load());
+
+},{"./debug":69}],69:[function(require,module,exports){
+
+/**
+ * This is the common logic for both the Node.js and web browser
+ * implementations of `debug()`.
+ *
+ * Expose `debug()` as the module.
+ */
+
+exports = module.exports = debug;
+exports.coerce = coerce;
+exports.disable = disable;
+exports.enable = enable;
+exports.enabled = enabled;
+exports.humanize = require('ms');
+
+/**
+ * The currently active debug mode names, and names to skip.
+ */
+
+exports.names = [];
+exports.skips = [];
+
+/**
+ * Map of special "%n" handling functions, for the debug "format" argument.
+ *
+ * Valid key names are a single, lowercased letter, i.e. "n".
+ */
+
+exports.formatters = {};
+
+/**
+ * Previously assigned color.
+ */
+
+var prevColor = 0;
+
+/**
+ * Previous log timestamp.
+ */
+
+var prevTime;
+
+/**
+ * Select a color.
+ *
+ * @return {Number}
+ * @api private
+ */
+
+function selectColor() {
+  return exports.colors[prevColor++ % exports.colors.length];
+}
+
+/**
+ * Create a debugger with the given `namespace`.
+ *
+ * @param {String} namespace
+ * @return {Function}
+ * @api public
+ */
+
+function debug(namespace) {
+
+  // define the `disabled` version
+  function disabled() {
+  }
+  disabled.enabled = false;
+
+  // define the `enabled` version
+  function enabled() {
+
+    var self = enabled;
+
+    // set `diff` timestamp
+    var curr = +new Date();
+    var ms = curr - (prevTime || curr);
+    self.diff = ms;
+    self.prev = prevTime;
+    self.curr = curr;
+    prevTime = curr;
+
+    // add the `color` if not set
+    if (null == self.useColors) self.useColors = exports.useColors();
+    if (null == self.color && self.useColors) self.color = selectColor();
+
+    var args = Array.prototype.slice.call(arguments);
+
+    args[0] = exports.coerce(args[0]);
+
+    if ('string' !== typeof args[0]) {
+      // anything else let's inspect with %o
+      args = ['%o'].concat(args);
+    }
+
+    // apply any `formatters` transformations
+    var index = 0;
+    args[0] = args[0].replace(/%([a-z%])/g, function(match, format) {
+      // if we encounter an escaped % then don't increase the array index
+      if (match === '%%') return match;
+      index++;
+      var formatter = exports.formatters[format];
+      if ('function' === typeof formatter) {
+        var val = args[index];
+        match = formatter.call(self, val);
+
+        // now we need to remove `args[index]` since it's inlined in the `format`
+        args.splice(index, 1);
+        index--;
+      }
+      return match;
+    });
+
+    if ('function' === typeof exports.formatArgs) {
+      args = exports.formatArgs.apply(self, args);
+    }
+    var logFn = enabled.log || exports.log || console.log.bind(console);
+    logFn.apply(self, args);
+  }
+  enabled.enabled = true;
+
+  var fn = exports.enabled(namespace) ? enabled : disabled;
+
+  fn.namespace = namespace;
+
+  return fn;
+}
+
+/**
+ * Enables a debug mode by namespaces. This can include modes
+ * separated by a colon and wildcards.
+ *
+ * @param {String} namespaces
+ * @api public
+ */
+
+function enable(namespaces) {
+  exports.save(namespaces);
+
+  var split = (namespaces || '').split(/[\s,]+/);
+  var len = split.length;
+
+  for (var i = 0; i < len; i++) {
+    if (!split[i]) continue; // ignore empty strings
+    namespaces = split[i].replace(/\*/g, '.*?');
+    if (namespaces[0] === '-') {
+      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+    } else {
+      exports.names.push(new RegExp('^' + namespaces + '$'));
+    }
+  }
+}
+
+/**
+ * Disable debug output.
+ *
+ * @api public
+ */
+
+function disable() {
+  exports.enable('');
+}
+
+/**
+ * Returns true if the given mode name is enabled, false otherwise.
+ *
+ * @param {String} name
+ * @return {Boolean}
+ * @api public
+ */
+
+function enabled(name) {
+  var i, len;
+  for (i = 0, len = exports.skips.length; i < len; i++) {
+    if (exports.skips[i].test(name)) {
+      return false;
+    }
+  }
+  for (i = 0, len = exports.names.length; i < len; i++) {
+    if (exports.names[i].test(name)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Coerce `val`.
+ *
+ * @param {Mixed} val
+ * @return {Mixed}
+ * @api private
+ */
+
+function coerce(val) {
+  if (val instanceof Error) return val.stack || val.message;
+  return val;
+}
+
+},{"ms":70}],70:[function(require,module,exports){
+/**
+ * Helpers.
+ */
+
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var y = d * 365.25;
+
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} options
+ * @return {String|Number}
+ * @api public
+ */
+
+module.exports = function(val, options){
+  options = options || {};
+  if ('string' == typeof val) return parse(val);
+  return options.long
+    ? long(val)
+    : short(val);
+};
+
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+function parse(str) {
+  var match = /^((?:\d+)?\.?\d+) *(ms|seconds?|s|minutes?|m|hours?|h|days?|d|years?|y)?$/i.exec(str);
+  if (!match) return;
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'y':
+      return n * y;
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d;
+    case 'hours':
+    case 'hour':
+    case 'h':
+      return n * h;
+    case 'minutes':
+    case 'minute':
+    case 'm':
+      return n * m;
+    case 'seconds':
+    case 'second':
+    case 's':
+      return n * s;
+    case 'ms':
+      return n;
+  }
+}
+
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function short(ms) {
+  if (ms >= d) return Math.round(ms / d) + 'd';
+  if (ms >= h) return Math.round(ms / h) + 'h';
+  if (ms >= m) return Math.round(ms / m) + 'm';
+  if (ms >= s) return Math.round(ms / s) + 's';
+  return ms + 'ms';
+}
+
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function long(ms) {
+  return plural(ms, d, 'day')
+    || plural(ms, h, 'hour')
+    || plural(ms, m, 'minute')
+    || plural(ms, s, 'second')
+    || ms + ' ms';
+}
+
+/**
+ * Pluralization helper.
+ */
+
+function plural(ms, n, name) {
+  if (ms < n) return;
+  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
+  return Math.ceil(ms / n) + ' ' + name + 's';
+}
+
+},{}],71:[function(require,module,exports){
+
+var toSpace = require('to-space-case');
+
+
+/**
+ * Expose `toCamelCase`.
+ */
+
+module.exports = toCamelCase;
+
+
+/**
+ * Convert a `string` to camel case.
+ *
+ * @param {String} string
+ * @return {String}
+ */
+
+
+function toCamelCase (string) {
+  return toSpace(string).replace(/\s(\w)/g, function (matches, letter) {
+    return letter.toUpperCase();
+  });
+}
+},{"to-space-case":72}],72:[function(require,module,exports){
+
+var clean = require('to-no-case');
+
+
+/**
+ * Expose `toSpaceCase`.
+ */
+
+module.exports = toSpaceCase;
+
+
+/**
+ * Convert a `string` to space case.
+ *
+ * @param {String} string
+ * @return {String}
+ */
+
+
+function toSpaceCase (string) {
+  return clean(string).replace(/[\W_]+(.|$)/g, function (matches, match) {
+    return match ? ' ' + match : '';
+  });
+}
+},{"to-no-case":73}],73:[function(require,module,exports){
+
+/**
+ * Expose `toNoCase`.
+ */
+
+module.exports = toNoCase;
+
+
+/**
+ * Test whether a string is camel-case.
+ */
+
+var hasSpace = /\s/;
+var hasCamel = /[a-z][A-Z]/;
+var hasSeparator = /[\W_]/;
+
+
+/**
+ * Remove any starting case from a `string`, like camel or snake, but keep
+ * spaces and punctuation that may be important otherwise.
+ *
+ * @param {String} string
+ * @return {String}
+ */
+
+function toNoCase (string) {
+  if (hasSpace.test(string)) return string.toLowerCase();
+
+  if (hasSeparator.test(string)) string = unseparate(string);
+  if (hasCamel.test(string)) string = uncamelize(string);
+  return string.toLowerCase();
+}
+
+
+/**
+ * Separator splitter.
+ */
+
+var separatorSplitter = /[\W_]+(.|$)/g;
+
+
+/**
+ * Un-separate a `string`.
+ *
+ * @param {String} string
+ * @return {String}
+ */
+
+function unseparate (string) {
+  return string.replace(separatorSplitter, function (m, next) {
+    return next ? ' ' + next : '';
+  });
+}
+
+
+/**
+ * Camelcase splitter.
+ */
+
+var camelSplitter = /(.)([A-Z]+)/g;
+
+
+/**
+ * Un-camelcase a `string`.
+ *
+ * @param {String} string
+ * @return {String}
+ */
+
+function uncamelize (string) {
+  return string.replace(camelSplitter, function (m, previous, uppers) {
+    return previous + ' ' + uppers.toLowerCase().split('').join(' ');
+  });
+}
+},{}],74:[function(require,module,exports){
+
+/**
+ * Check if `el` is within the document.
+ *
+ * @param {Element} el
+ * @return {Boolean}
+ * @api private
+ */
+
+module.exports = function(el) {
+  var node = el;
+  while (node = node.parentNode) {
+    if (node == document) return true;
+  }
+  return false;
+};
+},{}],75:[function(require,module,exports){
+
+/**
+ * Module dependencies.
+ */
+
+var events = require('event');
+var delegate = require('delegate');
+
+/**
+ * Expose `Events`.
+ */
+
+module.exports = Events;
+
+/**
+ * Initialize an `Events` with the given
+ * `el` object which events will be bound to,
+ * and the `obj` which will receive method calls.
+ *
+ * @param {Object} el
+ * @param {Object} obj
+ * @api public
+ */
+
+function Events(el, obj) {
+  if (!(this instanceof Events)) return new Events(el, obj);
+  if (!el) throw new Error('element required');
+  if (!obj) throw new Error('object required');
+  this.el = el;
+  this.obj = obj;
+  this._events = {};
+}
+
+/**
+ * Subscription helper.
+ */
+
+Events.prototype.sub = function(event, method, cb){
+  this._events[event] = this._events[event] || {};
+  this._events[event][method] = cb;
+};
+
+/**
+ * Bind to `event` with optional `method` name.
+ * When `method` is undefined it becomes `event`
+ * with the "on" prefix.
+ *
+ * Examples:
+ *
+ *  Direct event handling:
+ *
+ *    events.bind('click') // implies "onclick"
+ *    events.bind('click', 'remove')
+ *    events.bind('click', 'sort', 'asc')
+ *
+ *  Delegated event handling:
+ *
+ *    events.bind('click li > a')
+ *    events.bind('click li > a', 'remove')
+ *    events.bind('click a.sort-ascending', 'sort', 'asc')
+ *    events.bind('click a.sort-descending', 'sort', 'desc')
+ *
+ * @param {String} event
+ * @param {String|function} [method]
+ * @return {Function} callback
+ * @api public
+ */
+
+Events.prototype.bind = function(event, method){
+  var e = parse(event);
+  var el = this.el;
+  var obj = this.obj;
+  var name = e.name;
+  var method = method || 'on' + name;
+  var args = [].slice.call(arguments, 2);
+
+  // callback
+  function cb(){
+    var a = [].slice.call(arguments).concat(args);
+    obj[method].apply(obj, a);
+  }
+
+  // bind
+  if (e.selector) {
+    cb = delegate.bind(el, e.selector, name, cb);
+  } else {
+    events.bind(el, name, cb);
+  }
+
+  // subscription for unbinding
+  this.sub(name, method, cb);
+
+  return cb;
+};
+
+/**
+ * Unbind a single binding, all bindings for `event`,
+ * or all bindings within the manager.
+ *
+ * Examples:
+ *
+ *  Unbind direct handlers:
+ *
+ *     events.unbind('click', 'remove')
+ *     events.unbind('click')
+ *     events.unbind()
+ *
+ * Unbind delegate handlers:
+ *
+ *     events.unbind('click', 'remove')
+ *     events.unbind('click')
+ *     events.unbind()
+ *
+ * @param {String|Function} [event]
+ * @param {String|Function} [method]
+ * @api public
+ */
+
+Events.prototype.unbind = function(event, method){
+  if (0 == arguments.length) return this.unbindAll();
+  if (1 == arguments.length) return this.unbindAllOf(event);
+
+  // no bindings for this event
+  var bindings = this._events[event];
+  if (!bindings) return;
+
+  // no bindings for this method
+  var cb = bindings[method];
+  if (!cb) return;
+
+  events.unbind(this.el, event, cb);
+};
+
+/**
+ * Unbind all events.
+ *
+ * @api private
+ */
+
+Events.prototype.unbindAll = function(){
+  for (var event in this._events) {
+    this.unbindAllOf(event);
+  }
+};
+
+/**
+ * Unbind all events for `event`.
+ *
+ * @param {String} event
+ * @api private
+ */
+
+Events.prototype.unbindAllOf = function(event){
+  var bindings = this._events[event];
+  if (!bindings) return;
+
+  for (var method in bindings) {
+    this.unbind(event, method);
+  }
+};
+
+/**
+ * Parse `event`.
+ *
+ * @param {String} event
+ * @return {Object}
+ * @api private
+ */
+
+function parse(event) {
+  var parts = event.split(/ +/);
+  return {
+    name: parts.shift(),
+    selector: parts.join(' ')
+  }
+}
+
+},{"delegate":76,"event":80}],76:[function(require,module,exports){
+module.exports=require(3)
+},{"closest":77,"event":80}],77:[function(require,module,exports){
+module.exports=require(4)
+},{"matches-selector":78}],78:[function(require,module,exports){
+module.exports=require(5)
+},{"query":79}],79:[function(require,module,exports){
+module.exports=require(6)
+},{}],80:[function(require,module,exports){
+module.exports=require(7)
+},{}],81:[function(require,module,exports){
+
+/**
+ * Expose `parse`.
+ */
+
+module.exports = parse;
+
+/**
+ * Tests for browser support.
+ */
+
+var div = document.createElement('div');
+// Setup
+div.innerHTML = '  <link/><table></table><a href="/a">a</a><input type="checkbox"/>';
+// Make sure that link elements get serialized correctly by innerHTML
+// This requires a wrapper element in IE
+var innerHTMLBug = !div.getElementsByTagName('link').length;
+div = undefined;
+
+/**
+ * Wrap map from jquery.
+ */
+
+var map = {
+  legend: [1, '<fieldset>', '</fieldset>'],
+  tr: [2, '<table><tbody>', '</tbody></table>'],
+  col: [2, '<table><tbody></tbody><colgroup>', '</colgroup></table>'],
+  // for script/link/style tags to work in IE6-8, you have to wrap
+  // in a div with a non-whitespace character in front, ha!
+  _default: innerHTMLBug ? [1, 'X<div>', '</div>'] : [0, '', '']
+};
+
+map.td =
+map.th = [3, '<table><tbody><tr>', '</tr></tbody></table>'];
+
+map.option =
+map.optgroup = [1, '<select multiple="multiple">', '</select>'];
+
+map.thead =
+map.tbody =
+map.colgroup =
+map.caption =
+map.tfoot = [1, '<table>', '</table>'];
+
+map.text =
+map.circle =
+map.ellipse =
+map.line =
+map.path =
+map.polygon =
+map.polyline =
+map.rect = [1, '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">','</svg>'];
+
+/**
+ * Parse `html` and return a DOM Node instance, which could be a TextNode,
+ * HTML DOM Node of some kind (<div> for example), or a DocumentFragment
+ * instance, depending on the contents of the `html` string.
+ *
+ * @param {String} html - HTML string to "domify"
+ * @param {Document} doc - The `document` instance to create the Node for
+ * @return {DOMNode} the TextNode, DOM Node, or DocumentFragment instance
+ * @api private
+ */
+
+function parse(html, doc) {
+  if ('string' != typeof html) throw new TypeError('String expected');
+
+  // default to the global `document` object
+  if (!doc) doc = document;
+
+  // tag name
+  var m = /<([\w:]+)/.exec(html);
+  if (!m) return doc.createTextNode(html);
+
+  html = html.replace(/^\s+|\s+$/g, ''); // Remove leading/trailing whitespace
+
+  var tag = m[1];
+
+  // body support
+  if (tag == 'body') {
+    var el = doc.createElement('html');
+    el.innerHTML = html;
+    return el.removeChild(el.lastChild);
+  }
+
+  // wrap map
+  var wrap = map[tag] || map._default;
+  var depth = wrap[0];
+  var prefix = wrap[1];
+  var suffix = wrap[2];
+  var el = doc.createElement('div');
+  el.innerHTML = prefix + html + suffix;
+  while (depth--) el = el.lastChild;
+
+  // one element
+  if (el.firstChild == el.lastChild) {
+    return el.removeChild(el.firstChild);
+  }
+
+  // several elements
+  var fragment = doc.createDocumentFragment();
+  while (el.firstChild) {
+    fragment.appendChild(el.removeChild(el.firstChild));
+  }
+
+  return fragment;
+}
+
+},{}],82:[function(require,module,exports){
+
+},{}],83:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -19335,7 +21426,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":55,"ieee754":56}],55:[function(require,module,exports){
+},{"base64-js":84,"ieee754":85}],84:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -19457,7 +21548,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],56:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -19543,7 +21634,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],57:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19846,7 +21937,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],58:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -19871,7 +21962,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],59:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -19936,7 +22027,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],60:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20010,7 +22101,7 @@ function onend() {
   });
 }
 
-},{"./readable.js":64,"./writable.js":66,"inherits":58,"process/browser.js":62}],61:[function(require,module,exports){
+},{"./readable.js":93,"./writable.js":95,"inherits":87,"process/browser.js":91}],90:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20139,7 +22230,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"./duplex.js":60,"./passthrough.js":63,"./readable.js":64,"./transform.js":65,"./writable.js":66,"events":57,"inherits":58}],62:[function(require,module,exports){
+},{"./duplex.js":89,"./passthrough.js":92,"./readable.js":93,"./transform.js":94,"./writable.js":95,"events":86,"inherits":87}],91:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -20194,7 +22285,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],63:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20237,7 +22328,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./transform.js":65,"inherits":58}],64:[function(require,module,exports){
+},{"./transform.js":94,"inherits":87}],93:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -21174,7 +23265,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("qvMYcC"))
-},{"./index.js":61,"buffer":54,"events":57,"inherits":58,"process/browser.js":62,"qvMYcC":59,"string_decoder":67}],65:[function(require,module,exports){
+},{"./index.js":90,"buffer":83,"events":86,"inherits":87,"process/browser.js":91,"qvMYcC":88,"string_decoder":96}],94:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21380,7 +23471,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./duplex.js":60,"inherits":58}],66:[function(require,module,exports){
+},{"./duplex.js":89,"inherits":87}],95:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21768,7 +23859,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./index.js":61,"buffer":54,"inherits":58,"process/browser.js":62}],67:[function(require,module,exports){
+},{"./index.js":90,"buffer":83,"inherits":87,"process/browser.js":91}],96:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21961,14 +24052,14 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":54}],68:[function(require,module,exports){
+},{"buffer":83}],97:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],69:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -22558,4 +24649,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("qvMYcC"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":68,"inherits":58,"qvMYcC":59}]},{},[1])
+},{"./support/isBuffer":97,"inherits":87,"qvMYcC":88}]},{},[1])
