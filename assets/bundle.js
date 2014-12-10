@@ -118,7 +118,7 @@ page('/list', function (ctx) {
   modal(content);
 });
 
-page('/about');
+page('/');
 
 
 on(document.body, 'a', 'click', function (e) {
