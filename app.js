@@ -101,8 +101,6 @@ movement.on('error', function(err) {
   //console.error(err)
 });
 
-page.base('/seward-park-map/#')
-
 page('/', function () {
   page('/about');
 });
