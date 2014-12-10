@@ -1,4 +1,5 @@
 var fs = require('fs');
+var page = require('page');
 var Handlebars = require('handlebars');
 var elClass = require('element-class');
 var on = require('component-delegate').bind;
@@ -10,13 +11,11 @@ require('mapbox.js');
 var fastClick = require('fastclick');
 fastClick(document.body);
 
-var page = document.getElementById('page');
+var main = document.getElementById('main');
 var mapEl = document.getElementById('map');
-mapEl.style.height = (window.innerHeight - mapEl.offsetTop) + 'px';
 
 var data = require('./data.json');
 data = createImageArrays(data);
-console.log('weeeeeeeee', data)
 
 L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw';
 
@@ -35,7 +34,6 @@ templates.list = Handlebars.compile(
   fs.readFileSync('list-template.html', 'utf8')
 );
 
-
 /* 
 * set image path 
 */
@@ -48,25 +46,28 @@ L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 */
 
 var checkedCategories = [];
-var menu = document.getElementById('menu');
+var menu = document.getElementById('filter');
 categories = getAllCategories(data);
-console.log(categories);
-if (categories.length > 0) {
-  menu.appendChild(document.createTextNode('Filter by category: '));
-}
+
 categories.forEach(function addCheckbox(item) {
+  var div = document.createElement('div');
+  elClass(div).add('filter-option');
+  
   var checkbox = document.createElement('input');
   checkbox.className = 'categoryCheckbox';
   checkbox.type = 'checkbox';
   checkbox.name = item;
   checkbox.value = item;
+  checkbox.checked = true;
   checkbox.addEventListener('change', updateWithFilters);
   
   var label = document.createElement('label');
   label.appendChild(document.createTextNode(item));
+  label.htmlFor = item;
   
-  menu.appendChild(checkbox);
-  menu.appendChild(label);
+  div.appendChild(checkbox);
+  div.appendChild(label);
+  menu.appendChild(div);
 })
 
 /* 
@@ -77,9 +78,12 @@ var streets = L.mapbox.tileLayer('sethvincent.de840f5b');
 
 var map = L.map('map', {
   center: [47.555, -122.252],
-  zoom: 15,
+  zoom: 14,
+  zoomControl: false,
   layers: [streets]
 });
+
+new L.Control.Zoom({ position: 'topright' }).addTo(map);
 
 
 var location = L.marker([47, -122], {
@@ -97,19 +101,31 @@ movement.on('error', function(err) {
   //console.error(err)
 });
 
-on(document.body, '.nav a', 'click', function (e) {
-  var id = e.target.id;
-  
-  if (id === 'about-view') {
-    var content = fs.readFileSync('about.html', 'utf8');
-    modal(content);
-  }
-  
-  else {
-    var content = templates.list({ locations: data });
-    modal(content);
-  }
+page.base('/#')
+
+page('/', function () {
+  page('/about')
+})
+
+page('/about', function (ctx) {
+  var content = fs.readFileSync('about.html', 'utf8');
+  modal(content);
+})
+
+page('/list', function (ctx) {
+  var content = templates.list({ locations: data });
+  modal(content);
+})
+
+page();
+
+
+on(document.body, 'a', 'click', function (e) {
+  if (elClass(e.target).has('ignore')) return;
+  var dest = e.target.hash.substring(1, e.target.hash.length);
+  page(dest);
 });
+
 
 window.onresize = function (e) {
   var modal = document.querySelector('.modal');
@@ -149,23 +165,24 @@ function addMarker (row, i) {
 
 function modal (content) {
   if (document.querySelector('.modal')) {
-    page.removeChild(document.querySelector('.modal'));
+    main.removeChild(document.querySelector('.modal'));
   }
   
   var modal = document.createElement('div');
   modal.className = 'modal';
   modal.innerHTML = content;
-  page.appendChild(modal);
+  main.appendChild(modal);
   resizeModal();
 }
 
 on(document.body, '#close-modal', 'click', function (e) {
   var modal = document.querySelector('.modal');
-  page.removeChild(modal);
+  main.removeChild(modal);
   e.preventDefault();
 });
 
 function resizeModal () {
+  
   var content = document.querySelector('.modal-inner');
   content.style.width = (window.innerWidth - 44) + 'px';
 
@@ -174,6 +191,12 @@ function resizeModal () {
   }
   else {
     content.style.height = window.innerHeight - 107 + 'px';
+  }
+  
+  if (window.innerWidth > 800) {
+    content.style.width = window.innerWidth / 2 + 'px';
+    content.style.maxWidth = '500px';
+    map.panTo([47.55653, -122.26434]);
   }
 }
 
@@ -195,25 +218,26 @@ function createImageArrays (data) {
 function updateWithFilters() {
   checkedCategories = [];
   var categoryCheckboxes = document.getElementsByClassName('categoryCheckbox');
+  
   for (var i = 0; i < categoryCheckboxes.length; i++) {
     if (categoryCheckboxes[i].checked) {
       checkedCategories.push(categoryCheckboxes[i].value);
     }
   }
-  console.log('checked:' + checkedCategories);
+
   markerGroup.clearLayers();
   map.removeLayer(markerGroup);
+  
   if (checkedCategories.length > 0) {
     data.filter(filterByCategory).forEach(addMarker);
   } else {
     data.forEach(addMarker);
   }
+  
   map.addLayer(markerGroup);
 }
 
 function filterByCategory(element) {
-  console.log(element.category);
-  console.log(checkedCategories);
   for (var i = 0; i < checkedCategories.length; i++) {
     if (checkedCategories[i] === element.category) {
       return true;

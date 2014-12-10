@@ -2,28 +2,29 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Seward Map demo</title>
+  <title>Seward Park Stories</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css">
   <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.0/mapbox.css' rel='stylesheet' />
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700|Lora:400,400italic' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" href="assets/bundle.css">
+  <base href="/" >
 </head>
 <body>
 
-<div id="page">
+<div id="main">
   <div class="container" id="menu">
     <header>
-      <h1>Seward Park Map</h2>
+      <h1>Seward Park Stories</h2>
       <ul class="nav">
-        <li><a href="#" id="all-view">all</a></li>
-        <li><a href="#" id="nearby-view">nearby</a></li>
-        <li><a href="#" id="about-view">about</a></li>
+        <li><a href="#/list" id="list">list</a></li>
+        <!--<li><a href="#" id="nearby-view">nearby</a></li>-->
+        <li><a href="#/about" id="about">about</a></li>
       </ul>
     </header>
   </div>
-
+  <div id="filter" class="leaflet-bar"></div>
   <div id="map" class="map-container"></div>
 </div>
 

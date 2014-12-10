@@ -30,7 +30,8 @@
     "leaflet": "~0.7.2",
     "leaflet-providers": "^1.0.3",
     "mapbox.js": "^2.1.0",
-    "normalize-css": "git://github.com/sethvincent/normalize-css"
+    "normalize-css": "git://github.com/sethvincent/normalize-css",
+    "page": "^1.5.0"
   },
   "devDependencies": {
     "brfs": "^1.2.0",

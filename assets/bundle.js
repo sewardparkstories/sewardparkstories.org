@@ -1,5 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
+var page = require('page');
 var Handlebars = require('handlebars');
 var elClass = require('element-class');
 var on = require('component-delegate').bind;
@@ -11,13 +12,11 @@ require('mapbox.js');
 var fastClick = require('fastclick');
 fastClick(document.body);
 
-var page = document.getElementById('page');
+var main = document.getElementById('main');
 var mapEl = document.getElementById('map');
-mapEl.style.height = (window.innerHeight - mapEl.offsetTop) + 'px';
 
 var data = require('./data.json');
 data = createImageArrays(data);
-console.log('weeeeeeeee', data)
 
 L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw';
 
@@ -29,13 +28,12 @@ L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4
 var templates = {};
 
 templates.info = Handlebars.compile(
-  "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  <h2 class=\"location-title\">{{ title }}</h2>\n  \n  {{#each images}}\n  <div class=\"image\">\n    <img src=\"{{ this }}\">\n  </div>\n  {{/each}}\n  \n  <div class=\"text\">\n    {{{ text }}}\n  </div>\n  <!--\n  <p><b><a href=\"{{ link }}\" target=\"_blank\">Learn more</a></b></p>\n  -->\n</section>\n"
+  "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\" class=\"ignore\">x</a>\n  <h2 class=\"location-title\">{{ title }}</h2>\n  \n  {{#each images}}\n  <div class=\"image\">\n    <img src=\"{{ this }}\">\n  </div>\n  {{/each}}\n  \n  <div class=\"text\">\n    {{{ text }}}\n  </div>\n  <!--\n  <p><b><a href=\"{{ link }}\" target=\"_blank\">Learn more</a></b></p>\n  -->\n</section>\n"
 );
 
 templates.list = Handlebars.compile(
-  "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"locations\">\n  {{#each locations}}\n    <div class=\"list-item\">\n      <h2>{{ title }}</h2>\n    </div>\n  {{/each}}\n  </div>\n\n</section"
+  "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\" class=\"ignore\">x</a>\n  \n  <div class=\"locations\">\n  {{#each locations}}\n    <div class=\"list-item\">\n      <h2>{{ title }}</h2>\n    </div>\n  {{/each}}\n  </div>\n\n</section"
 );
-
 
 /* 
 * set image path 
@@ -49,25 +47,28 @@ L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 */
 
 var checkedCategories = [];
-var menu = document.getElementById('menu');
+var menu = document.getElementById('filter');
 categories = getAllCategories(data);
-console.log(categories);
-if (categories.length > 0) {
-  menu.appendChild(document.createTextNode('Filter by category: '));
-}
+
 categories.forEach(function addCheckbox(item) {
+  var div = document.createElement('div');
+  elClass(div).add('filter-option');
+  
   var checkbox = document.createElement('input');
   checkbox.className = 'categoryCheckbox';
   checkbox.type = 'checkbox';
   checkbox.name = item;
   checkbox.value = item;
+  checkbox.checked = true;
   checkbox.addEventListener('change', updateWithFilters);
   
   var label = document.createElement('label');
   label.appendChild(document.createTextNode(item));
+  label.htmlFor = item;
   
-  menu.appendChild(checkbox);
-  menu.appendChild(label);
+  div.appendChild(checkbox);
+  div.appendChild(label);
+  menu.appendChild(div);
 })
 
 /* 
@@ -78,9 +79,12 @@ var streets = L.mapbox.tileLayer('sethvincent.de840f5b');
 
 var map = L.map('map', {
   center: [47.555, -122.252],
-  zoom: 15,
+  zoom: 14,
+  zoomControl: false,
   layers: [streets]
 });
+
+new L.Control.Zoom({ position: 'topright' }).addTo(map);
 
 
 var location = L.marker([47, -122], {
@@ -98,19 +102,31 @@ movement.on('error', function(err) {
   //console.error(err)
 });
 
-on(document.body, '.nav a', 'click', function (e) {
-  var id = e.target.id;
-  
-  if (id === 'about-view') {
-    var content = "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"modal-content\">\n    \n    <h2>About <b>Sqebeqsed Stories</b></h2>\n    <p>Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.</p>\n    <p>“Place is a story happening many times.” So say the Kwakiutl people of coastal British Columbia.</p>\n    <p>Seward Park is stories happening over and over, many at once. People come here to celebrate, congregate, meditate, race, run, walk, swim, climb, picnic, play, reflect, relax, make art, learn, unlearn, unwind. This place has sustained local residents for ten thousand years.</p>\n    <p>Before it was named “Seward Park” a century ago, this forested peninsula jutting into Lake Washington was known as “Sqebeqsed,” or “fat nose” in the local language, Lushootseed. And so Seward Park Stories are <b>Sqebeqsed Stories</b>.</p>\n    <p>Here, you will find stories about life in Sqebeqsed and the many lives that intersect with it, both human and non-human, present and past.</p>\n    \n    \n    <hr>\n    \n    <p>Sqebeqsed Stories is created and curated by <a href=\"http://www.wendycall.com/\">Wendy Call</a>, in collaboration with photographer <a href=\"http://www.thomasbancroft.com/\">G. Thomas Bancroft</a>, researcher <a href=\"https://plu.academia.edu/ChristinaMontilla\">Christina Montilla</a>, web developer <a href=\"http://sethvincent.com\">Seth Vincent</a>, and many others who love Sqebeqsed. Made possible by an Individual Artist grant from <a href=\"http://www.4culture.org/\">4Culture</a>, with in-kind support from <a href=\"http://www.sewardpark.org/index.html\">Friends of Seward Park</a> and the <a href=\"http://sewardpark.audubon.org/\">Seward Park Audubon Center</a>.</p>\n  </div>\n\n</section>";
-    modal(content);
-  }
-  
-  else {
-    var content = templates.list({ locations: data });
-    modal(content);
-  }
+page.base('/#')
+
+page('/', function () {
+  page('/about')
+})
+
+page('/about', function (ctx) {
+  var content = "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"modal-content\">\n    \n    <h2>About <b>Sqebeqsed Stories</b></h2>\n    <p>Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.</p>\n    <p>“Place is a story happening many times.” So say the Kwakiutl people of coastal British Columbia.</p>\n    <p>Seward Park is stories happening over and over, many at once. People come here to celebrate, congregate, meditate, race, run, walk, swim, climb, picnic, play, reflect, relax, make art, learn, unlearn, unwind. This place has sustained local residents for ten thousand years.</p>\n    <p>Before it was named “Seward Park” a century ago, this forested peninsula jutting into Lake Washington was known as “Sqebeqsed,” or “fat nose” in the local language, Lushootseed. And so Seward Park Stories are <b>Sqebeqsed Stories</b>.</p>\n    <p>Here, you will find stories about life in Sqebeqsed and the many lives that intersect with it, both human and non-human, present and past.</p>\n    \n    \n    <hr>\n    \n    <p>Sqebeqsed Stories is created and curated by <a href=\"http://www.wendycall.com/\">Wendy Call</a>, in collaboration with photographer <a href=\"http://www.thomasbancroft.com/\">G. Thomas Bancroft</a>, researcher <a href=\"https://plu.academia.edu/ChristinaMontilla\">Christina Montilla</a>, web developer <a href=\"http://sethvincent.com\">Seth Vincent</a>, and many others who love Sqebeqsed. Made possible by an Individual Artist grant from <a href=\"http://www.4culture.org/\">4Culture</a>, with in-kind support from <a href=\"http://www.sewardpark.org/index.html\">Friends of Seward Park</a> and the <a href=\"http://sewardpark.audubon.org/\">Seward Park Audubon Center</a>.</p>\n  \n  <img src=\"assets/4culture.jpg\">\n  </div>\n\n</section>";
+  modal(content);
+})
+
+page('/list', function (ctx) {
+  var content = templates.list({ locations: data });
+  modal(content);
+})
+
+page();
+
+
+on(document.body, 'a', 'click', function (e) {
+  if (elClass(e.target).has('ignore')) return;
+  var dest = e.target.hash.substring(1, e.target.hash.length);
+  page(dest);
 });
+
 
 window.onresize = function (e) {
   var modal = document.querySelector('.modal');
@@ -150,23 +166,24 @@ function addMarker (row, i) {
 
 function modal (content) {
   if (document.querySelector('.modal')) {
-    page.removeChild(document.querySelector('.modal'));
+    main.removeChild(document.querySelector('.modal'));
   }
   
   var modal = document.createElement('div');
   modal.className = 'modal';
   modal.innerHTML = content;
-  page.appendChild(modal);
+  main.appendChild(modal);
   resizeModal();
 }
 
 on(document.body, '#close-modal', 'click', function (e) {
   var modal = document.querySelector('.modal');
-  page.removeChild(modal);
+  main.removeChild(modal);
   e.preventDefault();
 });
 
 function resizeModal () {
+  
   var content = document.querySelector('.modal-inner');
   content.style.width = (window.innerWidth - 44) + 'px';
 
@@ -175,6 +192,12 @@ function resizeModal () {
   }
   else {
     content.style.height = window.innerHeight - 107 + 'px';
+  }
+  
+  if (window.innerWidth > 800) {
+    content.style.width = window.innerWidth / 2 + 'px';
+    content.style.maxWidth = '500px';
+    map.panTo([47.55653, -122.26434]);
   }
 }
 
@@ -196,25 +219,26 @@ function createImageArrays (data) {
 function updateWithFilters() {
   checkedCategories = [];
   var categoryCheckboxes = document.getElementsByClassName('categoryCheckbox');
+  
   for (var i = 0; i < categoryCheckboxes.length; i++) {
     if (categoryCheckboxes[i].checked) {
       checkedCategories.push(categoryCheckboxes[i].value);
     }
   }
-  console.log('checked:' + checkedCategories);
+
   markerGroup.clearLayers();
   map.removeLayer(markerGroup);
+  
   if (checkedCategories.length > 0) {
     data.filter(filterByCategory).forEach(addMarker);
   } else {
     data.forEach(addMarker);
   }
+  
   map.addLayer(markerGroup);
 }
 
 function filterByCategory(element) {
-  console.log(element.category);
-  console.log(checkedCategories);
   for (var i = 0; i < checkedCategories.length; i++) {
     if (checkedCategories[i] === element.category) {
       return true;
@@ -239,8 +263,8 @@ function getAllCategories(data) {
   }
   return categories;
 }
-},{"./data.json":2,"component-delegate":3,"element-class":8,"fastclick":9,"geolocation-stream":10,"handlebars":25,"leaflet":26,"mapbox.js":39,"scrollbar":53}],2:[function(require,module,exports){
-module.exports=[{"type":"Audio &Text","audio":"<iframe width=\"100%\" height=\"166\" scrolling=\"no\" frameborder=\"no\" src=\"https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/166005226&amp;color=ff5500&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false\"></iframe>","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"On a day in early August, a group of children walked along with their two summer camp leaders, along Seward Park's Sqebeqsed Trail -- also known as the Spine Trail -- in southeast Seattle. A man stood in the forest, playing a sort of metal sitar and singing.","excerpt":"On a day in early August, a group of children walked along with their two summer camp leaders, along Seward Park's Sqebeqsed Trail…. ","title":"Heard Along Sqebeqsed Trail","credit":"Wendy Call, 2014","lat":"47.549586","long":"-122.251114","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":" https://lh6.googleusercontent.com/-laz6IzwfUwc/VAqNJ-qIzUI/AAAAAAAAAQc/1MfQi-BqSBk/s640/IMG_1581.JPG","text":"In 1923, the people of Yokohama sent us an eight-ton stone lantern as a thank-you for offering help after an earthquake killed thirty thousand Yokohamans. Two decades later, our bombs killed another eight thousand in that city. Nine decades later, the lantern stands amid Japanese maple and Pacific rhododendron; the scents of dogshit, human urine, and sun-wilted summer flowers swirl around it. The taiko-gata lantern was a gift, an oxidized plaque tells us, “symbolizing the peace and good-will that exists between Japan and the United States.”","excerpt":"In 1923, the people of Yokohama sent us an eight-ton stone lantern as a thank-you for offering help after an earthquake killed thirty thousand Yokohamans. ","title":"Yokohama Taiko-Gata Lantern","credit":"Wendy Call, 2012","lat":"47.54976","long":"-122.257427","category":"culture"},{"type":"Images (2) & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":" https://lh3.googleusercontent.com/-WVjLlF6m0QY/VAqNS1g1VbI/AAAAAAAAASs/ebS0q9aTmIY/s800/ClayStudioWPAsign.jpg, https://lh5.googleusercontent.com/-l6WxUHEo6FE/VAqNUewl5bI/AAAAAAAAAS0/wVkZTYi4pjI/s912/AndrewsBay2012.jpg","text":"Turn to the east, face our past. Turn to the west, face your reflection.","excerpt":"Turn to the east, face our past. Turn to the west, face your reflection.","title":"At the Clay Studio","credit":"Wendy Call, 2014","lat":"47.54976","long":"-122.257427","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":" https://lh5.googleusercontent.com/-brrqjzTEO9E/VAqNWhuwxWI/AAAAAAAAARc/UvvoLYSGbec/s512/BathroomSkylight.jpg","text":"Bathroom view of Seattle sky: Moss molders. Leaves linger.","excerpt":"Bathroom view of Seattle sky: Moss molders. Leaves linger.","title":"Women's Room","credit":"Wendy Call, 2014","lat":"47.549759","long":"-122.256475","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://thomasbancroft.photoshelter.com/gallery-image/02-February/G0000bfN54TJ3GJc/I0000drj78Ba9TxY/C0000w8rPocZeArE","text":"People shout at one another; sausage dogs trot on tangled leashes; kids feel the sting of hand-slaps and admonishment. (“You are not an adult!”) Over it all, over Lake Washington, Tahoma hovers. Impervious and imperial. Our land bows down to our mountain. Vine maple branches frame the mountain peak, with Mercer Island to the east and the low bump of Rainier Beach to the southwest.","excerpt":"People shout at one another; sausage dogs trot on tangled leashes; kids feel the sting of hand-slaps and admonishment. ","title":"Rainier, Bikerack View","credit":"Thomas Bancroft, 2014","lat":"47.549564","long":"-122.256661","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/114539162694454678520/SewardPark2014#6056168799704596530","text":"Alki Beach and Seward Park, cardinal points on Seattle’s east-west axis, are connected by an invisible, treacherous line: the Seattle fault. An eon ago, an earthquake sent forests sliding into Lake Washington and a twenty-foot cliff bursting from the earth of Bailey Peninsula. Here on the north side of Seward Park, as at Alki, the quake broke bedrock though clay and moss, to the dim light of Northwestern days.","excerpt":"Alki Beach and Seward Park, cardinal points on Seattle’s east-west axis, are connected by an invisible, treacherous line….","title":"Scar(p)","credit":"Wendy Call, 2014","lat":"47.536475","long":"-122.255967","category":"landscape"},{"type":"Link & Text","audio":"","hyperlink_1":"Link the words \"her final interview\" to: ","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"In the last interview of her life, poet Denise Levertov said of Mount Rainier, \"When it's out, I can see it from my work room and my kitchen window. I usually take paper and pencil in my pocket when I go down to the park. Often something starts as I'm walking around there.\"","excerpt":"In the last interview of her life, poet Denise Levertov said of Mount Rainier, \"When it's out, I can see it from my work room and my kitchen window….\" ","title":"Levertov's Rainier","credit":"Thomas Bancroft, 2014","lat":"47.560208","long":"-122.255403","category":"landscape"},{"type":"Link & Text","audio":"","hyperlink_1":"http://poems.com/special_features/prose/essay_warn.php","hyperlink_1_text":"writes of Mount Rainier's influence on Denise Levertov","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"Seattle poet Emily Warn writes of Mount Rainier's influence on Denise Levertov, one of the most famous poets ever to live in Seattle: \"If 'Nature' in her poetry is a metonymy for spiritual understanding, then 'the mountain' stands for a divine presence hidden within, yet not of this material world....\"","excerpt":"Seattle poet Emily Warn writes of Mount Rainier's influence on Denise Levertov, one of the most famous poets ever to live in Seattle….","title":"Divine Presence","credit":"Emily Warn, 2011","lat":"47.565792","long":"-122.253936","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"http://spectatorspots.blogspot.com/2012/06/we-come-looking.html","hyperlink_1_text":"wrote a short essay, \"We Come Looking,\"","hyperlink_2":"","hyperlink_2_text":"","image":"https://lh4.googleusercontent.com/-Xc65nmKJFOE/VAqNexWarzI/AAAAAAAAATE/pZhjCjL9QBY/s576/IMG_3088.JPG","text":"In June 2012, over three weekend afternoons, I led two dozen writers through a writing and nature walk at Seward Park. One of them, Kristianne Huntsberger, wrote a short essay, \"We Come Looking,\" duing our walk.","excerpt":"In June 2012, over three weekend afternoons, I led two dozen writers through a writing and nature walk at Seward Park. One of them, Kristianne Huntsberger, wrote a short essay, \"We Come Looking,\" duing our walk.","title":"A Writing Spot","credit":"Kristianne Huntsberger and Wendy Call, 2012","lat":"47.555297","long":"-122.254394","category":"culture"},{"type":"Image & Text & Link","audio":"","hyperlink_1":"http://depts.washington.edu/uwcrows/","hyperlink_1_text":"some ornithologists celebrate them","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000gcOguCU6ejo/s/900/900/American-Crow-portrait-Seward-Park-Seattle-9687.jpg","text":"A century ago, Audubon Society members dreamed of keeping crows out of Seward Park. Now, some ornithologists celebrate them.","excerpt":"A century ago, Audubon Society members dreamed of keeping crows out of Seward Park. Now, ornithologists celebrate them.","title":"American Crow","credit":"Thomas Bancroft, 2014","lat":"47.548889","long":"-122.256389","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000Rqic3mwa2Dw/s/900/900/Hawthorn-berries-Seward-Park-Seattle.jpg","text":"","excerpt":"","title":"Hawthorn Berries","credit":"Thomas Bancroft, 2014","lat":"47.553611","long":"-122.250556","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000P0OCn0WSZAA/s/900/900/High-Bush-Craneberry-Seward-Park-Seattle.jpg","text":"","excerpt":"","title":"High Bush Cranberry","credit":"Thomas Bancroft, 2014","lat":"47.551111","long":"-122.250833","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000kFIPNWL0xbU/s/900/900/Glaucous-winged-Gull-Seward-Park-Seattle-9761.jpg","text":"","excerpt":"","title":"Glaucous Winged Gull Feeds in Shallow Water","credit":"Thomas Bancroft, 2014","lat":"47.548808","long":"-122.256442","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000TKsIYVed2cM/s/900/900/Seward-Park-Trail-Seward-Park-Seattle-1645.jpg","text":"","excerpt":"","title":"Sqebeqsed Trail","credit":"Thomas Bancroft, 2014","lat":"47.556667","long":"-122.251944","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000oD1aRx_6ofk/s/900/900/Sunrise-at-Seward-Park-Seward-Park-Seattle.jpg","text":"","excerpt":"","title":"Sunrise at South Beach","credit":"Thomas Bancroft, 2014","lat":"47.550278","long":"-122.248333","category":"landscape"},{"type":"Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"The beginning of a one-act play, Pinoy Hill, Seward Park, 1957, by Robert Francis Flor\n\nScene I (Pinoy Hill in Seward Park, Seattle. 1957. Three picnic tables placed in a row. The table at one end is marked with a RESERVED sign. A teen boy sprawls across the center table.)\n\nMAX:  (Acts bored. Swears.) Why me? So unfair. (Pounds table.) It’s the same every year. Boring. Same old dances. Same old table. Same music. Same faces.  BORING! (Lays down on bench next to table and closes eyes.)\n\n(An older Pinay woman (late-forties to early fifties) enters. She carries a shopping bag. Noticing him, she makes disgusting grunting and grumbling noises and mutters as she puts the bag on the table on the remaining, unreserved table.)\n\nROSARIO: Psst! Psst!\n\nMAX: (Doesn’t respond. Ignores her.)\n\nROSARIO: Psst! Halo! Magandang umaga sa iyo! (Max continues to ignore her.)  Boy!  I said “Halo!”\n\nMAX: I don’t understand Filipino. An’ I’m not a boy.\n\nROSARIO: Oh, American-born. I see.  I said “Hello. Good morning.”\n\nMAX: (Sits up.) Can I help you?\n\nROSARIO: Are you saving that table?  I would like it.\n\nMAX: (Stands)  No can do, Auntie.\n\nROSARIO: Ha?  Why “no can do”?  You’re the only one here. You use it just for sleep. My family is coming.\n\nMAX: My dad would kill me if I gave up this table. I’m saving it for my family. It’s his orders.","excerpt":"Scene I (Pinoy Hill in Seward Park, Seattle. 1957. Three picnic tables placed in a row. The table at one end is marked with a RESERVED sign. A teen boy sprawls across the center table.)","title":"Pinoy Hill - a play","credit":"Thomas Bancroft, 2014","lat":"47° 33'07.11\" N","long":"122° 15'19.78\"W","category":"culture"},{"type":"Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"In a circle of vine maples, encircled today by black-and-yellow caution tape: Put your left hand on top of your right, pull down. And if you want to stop, just let go. Are you doing alright? The only adult in the group says, “I am pretty terrified.” They swing in harnesses, suspended from high vine-maple branches in their own, private rope swings. One boy hoists himself nearly to tree top, alights, and climbs around in tree-sky. “Oh, wow. How high is he up there?” He’s probably about at fifty feet. That’s like standing on top of a telephone pole. OK, kids, you’ve got fifteen minutes left. Some want to go higher, some are more than ready to return to earth. The tree-swingers have drawn a small crowd: a family of three and an older couple with matching white sun hats. A great blue egret stands pencil-slim on a South Bay piling. The boy who climbed to top-of-telephone-pole height, skims to the ground and leaps from the harness. “I had a piece of bark in my pants. How did that happen?” \nAnother boy swings fifteen feet off the ground, feet up, head down. Anybody remember what kind of tree you’re in? Only one does; the other children cheer. Two men jog by, one pushing a stroller, talking of 30K and 60K races. The climbing-swinging children are replaced by another group ready to harness up. Still, the heron waits.","excerpt":"In a circle of vine maples, encircled today by black-and-yellow caution tape: Put your left hand on top of your right, pull down. ","title":"At the Vine Maples","credit":"Wendy Call, 2014","lat":"47° 32'55.69\" N","long":"122° 15'24.97\"W","category":"culture"},{"type":"Image &Text","audio":"","hyperlink_1":"https://lh4.googleusercontent.com/-IraGuCoWVoA/VAqNPOxBwxI/AAAAAAAAAQ0/YOqE26Q3Lws/s720/IMG_2244.JPG","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/i7InGb91Ll8FL3TRAd5tMNMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Everywhere in Seward Park you are close to speciessong and shitscent. Songs of speed walkers, Pacific wrens, plodding joggers, chestnut-baked chickadees, radios from yachts moored offshore. Shitscents of dog, mallard, toddler, Canada goose. Crows in the round-crowned garry oaks send down drifts of pollen and scraps of moss as they flap indignant wings. Walkers move at all speeds, carrying pocketbooks, or wrist weights, or a white parasol, or the leash of a loping Laborador. Far off, twin Jet-Skis whine; nearby, a solitary fire-orange wasp buzzes thimbleberry.","excerpt":"","title":"Garry Oak Prairie","credit":"Wendy Call, 2014","lat":"47.549232","long":"-122.252981","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"https://lh4.googleusercontent.com/-dHPc0KFLzUA/VAqNLOzl8yI/AAAAAAAAAQk/rBdKA3zRBLk/s640/IMG_1604.JPG","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/3j_2v7Hf1icjFaMsJ4zArdMTjNZETYmyPJy0liipFm0?feat=directlink","text":"","excerpt":"","title":"Poison Oy","credit":"Wendy Call, 2014","lat":"47.549236","long":"-122.252372","category":"culture"},{"type":"Link & Text","audio":"","hyperlink_1":"http://pugetopolis.blogspot.com/2009/11/reading-at-seward-park.html","hyperlink_1_text":"","hyperlink_2":"been inspired by Seward Park","hyperlink_2_text":"","image":"","text":"Knute Berger, \"Mossback,\" is one of Northwest writers who has been inpsired by Seward Park over a half-century of visits.","excerpt":"Knute Berger, \"Mossback,\" is one of Northwest writers who has been inpsired by Seward Park over a half-century of visits.","title":"Mossback","credit":"Knute Berger, 2011","lat":"47.549722","long":"-122.256389","category":"culture"},{"type":"Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"\"Bailey Peninsula, southeast of the city, forms the most available large tract of land that is uniformly and beautifully covered with woods, and should be secured eventually, and, of course, before the woods are injured.\"","excerpt":"\"Bailey Peninsula, southeast of the city, forms the most available large tract of land that is uniformly and beautifully covered with woods...\" Here, at Trip Vine Crossing, you are about to enter the Magnificent Forest.","title":"From the Park Commissioners' Report","credit":"Olmstead Brothers, 1908","lat":"47.554722","long":"-122.250278","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/ZRdIgSpLolv0ktIJWCIcVdMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Julie Chinitz and Heidi Stahl participate in a writing workshop with Wendy Call in June 2012. Julie has run the nine-mile loop from her house in the Central District to Seward Park for years. When asked to name the most important place in the park, she said, \"The water fountain?\"","excerpt":"Julie Chinitz and Heidi Stahl participate in a writing workshop with Wendy Call in June 2012. Julie has run the nine-mile loop from her house in the Central District to Seward Park for years. When asked to name the most important place in the park, she said, \"The water fountain?\"","title":"Word-working","credit":"Wendy Call, 2012","lat":"47.561696","long":"-122.254172","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/fJcE5PgtKNkAxA8OwHhmMNMTjNZETYmyPJy0liipFm0?feat=directlink","text":"At the Andrew's Bay beach, climb into the lifeguard's chair. This is the place where much of what you are reading here, at Sqebeqsed Stories, was written.","excerpt":"At the Andrew's Bay beach, climb into the lifeguard's chair. This is the place where much of what you are reading here, at Sqebeqsed Stories, was written.","title":"Field Office, with a View","credit":"Wendy Call, 2012","lat":"47.551389","long":"-122.2575","category":"culture"},{"type":"Link & Text","audio":"","hyperlink_1":"http://www.sewardpark.org/history.html","hyperlink_1_text":"was born on the shores of Lake Washington","hyperlink_2":"","hyperlink_2_text":"","image":"http://upload.wikimedia.org/wikipedia/commons/b/b8/General_history%2C_Alaska_Yukon_Pacific_Exposition%2C_fully_illustrated_-_meet_me_in_Seattle_1909_-_Page_33.jpg","text":"Kick-is-om-lo, Chief Seattle's daughter, who later came to known as Princess Angeline, was born on the shores of Lake Washington south of the Sqebeqsed Peninsula, near what we now call Atlantic Park, but was then called Tuxwoo'kwib, place of the loons.","excerpt":"Kick-is-om-lo, Chief Seattle's daughter, who later came to known as Princess Angeline, was born on the shores of Lake Washington south of the Sqebeqsed Peninsula","title":"Princess Angeline's Birthplace","credit":"Friends of Seward Park","lat":"47.542557","long":"-122.260952","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/MJghV4v341oEOdGO_XULK9MTjNZETYmyPJy0liipFm0?feat=directlink","text":"For a half-century, from the 1930s to the 1980s, developers threatened to build a bridge from Seward Park to Mercer Island. In the 1930s, the plan was to build it from this point on the south side of the park. A half century later, the planned location had moved south of the park. Imagine: the view of Mount Rainier slashed by a bridge.","excerpt":"For a half-century, from the 1930s to the 1980s, developers threatened to build a bridge from Seward Park to Mercer Island.","title":"Bridge to Mercer Island?","credit":"Seattle Times, 1981","lat":"47.539167","long":"-122.226111","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/EgOCCzEaIatnmDjvKoZhfNMTjNZETYmyPJy0liipFm0?feat=directlink","text":"\"I wish more folks understood. There are humane socities for dogs and kittens. They can cry when they are hurt. These flowers, too, are living things, but have no way to protest or escape. I wish all children might be taught to plant, and to protect.\" --Jacob L. Umlauff, long-time Seattle Parks gardener, 1930 (Mr. Umlauff planted the holly that has become such a terrible invasive plant in the park.)","excerpt":"\"The flowers, too, are living things, but have no way to protest or escape.\"","title":"A Voice for Flowers","credit":"Seattle Daily Times","lat":"47.549722","long":"-122.256667","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://lh4.googleusercontent.com/-yt4RN3WTvic/VIUz2lDI8FI/AAAAAAAAAZg/cwcRgu1wu9k/h120/Salal-Seward%2BPark-TBancroft.jpg","text":"\"Of course all the men detest everything wild except the big leaved maple tree and madronas. Bushes are to them merely weeds to be trampled down and destroyed so grass can be grown. It seems especially queer that they cannot appreciate the beautiful evergreen undergrowth they have here--the Oregon grape, the Sallal, and the evergreen huckleberry.\" --John Charles Olmstead, 1908","excerpt":"\"It seems epecially queer that they cannot apprciate the beautiful evergreen undergrowth they have here....\"","title":"Salal","credit":"Thomas Bancroft, 2014","lat":"47.554203","long":"-122.250115","category":"landscape"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://www.historylink.org/index.cfm?DisplayPage=output.cfm&file_id=3141","hyperlink_1_text":"a quarter-million trout swam from Seward Park hatchery ponds","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/ERvk-40QjbYeqXs0R1zYgdMTjNZETYmyPJy0liipFm0?feat=directlink  https://picasaweb.google.com/114539162694454678520/SewardPark5Sept14#6090366686192234898","text":"In the mid-1940s, a quarter-million trout swam from Seward Park hatchery ponds into Lake Washington every year. By the 1970s, we understood that fisherman's paradise as a sort of pollution.","excerpt":"In the 1940s, a quarter-million trout swam from Seward Park hatchery ponds","title":"","credit":"Seattle Times, 1945 & Wendy Call, 2014","lat":"47.556111","long":"-122.251111","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/c8d9xAg92Kfo3Ibwki6K9_eEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"A bird sweeps so low overhead I feel its wind and smell its wings. A young bald eagle. In August, the fledglings they are still unsteady on branch and wing. If lumbering were possible on the wing, this huge brown bird would be lumbering. It swoops to an unsteady landing on a tenuous branch, just below another young bald eagle. Second bird hops up to perch by first. Together, they tear at leaves around them, raining leaf-litter down onto my face, onto tree roots and blackberry, onto someone’s left-behind paper napkins and a yellow \"WARNING buried cable\" sign.","excerpt":"A bird sweeps so low overhead I feel its wind and smell its wings. A young bald eagle. In August, the fledglings they are still unsteady on \nbranch and wing.","title":"Eagle Hunting Roost","credit":"Wendy Call, 2014","lat":"47.560556","long":"-122.255","category":"ecology"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://dartofphysics.ie/physics-darts/we-are-all-made-stardust","hyperlink_1_text":"were forged by dying stars","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/aBE6nAht2Jz2J75fXH2Py_eEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"The land we walk here at Seward Park, the madrona and thimbleberry, our own bodies resting or sweating, are made of stardust. The atoms of our bodies were forged by dying stars.","excerpt":"The land we walk here at Seward Park, the madrona and thimbleberry, our own bodies resting or sweating, are made of stardust. The atoms of our bodies were forged by dying stars.","title":"Stardust","credit":"Wendy Call, 2014","lat":"47.549444","long":"-122.249722","category":"ecology"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://www.historylink.org/index.cfm?DisplayPage=output.cfm&file_id=3172","hyperlink_1_text":"Forty-five years later, the first Black family finally moved in","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/h5NSwzarAtf5w7rHKT7w6PeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"In 1925, Seattle developers planned a new neighborhood on the steep hills just west of Seward Park. Forty-five years later, the first African American family built a house there--despite their neighbors best efforts to keep them out. Owned by the family of Dr. Jorn Henry, a surgeon, the house was designed by African American architect Benjamin McAdoo.","excerpt":"In 1925, Seattle developers planned a new neighborhood on the steep hills just west of Seward Park.","title":"Seward Park Uplands: Showplace of the (Racist) West","credit":"Seattle Daily Times, 1925","lat":"47.545","long":"-122.259167","category":"culture"},{"type":"Text & Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/gfUs31i2FxQDq-beWWTdvtMTjNZETYmyPJy0liipFm0?feat=directlink","text":"\"Seward Park will be made, as near as possible, into a pace of absolute security for Seattle song birds. In fact the officers of the Audubon Society hope that its fame will spread abroad and he feathered tourists may be converted into permanent residents. The plan for the bird sanctuary started before the United States declared war on Germany. ... Seward Park was selected because of its ideal location and because Lake Washington at that point is already a government preserve. ... Its beauty is of the sort that birds like--not artificially made lawns and carefully planted flower beds--but of Nature's outlay of scraggly trees, with a generous smattering of berry bushes. ...As soon as weather conditions permit the entrance to the park will be decorated with a beautiful archway.... Boys with airguns cannot enter. It will be the deadline for cat.s The members of the society are thinking of ways and means to make crows and blackbirds know they are not wanted. ... Permission to kill cats has been denied the Audubon Society, but the enactment of an ordinance requiring the licensing of cats, it is believed, will eliminate the one big enemy of the birds.\"","excerpt":"\"Seward Park will be made, as near as possible, into a pace of absolute security for Seattle song birds.\"","title":"\"Seward Park is Made Inviting for Songsters\"","credit":"Seattle Sunday Times, 1919","lat":"47.558416","long":"-122.253249","category":"culture"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://www.seattle.gov/util/EnvironmentConservation/ClimateChangeProgram/ProjectedChanges/Sea-LevelRiseMap/index.htm","hyperlink_1_text":"Ever higher.","hyperlink_2":"","hyperlink_2_text":"","image":"\"http://cdn.c.photoshelter.com/img-get/I0000fLFFZPeXyQ8/s/900/900/Mew-Gull-Seward-Park-Seattle-9703.jpg","text":"The coast draws us all--children, elders, dogs, mew gulls. The water pulls us. Our actions pull the water. Ever higher.","excerpt":"The coast draws us all--children, elders, dogs, mew gulls. The water pulls us. Our actions pull the water. Ever higher.","title":"In Shallow Water","credit":"Thomas Bancroft, 2014","lat":"47.548805","long":"-122.256403","category":"ecology"},{"type":"Text & Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/MTwF_4TLs7X7EQUB1eBDfPeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"In the aftermath of World War I, the Mount Baker neighborhood (just northwest of Seward Park) decided to forbid Japanese-American residents. Reverend U.G. Murphy, of the Columbia Congregational Church, tried to stop them. He failed. He continued his pro-tolerance campaign through World War Ii.","excerpt":"In the aftermath of World War I, the Mount Baker neighborhood (just northwest of Seward Park) decided to forbid Japanese-American residents.","title":"Reverend Murphy's Fishing Pier","credit":"Wendy Call, 2014","lat":"47.560833","long":"-122.255278","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/zUAoHYnMu-GPduU616a6pfeEGFXQ55vgHsSHvukXYs4?feat=directlink  https://picasaweb.google.com/lh/photo/MhHNHNMrX208wH1uVnukv9MTjNZETYmyPJy0liipFm0?feat=directlink","text":"In the 1930s, white neighbors of Seward Park complained about Japanese Americans moving to the neighborhood. In the 1970s, the Japanese prime minister gifted Seattle with one thousand cherry trees and these lanterns. These days, people sometimes tuck into the lanterns burning slips of paper on which they have written their regrets.","excerpt":"In the 1970s, the Japanese prime minister gifted Seattle with one thousand cherry trees and these lanterns.","title":"Lanterns Over Andrew's Bay","credit":"Wendy Call, 2014","lat":"47.550833","long":"-122.26","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/tWZximpXJNYvTcxmhz8gbtMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Camas lilies were a crucial food source for those the  Xachua'bsh who lived near the Sqebeqsed peninsula. They would not grow if the forest was allowed to grow up around them.","excerpt":"Camas lilies were a crucial food source for those the  Xachua'bsh who lived near the Sqebeqsed peninsula.","title":"Camas Lilies","credit":"Wendy Call, 2014","lat":"47.549167","long":"-122.252778","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/0Nszej5lhVF6OlRfB4ZXsveEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"The Xachua'bsh (Lake People) who lived hear Sqebeqsed burned parts of the forest, so the landscape would give them sustenance. Fire swept the peninsula in the late 1400s and in the early 1800s.","excerpt":"The Xachua'bsh (Lake People) who lived hear Sqebeqsed burned parts of the forest, so the landscape would give them sustenance. Fire swept the peninsula in the late 1400s and in the early 1800s.","title":"Corey Hydrant","credit":"Wendy Call, 2014","lat":"47.561111","long":"-122.254722","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/kIBPae9RUON3ms1PfgrAbdMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Al Smith comes to the park nearly every day to pull out invasives. He has done this for years. \"After the Parks Department removed the ivy and blackberry, they hoped the bleeding heart would spread. But instead, the fancy ragwort, creeping buttercup, and other noxious weeds did.\" Al Smith, May 4, 2013","excerpt":"Al Smith comes to the park nearly every day to pull out invasives. He has done this for years.","title":"No Bleeding Heart","credit":"Wendy Call, 2013","lat":"47.549167","long":"-122.252778","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/HE40KGGFak0Z4BFqFBC85tMTjNZETYmyPJy0liipFm0?feat=directlink  https://picasaweb.google.com/lh/photo/bZUZKSEcIYG5DlNiAd0ywfeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"The Seward Park Uplands neighborhood was to be framed by four stone gateways. \"Four artistically developed entrance to the Uplands are being developed,\" the Seattle Times told readers in 1925. One had been already been completed, \"built of Wisconsin sandstone, imported here at great expense to carry out exactly the design and ideas of the architect.\" Only one of the four locations has a gateway.","excerpt":"The Seward Park Uplands neighborhood was to be framed by four stone gateways. \"Four artistically developed entrance to the Uplands are being developed,\" the Seattle Times told readers in 1925. ","title":"Juneau Street Uplands Entrance","credit":"Wendy Call, 2014","lat":"47.549444","long":"-122.267222","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/wfusjtYe6uq0Hbhngd33ofeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"I had always wondered about the grand gateway at the intersection of Orcas and Seward Park Ave. Why an entrance to the park so far from the park? It wasn't to welcome people to the park at all, but to enclose the Seward Park Uplands neighborhood.","excerpt":"I had always wondered about the grand gateway at the intersection of Orcas and Seward Park Ave. Why an entrance to the park so far from the park? ","title":"Orcas Street Uplands Entrance","credit":"Wendy Call, 2014","lat":"47.550833","long":"-122.261944","category":"landscape"}]
+},{"./data.json":2,"component-delegate":3,"element-class":8,"fastclick":9,"geolocation-stream":10,"handlebars":25,"leaflet":26,"mapbox.js":39,"page":53,"scrollbar":55}],2:[function(require,module,exports){
+module.exports=[{"type":"Audio &Text","audio":"<iframe width=\"100%\" height=\"166\" scrolling=\"no\" frameborder=\"no\" src=\"https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/166005226&amp;color=ff5500&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false\"></iframe>","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"On a day in early August, a group of children walked along with their two summer camp leaders, along Seward Park's Sqebeqsed Trail -- also known as the Spine Trail -- in southeast Seattle. A man stood in the forest, playing a sort of metal sitar and singing.","excerpt":"On a day in early August, a group of children walked along with their two summer camp leaders, along Seward Park's Sqebeqsed Trail…. ","title":"Heard Along Sqebeqsed Trail","credit":"Wendy Call, 2014","lat":"47.549586","long":"-122.251114","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":" https://lh6.googleusercontent.com/-laz6IzwfUwc/VAqNJ-qIzUI/AAAAAAAAAQc/1MfQi-BqSBk/s640/IMG_1581.JPG","text":"In 1923, the people of Yokohama sent us an eight-ton stone lantern as a thank-you for offering help after an earthquake killed thirty thousand Yokohamans. Two decades later, our bombs killed another eight thousand in that city. Nine decades later, the lantern stands amid Japanese maple and Pacific rhododendron; the scents of dogshit, human urine, and sun-wilted summer flowers swirl around it. The taiko-gata lantern was a gift, an oxidized plaque tells us, “symbolizing the peace and good-will that exists between Japan and the United States.”","excerpt":"In 1923, the people of Yokohama sent us an eight-ton stone lantern as a thank-you for offering help after an earthquake killed thirty thousand Yokohamans. ","title":"Yokohama Taiko-Gata Lantern","credit":"Wendy Call, 2012","lat":"47.54976","long":"-122.257427","category":"culture"},{"type":"Images (2) & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":" https://lh3.googleusercontent.com/-WVjLlF6m0QY/VAqNS1g1VbI/AAAAAAAAASs/ebS0q9aTmIY/s800/ClayStudioWPAsign.jpg, https://lh5.googleusercontent.com/-l6WxUHEo6FE/VAqNUewl5bI/AAAAAAAAAS0/wVkZTYi4pjI/s912/AndrewsBay2012.jpg","text":"Turn to the east, face our past. Turn to the west, face your reflection.","excerpt":"Turn to the east, face our past. Turn to the west, face your reflection.","title":"At the Clay Studio","credit":"Wendy Call, 2014","lat":"47.54976","long":"-122.257427","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":" https://lh5.googleusercontent.com/-brrqjzTEO9E/VAqNWhuwxWI/AAAAAAAAARc/UvvoLYSGbec/s512/BathroomSkylight.jpg","text":"Bathroom view of Seattle sky: Moss molders. Leaves linger.","excerpt":"Bathroom view of Seattle sky: Moss molders. Leaves linger.","title":"Women's Room","credit":"Wendy Call, 2014","lat":"47.549759","long":"-122.256475","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://thomasbancroft.photoshelter.com/gallery-image/02-February/G0000bfN54TJ3GJc/I0000drj78Ba9TxY/C0000w8rPocZeArE","text":"People shout at one another; sausage dogs trot on tangled leashes; kids feel the sting of hand-slaps and admonishment. (“You are not an adult!”) Over it all, over Lake Washington, Tahoma hovers. Impervious and imperial. Our land bows down to our mountain. Vine maple branches frame the mountain peak, with Mercer Island to the east and the low bump of Rainier Beach to the southwest.","excerpt":"People shout at one another; sausage dogs trot on tangled leashes; kids feel the sting of hand-slaps and admonishment. ","title":"Rainier, Bikerack View","credit":"Thomas Bancroft, 2014","lat":"47.549564","long":"-122.256661","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/114539162694454678520/SewardPark2014#6056168799704596530","text":"Alki Beach and Seward Park, cardinal points on Seattle’s east-west axis, are connected by an invisible, treacherous line: the Seattle fault. An eon ago, an earthquake sent forests sliding into Lake Washington and a twenty-foot cliff bursting from the earth of Bailey Peninsula. Here on the north side of Seward Park, as at Alki, the quake broke bedrock though clay and moss, to the dim light of Northwestern days.","excerpt":"Alki Beach and Seward Park, cardinal points on Seattle’s east-west axis, are connected by an invisible, treacherous line….","title":"Scar(p)","credit":"Wendy Call, 2014","lat":"47.536475","long":"-122.255967","category":"landscape"},{"type":"Link & Text","audio":"","hyperlink_1":"Link the words \"her final interview\" to: ","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"In the last interview of her life, poet Denise Levertov said of Mount Rainier, \"When it's out, I can see it from my work room and my kitchen window. I usually take paper and pencil in my pocket when I go down to the park. Often something starts as I'm walking around there.\"","excerpt":"In the last interview of her life, poet Denise Levertov said of Mount Rainier, \"When it's out, I can see it from my work room and my kitchen window….\" ","title":"Levertov's Rainier","credit":"Thomas Bancroft, 2014","lat":"47.560208","long":"-122.255403","category":"landscape"},{"type":"Link & Text","audio":"","hyperlink_1":"http://poems.com/special_features/prose/essay_warn.php","hyperlink_1_text":"writes of Mount Rainier's influence on Denise Levertov","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"Seattle poet Emily Warn writes of Mount Rainier's influence on Denise Levertov, one of the most famous poets ever to live in Seattle: \"If 'Nature' in her poetry is a metonymy for spiritual understanding, then 'the mountain' stands for a divine presence hidden within, yet not of this material world....\"","excerpt":"Seattle poet Emily Warn writes of Mount Rainier's influence on Denise Levertov, one of the most famous poets ever to live in Seattle….","title":"Divine Presence","credit":"Emily Warn, 2011","lat":"47.565792","long":"-122.253936","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"http://spectatorspots.blogspot.com/2012/06/we-come-looking.html","hyperlink_1_text":"wrote a short essay, \"We Come Looking,\"","hyperlink_2":"","hyperlink_2_text":"","image":"https://lh4.googleusercontent.com/-Xc65nmKJFOE/VAqNexWarzI/AAAAAAAAATE/pZhjCjL9QBY/s576/IMG_3088.JPG","text":"In June 2012, over three weekend afternoons, I led two dozen writers through a writing and nature walk at Seward Park. One of them, Kristianne Huntsberger, wrote a short essay, \"We Come Looking,\" duing our walk.","excerpt":"In June 2012, over three weekend afternoons, I led two dozen writers through a writing and nature walk at Seward Park. One of them, Kristianne Huntsberger, wrote a short essay, \"We Come Looking,\" duing our walk.","title":"A Writing Spot","credit":"Kristianne Huntsberger and Wendy Call, 2012","lat":"47.555297","long":"-122.254394","category":"culture"},{"type":"Image & Text & Link","audio":"","hyperlink_1":"http://depts.washington.edu/uwcrows/","hyperlink_1_text":"some ornithologists celebrate them","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000gcOguCU6ejo/s/900/900/American-Crow-portrait-Seward-Park-Seattle-9687.jpg","text":"A century ago, Audubon Society members dreamed of keeping crows out of Seward Park. Now, some ornithologists celebrate them.","excerpt":"A century ago, Audubon Society members dreamed of keeping crows out of Seward Park. Now, ornithologists celebrate them.","title":"American Crow","credit":"Thomas Bancroft, 2014","lat":"47.548889","long":"-122.256389","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000Rqic3mwa2Dw/s/900/900/Hawthorn-berries-Seward-Park-Seattle.jpg","text":"","excerpt":"","title":"Hawthorn Berries","credit":"Thomas Bancroft, 2014","lat":"47.553611","long":"-122.250556","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000P0OCn0WSZAA/s/900/900/High-Bush-Craneberry-Seward-Park-Seattle.jpg","text":"","excerpt":"","title":"High Bush Cranberry","credit":"Thomas Bancroft, 2014","lat":"47.551111","long":"-122.250833","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000kFIPNWL0xbU/s/900/900/Glaucous-winged-Gull-Seward-Park-Seattle-9761.jpg","text":"","excerpt":"","title":"Glaucous Winged Gull Feeds in Shallow Water","credit":"Thomas Bancroft, 2014","lat":"47.548808","long":"-122.256442","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000TKsIYVed2cM/s/900/900/Seward-Park-Trail-Seward-Park-Seattle-1645.jpg","text":"","excerpt":"","title":"Sqebeqsed Trail","credit":"Thomas Bancroft, 2014","lat":"47.556667","long":"-122.251944","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000oD1aRx_6ofk/s/900/900/Sunrise-at-Seward-Park-Seward-Park-Seattle.jpg","text":"","excerpt":"","title":"Sunrise at South Beach","credit":"Thomas Bancroft, 2014","lat":"47.550278","long":"-122.248333","category":"landscape"},{"type":"Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"The beginning of a one-act play, Pinoy Hill, Seward Park, 1957, by Robert Francis Flor\n\nScene I (Pinoy Hill in Seward Park, Seattle. 1957. Three picnic tables placed in a row. The table at one end is marked with a RESERVED sign. A teen boy sprawls across the center table.)\n\nMAX:  (Acts bored. Swears.) Why me? So unfair. (Pounds table.) It’s the same every year. Boring. Same old dances. Same old table. Same music. Same faces.  BORING! (Lays down on bench next to table and closes eyes.)\n\n(An older Pinay woman (late-forties to early fifties) enters. She carries a shopping bag. Noticing him, she makes disgusting grunting and grumbling noises and mutters as she puts the bag on the table on the remaining, unreserved table.)\n\nROSARIO: Psst! Psst!\n\nMAX: (Doesn’t respond. Ignores her.)\n\nROSARIO: Psst! Halo! Magandang umaga sa iyo! (Max continues to ignore her.)  Boy!  I said “Halo!”\n\nMAX: I don’t understand Filipino. An’ I’m not a boy.\n\nROSARIO: Oh, American-born. I see.  I said “Hello. Good morning.”\n\nMAX: (Sits up.) Can I help you?\n\nROSARIO: Are you saving that table?  I would like it.\n\nMAX: (Stands)  No can do, Auntie.\n\nROSARIO: Ha?  Why “no can do”?  You’re the only one here. You use it just for sleep. My family is coming.\n\nMAX: My dad would kill me if I gave up this table. I’m saving it for my family. It’s his orders.","excerpt":"Scene I (Pinoy Hill in Seward Park, Seattle. 1957. Three picnic tables placed in a row. The table at one end is marked with a RESERVED sign. A teen boy sprawls across the center table.)","title":"Pinoy Hill - a play","credit":"Thomas Bancroft, 2014","lat":"47° 33'07.11\" N","long":"122° 15'19.78\"W","category":"culture"},{"type":"Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"In a circle of vine maples, encircled today by black-and-yellow caution tape: Put your left hand on top of your right, pull down. And if you want to stop, just let go. Are you doing alright? The only adult in the group says, “I am pretty terrified.” They swing in harnesses, suspended from high vine-maple branches in their own, private rope swings. One boy hoists himself nearly to tree top, alights, and climbs around in tree-sky. “Oh, wow. How high is he up there?” He’s probably about at fifty feet. That’s like standing on top of a telephone pole. OK, kids, you’ve got fifteen minutes left. Some want to go higher, some are more than ready to return to earth. The tree-swingers have drawn a small crowd: a family of three and an older couple with matching white sun hats. A great blue egret stands pencil-slim on a South Bay piling. The boy who climbed to top-of-telephone-pole height, skims to the ground and leaps from the harness. “I had a piece of bark in my pants. How did that happen?” \nAnother boy swings fifteen feet off the ground, feet up, head down. Anybody remember what kind of tree you’re in? Only one does; the other children cheer. Two men jog by, one pushing a stroller, talking of 30K and 60K races. The climbing-swinging children are replaced by another group ready to harness up. Still, the heron waits.","excerpt":"In a circle of vine maples, encircled today by black-and-yellow caution tape: Put your left hand on top of your right, pull down. ","title":"At the Vine Maples","credit":"Wendy Call, 2014","lat":"47° 32'55.69\" N","long":"122° 15'24.97\"W","category":"culture"},{"type":"Image &Text","audio":"","hyperlink_1":"https://lh4.googleusercontent.com/-IraGuCoWVoA/VAqNPOxBwxI/AAAAAAAAAQ0/YOqE26Q3Lws/s720/IMG_2244.JPG","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/i7InGb91Ll8FL3TRAd5tMNMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Everywhere in Seward Park you are close to speciessong and shitscent. Songs of speed walkers, Pacific wrens, plodding joggers, chestnut-baked chickadees, radios from yachts moored offshore. Shitscents of dog, mallard, toddler, Canada goose. Crows in the round-crowned garry oaks send down drifts of pollen and scraps of moss as they flap indignant wings. Walkers move at all speeds, carrying pocketbooks, or wrist weights, or a white parasol, or the leash of a loping Laborador. Far off, twin Jet-Skis whine; nearby, a solitary fire-orange wasp buzzes thimbleberry.","excerpt":"","title":"Garry Oak Prairie","credit":"Wendy Call, 2014","lat":"47.549232","long":"-122.252981","category":"ecology"},{"type":"Image","audio":"","hyperlink_1":"https://lh4.googleusercontent.com/-dHPc0KFLzUA/VAqNLOzl8yI/AAAAAAAAAQk/rBdKA3zRBLk/s640/IMG_1604.JPG","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/3j_2v7Hf1icjFaMsJ4zArdMTjNZETYmyPJy0liipFm0?feat=directlink","text":"","excerpt":"","title":"Poison Oy","credit":"Wendy Call, 2014","lat":"47.549236","long":"-122.252372","category":"culture"},{"type":"Link & Text","audio":"","hyperlink_1":"http://pugetopolis.blogspot.com/2009/11/reading-at-seward-park.html","hyperlink_1_text":"","hyperlink_2":"been inspired by Seward Park","hyperlink_2_text":"","image":"","text":"Knute Berger, \"Mossback,\" is one of Northwest writers who has been inpsired by Seward Park over a half-century of visits.","excerpt":"Knute Berger, \"Mossback,\" is one of Northwest writers who has been inpsired by Seward Park over a half-century of visits.","title":"Mossback","credit":"Knute Berger, 2011","lat":"47.549722","long":"-122.256389","category":"culture"},{"type":"Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"","text":"\"Bailey Peninsula, southeast of the city, forms the most available large tract of land that is uniformly and beautifully covered with woods, and should be secured eventually, and, of course, before the woods are injured.\"","excerpt":"\"Bailey Peninsula, southeast of the city, forms the most available large tract of land that is uniformly and beautifully covered with woods...\" Here, at Trip Vine Crossing, you are about to enter the Magnificent Forest.","title":"From the Park Commissioners' Report","credit":"Olmstead Brothers, 1908","lat":"47.554722","long":"-122.250278","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/ZRdIgSpLolv0ktIJWCIcVdMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Julie Chinitz and Heidi Stahl participate in a writing workshop with Wendy Call in June 2012. Julie has run the nine-mile loop from her house in the Central District to Seward Park for years. When asked to name the most important place in the park, she said, \"The water fountain?\"","excerpt":"Julie Chinitz and Heidi Stahl participate in a writing workshop with Wendy Call in June 2012. Julie has run the nine-mile loop from her house in the Central District to Seward Park for years. When asked to name the most important place in the park, she said, \"The water fountain?\"","title":"Word-working","credit":"Wendy Call, 2012","lat":"47.561696","long":"-122.254172","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/fJcE5PgtKNkAxA8OwHhmMNMTjNZETYmyPJy0liipFm0?feat=directlink","text":"At the Andrew's Bay beach, climb into the lifeguard's chair. This is the place where much of what you are reading here, at Sqebeqsed Stories, was written.","excerpt":"At the Andrew's Bay beach, climb into the lifeguard's chair. This is the place where much of what you are reading here, at Sqebeqsed Stories, was written.","title":"Field Office, with a View","credit":"Wendy Call, 2012","lat":"47.551389","long":"-122.2575","category":"culture"},{"type":"Link & Text","audio":"","hyperlink_1":"http://www.sewardpark.org/history.html","hyperlink_1_text":"was born on the shores of Lake Washington","hyperlink_2":"","hyperlink_2_text":"","image":"http://upload.wikimedia.org/wikipedia/commons/b/b8/General_history%2C_Alaska_Yukon_Pacific_Exposition%2C_fully_illustrated_-_meet_me_in_Seattle_1909_-_Page_33.jpg","text":"Kick-is-om-lo, Chief Seattle's daughter, who later came to known as Princess Angeline, was born on the shores of Lake Washington south of the Sqebeqsed Peninsula, near what we now call Atlantic Park, but was then called Tuxwoo'kwib, place of the loons.","excerpt":"Kick-is-om-lo, Chief Seattle's daughter, who later came to known as Princess Angeline, was born on the shores of Lake Washington south of the Sqebeqsed Peninsula","title":"Princess Angeline's Birthplace","credit":"Friends of Seward Park","lat":"47.542557","long":"-122.260952","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/MJghV4v341oEOdGO_XULK9MTjNZETYmyPJy0liipFm0?feat=directlink","text":"For a half-century, from the 1930s to the 1980s, developers threatened to build a bridge from Seward Park to Mercer Island. In the 1930s, the plan was to build it from this point on the south side of the park. A half century later, the planned location had moved south of the park. Imagine: the view of Mount Rainier slashed by a bridge.","excerpt":"For a half-century, from the 1930s to the 1980s, developers threatened to build a bridge from Seward Park to Mercer Island.","title":"Bridge to Mercer Island?","credit":"Seattle Times, 1981","lat":"47.539167","long":"-122.226111","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/EgOCCzEaIatnmDjvKoZhfNMTjNZETYmyPJy0liipFm0?feat=directlink","text":"\"I wish more folks understood. There are humane socities for dogs and kittens. They can cry when they are hurt. These flowers, too, are living things, but have no way to protest or escape. I wish all children might be taught to plant, and to protect.\" --Jacob L. Umlauff, long-time Seattle Parks gardener, 1930 (Mr. Umlauff planted the holly that has become such a terrible invasive plant in the park.)","excerpt":"\"The flowers, too, are living things, but have no way to protest or escape.\"","title":"A Voice for Flowers","credit":"Seattle Daily Times","lat":"47.549722","long":"-122.256667","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://lh4.googleusercontent.com/-yt4RN3WTvic/VIUz2lDI8FI/AAAAAAAAAZg/cwcRgu1wu9k/h120/Salal-Seward%2BPark-TBancroft.jpg","text":"\"Of course all the men detest everything wild except the big leaved maple tree and madronas. Bushes are to them merely weeds to be trampled down and destroyed so grass can be grown. It seems especially queer that they cannot appreciate the beautiful evergreen undergrowth they have here--the Oregon grape, the Sallal, and the evergreen huckleberry.\" --John Charles Olmstead, 1908","excerpt":"\"It seems epecially queer that they cannot apprciate the beautiful evergreen undergrowth they have here....\"","title":"Salal","credit":"Thomas Bancroft, 2014","lat":"47.554203","long":"-122.250115","category":"landscape"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://www.historylink.org/index.cfm?DisplayPage=output.cfm&file_id=3141","hyperlink_1_text":"a quarter-million trout swam from Seward Park hatchery ponds","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/ERvk-40QjbYeqXs0R1zYgdMTjNZETYmyPJy0liipFm0?feat=directlink  https://picasaweb.google.com/114539162694454678520/SewardPark5Sept14#6090366686192234898","text":"In the mid-1940s, a quarter-million trout swam from Seward Park hatchery ponds into Lake Washington every year. By the 1970s, we understood that fisherman's paradise as a sort of pollution.","excerpt":"In the 1940s, a quarter-million trout swam from Seward Park hatchery ponds","title":"","credit":"Seattle Times, 1945 & Wendy Call, 2014","lat":"47.556111","long":"-122.251111","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/c8d9xAg92Kfo3Ibwki6K9_eEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"A bird sweeps so low overhead I feel its wind and smell its wings. A young bald eagle. In August, the fledglings they are still unsteady on branch and wing. If lumbering were possible on the wing, this huge brown bird would be lumbering. It swoops to an unsteady landing on a tenuous branch, just below another young bald eagle. Second bird hops up to perch by first. Together, they tear at leaves around them, raining leaf-litter down onto my face, onto tree roots and blackberry, onto someone’s left-behind paper napkins and a yellow \"WARNING buried cable\" sign.","excerpt":"A bird sweeps so low overhead I feel its wind and smell its wings. A young bald eagle. In August, the fledglings they are still unsteady on \nbranch and wing.","title":"Eagle Hunting Roost","credit":"Wendy Call, 2014","lat":"47.560556","long":"-122.255","category":"ecology"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://dartofphysics.ie/physics-darts/we-are-all-made-stardust","hyperlink_1_text":"were forged by dying stars","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/aBE6nAht2Jz2J75fXH2Py_eEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"The land we walk here at Seward Park, the madrona and thimbleberry, our own bodies resting or sweating, are made of stardust. The atoms of our bodies were forged by dying stars.","excerpt":"The land we walk here at Seward Park, the madrona and thimbleberry, our own bodies resting or sweating, are made of stardust. The atoms of our bodies were forged by dying stars.","title":"Stardust","credit":"Wendy Call, 2014","lat":"47.549444","long":"-122.249722","category":"ecology"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://www.historylink.org/index.cfm?DisplayPage=output.cfm&file_id=3172","hyperlink_1_text":"Forty-five years later, the first Black family finally moved in","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/h5NSwzarAtf5w7rHKT7w6PeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"In 1925, Seattle developers planned a new neighborhood on the steep hills just west of Seward Park. Forty-five years later, the first African American family built a house there--despite their neighbors best efforts to keep them out. Owned by the family of Dr. Jorn Henry, a surgeon, the house was designed by African American architect Benjamin McAdoo.","excerpt":"In 1925, Seattle developers planned a new neighborhood on the steep hills just west of Seward Park.","title":"Seward Park Uplands: Showplace of the (Racist) West","credit":"Seattle Daily Times, 1925","lat":"47.545","long":"-122.259167","category":"culture"},{"type":"Text & Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/gfUs31i2FxQDq-beWWTdvtMTjNZETYmyPJy0liipFm0?feat=directlink","text":"\"Seward Park will be made, as near as possible, into a pace of absolute security for Seattle song birds. In fact the officers of the Audubon Society hope that its fame will spread abroad and he feathered tourists may be converted into permanent residents. The plan for the bird sanctuary started before the United States declared war on Germany. ... Seward Park was selected because of its ideal location and because Lake Washington at that point is already a government preserve. ... Its beauty is of the sort that birds like--not artificially made lawns and carefully planted flower beds--but of Nature's outlay of scraggly trees, with a generous smattering of berry bushes. ...As soon as weather conditions permit the entrance to the park will be decorated with a beautiful archway.... Boys with airguns cannot enter. It will be the deadline for cat.s The members of the society are thinking of ways and means to make crows and blackbirds know they are not wanted. ... Permission to kill cats has been denied the Audubon Society, but the enactment of an ordinance requiring the licensing of cats, it is believed, will eliminate the one big enemy of the birds.\"","excerpt":"\"Seward Park will be made, as near as possible, into a pace of absolute security for Seattle song birds.\"","title":"\"Seward Park is Made Inviting for Songsters\"","credit":"Seattle Sunday Times, 1919","lat":"47.558416","long":"-122.253249","category":"culture"},{"type":"Text & Image & Link","audio":"","hyperlink_1":"http://www.seattle.gov/util/EnvironmentConservation/ClimateChangeProgram/ProjectedChanges/Sea-LevelRiseMap/index.htm","hyperlink_1_text":"Ever higher.","hyperlink_2":"","hyperlink_2_text":"","image":"http://cdn.c.photoshelter.com/img-get/I0000fLFFZPeXyQ8/s/900/900/Mew-Gull-Seward-Park-Seattle-9703.jpg","text":"The coast draws us all--children, elders, dogs, mew gulls. The water pulls us. Our actions pull the water. Ever higher.","excerpt":"The coast draws us all--children, elders, dogs, mew gulls. The water pulls us. Our actions pull the water. Ever higher.","title":"In Shallow Water","credit":"Thomas Bancroft, 2014","lat":"47.548805","long":"-122.256403","category":"ecology"},{"type":"Text & Image","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/MTwF_4TLs7X7EQUB1eBDfPeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"In the aftermath of World War I, the Mount Baker neighborhood (just northwest of Seward Park) decided to forbid Japanese-American residents. Reverend U.G. Murphy, of the Columbia Congregational Church, tried to stop them. He failed. He continued his pro-tolerance campaign through World War Ii.","excerpt":"In the aftermath of World War I, the Mount Baker neighborhood (just northwest of Seward Park) decided to forbid Japanese-American residents.","title":"Reverend Murphy's Fishing Pier","credit":"Wendy Call, 2014","lat":"47.560833","long":"-122.255278","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/zUAoHYnMu-GPduU616a6pfeEGFXQ55vgHsSHvukXYs4?feat=directlink  https://picasaweb.google.com/lh/photo/MhHNHNMrX208wH1uVnukv9MTjNZETYmyPJy0liipFm0?feat=directlink","text":"In the 1930s, white neighbors of Seward Park complained about Japanese Americans moving to the neighborhood. In the 1970s, the Japanese prime minister gifted Seattle with one thousand cherry trees and these lanterns. These days, people sometimes tuck into the lanterns burning slips of paper on which they have written their regrets.","excerpt":"In the 1970s, the Japanese prime minister gifted Seattle with one thousand cherry trees and these lanterns.","title":"Lanterns Over Andrew's Bay","credit":"Wendy Call, 2014","lat":"47.550833","long":"-122.26","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/tWZximpXJNYvTcxmhz8gbtMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Camas lilies were a crucial food source for those the  Xachua'bsh who lived near the Sqebeqsed peninsula. They would not grow if the forest was allowed to grow up around them.","excerpt":"Camas lilies were a crucial food source for those the  Xachua'bsh who lived near the Sqebeqsed peninsula.","title":"Camas Lilies","credit":"Wendy Call, 2014","lat":"47.549167","long":"-122.252778","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/0Nszej5lhVF6OlRfB4ZXsveEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"The Xachua'bsh (Lake People) who lived hear Sqebeqsed burned parts of the forest, so the landscape would give them sustenance. Fire swept the peninsula in the late 1400s and in the early 1800s.","excerpt":"The Xachua'bsh (Lake People) who lived hear Sqebeqsed burned parts of the forest, so the landscape would give them sustenance. Fire swept the peninsula in the late 1400s and in the early 1800s.","title":"Corey Hydrant","credit":"Wendy Call, 2014","lat":"47.561111","long":"-122.254722","category":"culture"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/kIBPae9RUON3ms1PfgrAbdMTjNZETYmyPJy0liipFm0?feat=directlink","text":"Al Smith comes to the park nearly every day to pull out invasives. He has done this for years. \"After the Parks Department removed the ivy and blackberry, they hoped the bleeding heart would spread. But instead, the fancy ragwort, creeping buttercup, and other noxious weeds did.\" Al Smith, May 4, 2013","excerpt":"Al Smith comes to the park nearly every day to pull out invasives. He has done this for years.","title":"No Bleeding Heart","credit":"Wendy Call, 2013","lat":"47.549167","long":"-122.252778","category":"ecology"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/HE40KGGFak0Z4BFqFBC85tMTjNZETYmyPJy0liipFm0?feat=directlink  https://picasaweb.google.com/lh/photo/bZUZKSEcIYG5DlNiAd0ywfeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"The Seward Park Uplands neighborhood was to be framed by four stone gateways. \"Four artistically developed entrance to the Uplands are being developed,\" the Seattle Times told readers in 1925. One had been already been completed, \"built of Wisconsin sandstone, imported here at great expense to carry out exactly the design and ideas of the architect.\" Only one of the four locations has a gateway.","excerpt":"The Seward Park Uplands neighborhood was to be framed by four stone gateways. \"Four artistically developed entrance to the Uplands are being developed,\" the Seattle Times told readers in 1925. ","title":"Juneau Street Uplands Entrance","credit":"Wendy Call, 2014","lat":"47.549444","long":"-122.267222","category":"landscape"},{"type":"Image & Text","audio":"","hyperlink_1":"","hyperlink_1_text":"","hyperlink_2":"","hyperlink_2_text":"","image":"https://picasaweb.google.com/lh/photo/wfusjtYe6uq0Hbhngd33ofeEGFXQ55vgHsSHvukXYs4?feat=directlink","text":"I had always wondered about the grand gateway at the intersection of Orcas and Seward Park Ave. Why an entrance to the park so far from the park? It wasn't to welcome people to the park at all, but to enclose the Seward Park Uplands neighborhood.","excerpt":"I had always wondered about the grand gateway at the intersection of Orcas and Seward Park Ave. Why an entrance to the park so far from the park? ","title":"Orcas Street Uplands Entrance","credit":"Wendy Call, 2014","lat":"47.550833","long":"-122.261944","category":"landscape"}]
 },{}],3:[function(require,module,exports){
 /**
  * Module dependencies.
@@ -1323,7 +1347,7 @@ GeolocationStream.prototype.onError = function(position) {
   this.emit('error', position)
 }
 
-},{"stream":90,"util":98}],11:[function(require,module,exports){
+},{"stream":92,"util":100}],11:[function(require,module,exports){
 "use strict";
 /*globals Handlebars: true */
 var Handlebars = require("./handlebars.runtime")["default"];
@@ -4158,7 +4182,7 @@ if (typeof require !== 'undefined' && require.extensions) {
   require.extensions[".hbs"] = extension;
 }
 
-},{"../dist/cjs/handlebars":11,"../dist/cjs/handlebars/compiler/printer":19,"../dist/cjs/handlebars/compiler/visitor":20,"fs":82}],26:[function(require,module,exports){
+},{"../dist/cjs/handlebars":11,"../dist/cjs/handlebars/compiler/printer":19,"../dist/cjs/handlebars/compiler/visitor":20,"fs":84}],26:[function(require,module,exports){
 /*
  Leaflet, a JavaScript library for mobile-friendly interactive maps. http://leafletjs.com
  (c) 2010-2013, Vladimir Agafonkin
@@ -18302,6 +18326,710 @@ function contains(item, list) {
 }
 
 },{}],53:[function(require,module,exports){
+  /* globals require, module */
+
+/**
+   * Module dependencies.
+   */
+
+  var pathtoRegexp = require('path-to-regexp');
+
+  /**
+   * Module exports.
+   */
+
+  module.exports = page;
+
+  /**
+   * To work properly with the URL
+   * history.location generated polyfill in https://github.com/devote/HTML5-History-API
+   */
+
+  var location = window.history.location || window.location;
+
+  /**
+   * Perform initial dispatch.
+   */
+
+  var dispatch = true;
+
+  /**
+   * Base path.
+   */
+
+  var base = '';
+
+  /**
+   * Running flag.
+   */
+
+  var running;
+
+  /**
+  * HashBang option
+  */
+
+  var hashbang = false;
+
+  /**
+   * Previous context, for capturing
+   * page exit events.
+   */
+
+  var prevContext;
+
+  /**
+   * Register `path` with callback `fn()`,
+   * or route `path`, or redirection,
+   * or `page.start()`.
+   *
+   *   page(fn);
+   *   page('*', fn);
+   *   page('/user/:id', load, user);
+   *   page('/user/' + user.id, { some: 'thing' });
+   *   page('/user/' + user.id);
+   *   page('/from', '/to')
+   *   page();
+   *
+   * @param {String|Function} path
+   * @param {Function} fn...
+   * @api public
+   */
+
+  function page(path, fn) {
+    // <callback>
+    if ('function' === typeof path) {
+      return page('*', path);
+    }
+
+    // route <path> to <callback ...>
+    if ('function' === typeof fn) {
+      var route = new Route(path);
+      for (var i = 1; i < arguments.length; ++i) {
+        page.callbacks.push(route.middleware(arguments[i]));
+      }
+    // show <path> with [state]
+    } else if ('string' == typeof path) {
+      'string' === typeof fn
+        ? page.redirect(path, fn)
+        : page.show(path, fn);
+    // start [options]
+    } else {
+      page.start(path);
+    }
+  }
+
+  /**
+   * Callback functions.
+   */
+
+  page.callbacks = [];
+  page.exits = [];
+
+  /**
+   * Get or set basepath to `path`.
+   *
+   * @param {String} path
+   * @api public
+   */
+
+  page.base = function(path){
+    if (0 === arguments.length) return base;
+    base = path;
+  };
+
+  /**
+   * Bind with the given `options`.
+   *
+   * Options:
+   *
+   *    - `click` bind to click events [true]
+   *    - `popstate` bind to popstate [true]
+   *    - `dispatch` perform initial dispatch [true]
+   *
+   * @param {Object} options
+   * @api public
+   */
+
+  page.start = function(options){
+    options = options || {};
+    if (running) return;
+    running = true;
+    if (false === options.dispatch) dispatch = false;
+    if (false !== options.popstate) window.addEventListener('popstate', onpopstate, false);
+    if (false !== options.click) window.addEventListener('click', onclick, false);
+    if (true === options.hashbang) hashbang = true;
+    if (!dispatch) return;
+    var url = (hashbang && ~location.hash.indexOf('#!'))
+      ? location.hash.substr(2) + location.search
+      : location.pathname + location.search + location.hash;
+    page.replace(url, null, true, dispatch);
+  };
+
+  /**
+   * Unbind click and popstate event handlers.
+   *
+   * @api public
+   */
+
+  page.stop = function(){
+    if (!running) return;
+    running = false;
+    window.removeEventListener('click', onclick, false);
+    window.removeEventListener('popstate', onpopstate, false);
+  };
+
+  /**
+   * Show `path` with optional `state` object.
+   *
+   * @param {String} path
+   * @param {Object} state
+   * @param {Boolean} dispatch
+   * @return {Context}
+   * @api public
+   */
+
+  page.show = function(path, state, dispatch){
+    var ctx = new Context(path, state);
+    if (false !== dispatch) page.dispatch(ctx);
+    if (false !== ctx.handled) ctx.pushState();
+    return ctx;
+  };
+
+  /**
+   * Register route to redirect from one path to other
+   * or just redirect to another route
+   *
+   * @param {String} from - if param 'to' is undefined redirects to 'from'
+   * @param {String} [to]
+   * @api public
+   */
+  page.redirect = function(from, to) {
+    // Define route from a path to another
+    if ('string' === typeof from && 'string' === typeof to) {
+      page(from, function (e) {
+        setTimeout(function() {
+          page.replace(to);
+        },0);
+      });
+    }
+
+    // Wait for the push state and replace it with another
+    if('string' === typeof from && 'undefined' === typeof to) {
+      setTimeout(function() {
+          page.replace(from);
+      },0);
+    }
+  };
+
+  /**
+   * Replace `path` with optional `state` object.
+   *
+   * @param {String} path
+   * @param {Object} state
+   * @return {Context}
+   * @api public
+   */
+
+  page.replace = function(path, state, init, dispatch){
+    var ctx = new Context(path, state);
+    ctx.init = init;
+    ctx.save(); // save before dispatching, which may redirect
+    if (false !== dispatch) page.dispatch(ctx);
+    return ctx;
+  };
+
+  /**
+   * Dispatch the given `ctx`.
+   *
+   * @param {Object} ctx
+   * @api private
+   */
+
+  page.dispatch = function(ctx){
+    var prev = prevContext;
+    var i = 0;
+    var j = 0;
+
+    prevContext = ctx;
+
+    function nextExit() {
+      var fn = page.exits[j++];
+      if (!fn) return nextEnter();
+      fn(prev, nextExit);
+    }
+
+    function nextEnter() {
+      var fn = page.callbacks[i++];
+      if (!fn) return unhandled(ctx);
+      fn(ctx, nextEnter);
+    }
+
+    if (prev) {
+      nextExit();
+    } else {
+      nextEnter();
+    }
+  };
+
+  /**
+   * Unhandled `ctx`. When it's not the initial
+   * popstate then redirect. If you wish to handle
+   * 404s on your own use `page('*', callback)`.
+   *
+   * @param {Context} ctx
+   * @api private
+   */
+
+  function unhandled(ctx) {
+    if (ctx.handled) return;
+    var current;
+
+    if (hashbang) {
+      current = base + location.hash.replace('#!','');
+    } else {
+      current = location.pathname + location.search;
+    }
+
+    if (current === ctx.canonicalPath) return;
+    page.stop();
+    ctx.handled = false;
+    location.href = ctx.canonicalPath;
+  }
+
+  /**
+   * Register an exit route on `path` with
+   * callback `fn()`, which will be called
+   * on the previous context when a new
+   * page is visited.
+   */
+  page.exit = function(path, fn) {
+    if (typeof path == 'function') {
+      return page.exit('*', path);
+    };
+
+    var route = new Route(path);
+    for (var i = 1; i < arguments.length; ++i) {
+      page.exits.push(route.middleware(arguments[i]));
+    }
+  };
+
+  /**
+  * Remove URL encoding from the given `str`.
+  * Accommodates whitespace in both x-www-form-urlencoded
+  * and regular percent-encoded form.
+  *
+  * @param {str} URL component to decode
+  */
+  function decodeURLEncodedURIComponent(str) {
+    return decodeURIComponent(str.replace(/\+/g, ' '));
+  }
+
+  /**
+   * Initialize a new "request" `Context`
+   * with the given `path` and optional initial `state`.
+   *
+   * @param {String} path
+   * @param {Object} state
+   * @api public
+   */
+
+  function Context(path, state) {
+    path = decodeURLEncodedURIComponent(path);
+    if ('/' === path[0] && 0 !== path.indexOf(base)) path = base + path;
+    var i = path.indexOf('?');
+
+    this.canonicalPath = path;
+    this.path = path.replace(base, '') || '/';
+
+    this.title = document.title;
+    this.state = state || {};
+    this.state.path = path;
+    this.querystring = ~i
+      ? path.slice(i + 1)
+      : '';
+    this.pathname = ~i
+      ? path.slice(0, i)
+      : path;
+    this.params = [];
+
+    // fragment
+    this.hash = '';
+    if (!~this.path.indexOf('#')) return;
+    var parts = this.path.split('#');
+    this.path = parts[0];
+    this.hash = parts[1] || '';
+    this.querystring = this.querystring.split('#')[0];
+  }
+
+  /**
+   * Expose `Context`.
+   */
+
+  page.Context = Context;
+
+  /**
+   * Push state.
+   *
+   * @api private
+   */
+
+  Context.prototype.pushState = function(){
+    history.pushState(this.state
+      , this.title
+      , hashbang && this.path !== '/'
+        ? '#!' + this.path
+        : this.canonicalPath);
+  };
+
+  /**
+   * Save the context state.
+   *
+   * @api public
+   */
+
+  Context.prototype.save = function(){
+    history.replaceState(this.state
+      , this.title
+      , hashbang && this.path !== '/'
+        ? '#!' + this.path
+        : this.canonicalPath);
+  };
+
+  /**
+   * Initialize `Route` with the given HTTP `path`,
+   * and an array of `callbacks` and `options`.
+   *
+   * Options:
+   *
+   *   - `sensitive`    enable case-sensitive routes
+   *   - `strict`       enable strict matching for trailing slashes
+   *
+   * @param {String} path
+   * @param {Object} options.
+   * @api private
+   */
+
+  function Route(path, options) {
+    options = options || {};
+    this.path = (path === '*') ? '(.*)' : path;
+    this.method = 'GET';
+    this.regexp = pathtoRegexp(this.path,
+      this.keys = [],
+      options.sensitive,
+      options.strict);
+  }
+
+  /**
+   * Expose `Route`.
+   */
+
+  page.Route = Route;
+
+  /**
+   * Return route middleware with
+   * the given callback `fn()`.
+   *
+   * @param {Function} fn
+   * @return {Function}
+   * @api public
+   */
+
+  Route.prototype.middleware = function(fn){
+    var self = this;
+    return function(ctx, next){
+      if (self.match(ctx.path, ctx.params)) return fn(ctx, next);
+      next();
+    };
+  };
+
+  /**
+   * Check if this route matches `path`, if so
+   * populate `params`.
+   *
+   * @param {String} path
+   * @param {Array} params
+   * @return {Boolean}
+   * @api private
+   */
+
+  Route.prototype.match = function(path, params){
+    var keys = this.keys,
+        qsIndex = path.indexOf('?'),
+        pathname = ~qsIndex
+          ? path.slice(0, qsIndex)
+          : path,
+        m = this.regexp.exec(decodeURIComponent(pathname));
+
+    if (!m) return false;
+
+    for (var i = 1, len = m.length; i < len; ++i) {
+      var key = keys[i - 1];
+
+      var val = 'string' === typeof m[i]
+        ? decodeURIComponent(m[i])
+        : m[i];
+
+      if (key) {
+        params[key.name] = undefined !== params[key.name]
+          ? params[key.name]
+          : val;
+      } else {
+        params.push(val);
+      }
+    }
+
+    return true;
+  };
+
+  /**
+   * Handle "populate" events.
+   */
+
+  function onpopstate(e) {
+    if (e.state) {
+      var path = e.state.path;
+      page.replace(path, e.state);
+    }
+  }
+
+  /**
+   * Handle "click" events.
+   */
+
+  function onclick(e) {
+    if (1 != which(e)) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+    if (e.defaultPrevented) return;
+
+    // ensure link
+    var el = e.target;
+    while (el && 'A' != el.nodeName) el = el.parentNode;
+    if (!el || 'A' != el.nodeName) return;
+
+    // Ignore if tag has a "download" attribute
+    if (el.getAttribute("download")) return;
+
+    // ensure non-hash for the same path
+    var link = el.getAttribute('href');
+    if (el.pathname === location.pathname && (el.hash || '#' === link)) return;
+
+    // Check for mailto: in the href
+    if (link && link.indexOf("mailto:") > -1) return;
+
+    // check target
+    if (el.target) return;
+
+    // x-origin
+    if (!sameOrigin(el.href)) return;
+
+    // rebuild path
+    var path = el.pathname + el.search + (el.hash || '');
+
+    // same page
+    var orig = path;
+
+    path = path.replace(base, '');
+
+    if (base && orig === path) return;
+
+    e.preventDefault();
+    page.show(orig);
+  }
+
+  /**
+   * Event button.
+   */
+
+  function which(e) {
+    e = e || window.event;
+    return null === e.which
+      ? e.button
+      : e.which;
+  }
+
+  /**
+   * Check if `href` is the same origin.
+   */
+
+  function sameOrigin(href) {
+    var origin = location.protocol + '//' + location.hostname;
+    if (location.port) origin += ':' + location.port;
+    return (href && (0 === href.indexOf(origin)));
+  }
+
+  page.sameOrigin = sameOrigin;
+
+},{"path-to-regexp":54}],54:[function(require,module,exports){
+/**
+ * Expose `pathtoRegexp`.
+ */
+module.exports = pathtoRegexp;
+
+/**
+ * The main path matching regexp utility.
+ *
+ * @type {RegExp}
+ */
+var PATH_REGEXP = new RegExp([
+  // Match already escaped characters that would otherwise incorrectly appear
+  // in future matches. This allows the user to escape special characters that
+  // shouldn't be transformed.
+  '(\\\\.)',
+  // Match Express-style parameters and un-named parameters with a prefix
+  // and optional suffixes. Matches appear as:
+  //
+  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?"]
+  // "/route(\\d+)" => [undefined, undefined, undefined, "\d+", undefined]
+  '([\\/.])?(?:\\:(\\w+)(?:\\(((?:\\\\.|[^)])*)\\))?|\\(((?:\\\\.|[^)])*)\\))([+*?])?',
+  // Match regexp special characters that should always be escaped.
+  '([.+*?=^!:${}()[\\]|\\/])'
+].join('|'), 'g');
+
+/**
+ * Escape the capturing group by escaping special characters and meaning.
+ *
+ * @param  {String} group
+ * @return {String}
+ */
+function escapeGroup (group) {
+  return group.replace(/([=!:$\/()])/g, '\\$1');
+}
+
+/**
+ * Attach the keys as a property of the regexp.
+ *
+ * @param  {RegExp} re
+ * @param  {Array}  keys
+ * @return {RegExp}
+ */
+var attachKeys = function (re, keys) {
+  re.keys = keys;
+
+  return re;
+};
+
+/**
+ * Normalize the given path string, returning a regular expression.
+ *
+ * An empty array should be passed in, which will contain the placeholder key
+ * names. For example `/user/:id` will then contain `["id"]`.
+ *
+ * @param  {(String|RegExp|Array)} path
+ * @param  {Array}                 keys
+ * @param  {Object}                options
+ * @return {RegExp}
+ */
+function pathtoRegexp (path, keys, options) {
+  if (keys && !Array.isArray(keys)) {
+    options = keys;
+    keys = null;
+  }
+
+  keys = keys || [];
+  options = options || {};
+
+  var strict = options.strict;
+  var end = options.end !== false;
+  var flags = options.sensitive ? '' : 'i';
+  var index = 0;
+
+  if (path instanceof RegExp) {
+    // Match all capturing groups of a regexp.
+    var groups = path.source.match(/\((?!\?)/g) || [];
+
+    // Map all the matches to their numeric keys and push into the keys.
+    keys.push.apply(keys, groups.map(function (match, index) {
+      return {
+        name:      index,
+        delimiter: null,
+        optional:  false,
+        repeat:    false
+      };
+    }));
+
+    // Return the source back to the user.
+    return attachKeys(path, keys);
+  }
+
+  if (Array.isArray(path)) {
+    // Map array parts into regexps and return their source. We also pass
+    // the same keys and options instance into every generation to get
+    // consistent matching groups before we join the sources together.
+    path = path.map(function (value) {
+      return pathtoRegexp(value, keys, options).source;
+    });
+
+    // Generate a new regexp instance by joining all the parts together.
+    return attachKeys(new RegExp('(?:' + path.join('|') + ')', flags), keys);
+  }
+
+  // Alter the path string into a usable regexp.
+  path = path.replace(PATH_REGEXP, function (match, escaped, prefix, key, capture, group, suffix, escape) {
+    // Avoiding re-escaping escaped characters.
+    if (escaped) {
+      return escaped;
+    }
+
+    // Escape regexp special characters.
+    if (escape) {
+      return '\\' + escape;
+    }
+
+    var repeat   = suffix === '+' || suffix === '*';
+    var optional = suffix === '?' || suffix === '*';
+
+    keys.push({
+      name:      key || index++,
+      delimiter: prefix || '/',
+      optional:  optional,
+      repeat:    repeat
+    });
+
+    // Escape the prefix character.
+    prefix = prefix ? '\\' + prefix : '';
+
+    // Match using the custom capturing group, or fallback to capturing
+    // everything up to the next slash (or next period if the param was
+    // prefixed with a period).
+    capture = escapeGroup(capture || group || '[^' + (prefix || '\\/') + ']+?');
+
+    // Allow parameters to be repeated more than once.
+    if (repeat) {
+      capture = capture + '(?:' + prefix + capture + ')*';
+    }
+
+    // Allow a parameter to be optional.
+    if (optional) {
+      return '(?:' + prefix + '(' + capture + '))?';
+    }
+
+    // Basic parameter support.
+    return prefix + '(' + capture + ')';
+  });
+
+  // Check whether the path ends in a slash as it alters some match behaviour.
+  var endsWithSlash = path[path.length - 1] === '/';
+
+  // In non-strict mode we allow an optional trailing slash in the match. If
+  // the path to match already ended with a slash, we need to remove it for
+  // consistency. The slash is only valid at the very end of a path match, not
+  // anywhere in the middle. This is important for non-ending mode, otherwise
+  // "/test/" will match "/test//route".
+  if (!strict) {
+    path = (endsWithSlash ? path.slice(0, -2) : path) + '(?:\\/(?=$))?';
+  }
+
+  // In non-ending mode, we need prompt the capturing groups to match as much
+  // as possible by using a positive lookahead for the end or next path segment.
+  if (!end) {
+    path += strict && endsWithSlash ? '' : '(?=\\/|$)';
+  }
+
+  return attachKeys(new RegExp('^' + path + (end ? '$' : ''), flags), keys);
+};
+
+},{}],55:[function(require,module,exports){
 /**
  * Module dependencies
  */
@@ -18430,7 +19158,7 @@ Scrollbar.prototype.onmousewheel = function( e ) {
   this.el.style.top = -this.scrollTop + 'px';
 };
 
-},{"component-css":54,"component-events":75,"domify":81}],54:[function(require,module,exports){
+},{"component-css":56,"component-events":77,"domify":83}],56:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -18490,7 +19218,7 @@ function setStyles(el, props) {
   return el;
 }
 
-},{"./lib/css":56,"./lib/style":59,"debug":68}],55:[function(require,module,exports){
+},{"./lib/css":58,"./lib/style":61,"debug":70}],57:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -18540,7 +19268,7 @@ function computed(el, prop, precomputed) {
   return undefined === ret ? ret : ret + '';
 }
 
-},{"./style":59,"./styles":60,"debug":68,"within-document":74}],56:[function(require,module,exports){
+},{"./style":61,"./styles":62,"debug":70,"within-document":76}],58:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -18622,7 +19350,7 @@ function isNumeric(obj) {
   return !isNan(parseFloat(obj)) && isFinite(obj);
 }
 
-},{"./computed":55,"./hooks":57,"./prop":58,"debug":68,"to-camel-case":71}],57:[function(require,module,exports){
+},{"./computed":57,"./hooks":59,"./prop":60,"debug":70,"to-camel-case":73}],59:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -18786,7 +19514,7 @@ function augmentWidthOrHeight(el, prop, extra, isBorderBox, styles) {
   return val;
 }
 
-},{"./computed":55,"./css":56,"./styles":60,"./support":61,"./swap":62,"each":64}],58:[function(require,module,exports){
+},{"./computed":57,"./css":58,"./styles":62,"./support":63,"./swap":64,"each":66}],60:[function(require,module,exports){
 /**
  * Module dependencies
  */
@@ -18824,7 +19552,7 @@ function prop(prop, style) {
   return prop;
 }
 
-},{"./vendor":63,"debug":68,"to-camel-case":71}],59:[function(require,module,exports){
+},{"./vendor":65,"debug":70,"to-camel-case":73}],61:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -18932,7 +19660,7 @@ function get(el, prop, orig, extra) {
   return ret;
 }
 
-},{"./hooks":57,"./prop":58,"./support":61,"debug":68,"to-camel-case":71}],60:[function(require,module,exports){
+},{"./hooks":59,"./prop":60,"./support":63,"debug":70,"to-camel-case":73}],62:[function(require,module,exports){
 /**
  * Expose `styles`
  */
@@ -18954,7 +19682,7 @@ function styles(el) {
   }
 }
 
-},{}],61:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 /**
  * Support values
  */
@@ -19057,7 +19785,7 @@ function computePixelPositionAndBoxSizingReliable() {
 
 
 
-},{}],62:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 /**
  * Export `swap`
  */
@@ -19091,7 +19819,7 @@ function swap(el, options, fn, args) {
   return ret;
 }
 
-},{}],63:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -19129,7 +19857,7 @@ function vendor(prop, style) {
   return original;
 }
 
-},{}],64:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -19220,7 +19948,7 @@ function array(obj, fn, ctx) {
   }
 }
 
-},{"component-type":65,"to-function":66,"type":65}],65:[function(require,module,exports){
+},{"component-type":67,"to-function":68,"type":67}],67:[function(require,module,exports){
 
 /**
  * toString ref.
@@ -19254,7 +19982,7 @@ module.exports = function(val){
   return typeof val;
 };
 
-},{}],66:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 var expr;
 try {
     expr = void 0;
@@ -19326,7 +20054,7 @@ function stripNested(prop, str, val) {
         return $1 ? $0 : val;
     });
 }
-},{"component-props":67}],67:[function(require,module,exports){
+},{"component-props":69}],69:[function(require,module,exports){
 /**
  * Global Names
  */
@@ -19413,7 +20141,7 @@ function prefixed(str) {
   };
 }
 
-},{}],68:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -19562,7 +20290,7 @@ function load() {
 
 exports.enable(load());
 
-},{"./debug":69}],69:[function(require,module,exports){
+},{"./debug":71}],71:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -19761,7 +20489,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":70}],70:[function(require,module,exports){
+},{"ms":72}],72:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -19874,7 +20602,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],71:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 
 var toSpace = require('to-space-case');
 
@@ -19899,7 +20627,7 @@ function toCamelCase (string) {
     return letter.toUpperCase();
   });
 }
-},{"to-space-case":72}],72:[function(require,module,exports){
+},{"to-space-case":74}],74:[function(require,module,exports){
 
 var clean = require('to-no-case');
 
@@ -19924,7 +20652,7 @@ function toSpaceCase (string) {
     return match ? ' ' + match : '';
   });
 }
-},{"to-no-case":73}],73:[function(require,module,exports){
+},{"to-no-case":75}],75:[function(require,module,exports){
 
 /**
  * Expose `toNoCase`.
@@ -19999,7 +20727,7 @@ function uncamelize (string) {
     return previous + ' ' + uppers.toLowerCase().split('').join(' ');
   });
 }
-},{}],74:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 
 /**
  * Check if `el` is within the document.
@@ -20016,7 +20744,7 @@ module.exports = function(el) {
   }
   return false;
 };
-},{}],75:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -20194,17 +20922,17 @@ function parse(event) {
   }
 }
 
-},{"delegate":76,"event":80}],76:[function(require,module,exports){
+},{"delegate":78,"event":82}],78:[function(require,module,exports){
 module.exports=require(3)
-},{"closest":77,"event":80}],77:[function(require,module,exports){
+},{"closest":79,"event":82}],79:[function(require,module,exports){
 module.exports=require(4)
-},{"matches-selector":78}],78:[function(require,module,exports){
+},{"matches-selector":80}],80:[function(require,module,exports){
 module.exports=require(5)
-},{"query":79}],79:[function(require,module,exports){
+},{"query":81}],81:[function(require,module,exports){
 module.exports=require(6)
-},{}],80:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 module.exports=require(7)
-},{}],81:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 
 /**
  * Expose `parse`.
@@ -20313,9 +21041,9 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],82:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 
-},{}],83:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -21426,7 +22154,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":84,"ieee754":85}],84:[function(require,module,exports){
+},{"base64-js":86,"ieee754":87}],86:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -21548,7 +22276,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],85:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -21634,7 +22362,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],86:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21937,7 +22665,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],87:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -21962,7 +22690,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],88:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -22027,7 +22755,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],89:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22101,7 +22829,7 @@ function onend() {
   });
 }
 
-},{"./readable.js":93,"./writable.js":95,"inherits":87,"process/browser.js":91}],90:[function(require,module,exports){
+},{"./readable.js":95,"./writable.js":97,"inherits":89,"process/browser.js":93}],92:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22230,7 +22958,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"./duplex.js":89,"./passthrough.js":92,"./readable.js":93,"./transform.js":94,"./writable.js":95,"events":86,"inherits":87}],91:[function(require,module,exports){
+},{"./duplex.js":91,"./passthrough.js":94,"./readable.js":95,"./transform.js":96,"./writable.js":97,"events":88,"inherits":89}],93:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -22285,7 +23013,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],92:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22328,7 +23056,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./transform.js":94,"inherits":87}],93:[function(require,module,exports){
+},{"./transform.js":96,"inherits":89}],95:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -23265,7 +23993,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("qvMYcC"))
-},{"./index.js":90,"buffer":83,"events":86,"inherits":87,"process/browser.js":91,"qvMYcC":88,"string_decoder":96}],94:[function(require,module,exports){
+},{"./index.js":92,"buffer":85,"events":88,"inherits":89,"process/browser.js":93,"qvMYcC":90,"string_decoder":98}],96:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -23471,7 +24199,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./duplex.js":89,"inherits":87}],95:[function(require,module,exports){
+},{"./duplex.js":91,"inherits":89}],97:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -23859,7 +24587,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./index.js":90,"buffer":83,"inherits":87,"process/browser.js":91}],96:[function(require,module,exports){
+},{"./index.js":92,"buffer":85,"inherits":89,"process/browser.js":93}],98:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -24052,14 +24780,14 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":83}],97:[function(require,module,exports){
+},{"buffer":85}],99:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],98:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -24649,4 +25377,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("qvMYcC"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":97,"inherits":87,"qvMYcC":88}]},{},[1])
+},{"./support/isBuffer":99,"inherits":89,"qvMYcC":90}]},{},[1])
