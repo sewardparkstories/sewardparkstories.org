@@ -117,6 +117,8 @@ page('/list', function (ctx) {
   modal(content);
 });
 
+page('/seward-park-map', '/');
+
 page();
 
 
