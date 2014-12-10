@@ -104,20 +104,20 @@ movement.on('error', function(err) {
 page.base('/seward-park-map/#')
 
 page('/', function () {
-  page('/about')
-})
+  page('/about');
+});
 
 page('/about', function (ctx) {
   var content = fs.readFileSync('about.html', 'utf8');
   modal(content);
-})
+});
 
 page('/list', function (ctx) {
   var content = templates.list({ locations: data });
   modal(content);
-})
+});
 
-page();
+page('/about');
 
 
 on(document.body, 'a', 'click', function (e) {
