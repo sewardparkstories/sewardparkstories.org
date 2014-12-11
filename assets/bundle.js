@@ -156,10 +156,8 @@ function addMarker (row, i) {
       'marker-color': '#aa3c3c'
     })
   });
-  
-  console.log(row.title)
-  
-  if (row.title === 'Yokohama Taiko-Gata Lantern') markerGroup.addLayer(marker);
+    
+  markerGroup.addLayer(marker);
   
   marker.on('click', function(e) {
     modal(content);
