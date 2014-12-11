@@ -198,7 +198,7 @@ function resizeModal () {
   if (window.innerWidth > 800) {
     content.style.width = window.innerWidth / 2 + 'px';
     content.style.maxWidth = '500px';
-    map.panTo([47.55653, -122.26434]);
+    if (map.getZoom() < 16) map.panTo([47.55653, -122.26434]);
   }
 }
 
