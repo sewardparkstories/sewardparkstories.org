@@ -21,7 +21,7 @@ L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4
 
 
 /* 
-* pull in template for showing info about a location
+* pull in templates. requires browserify with brfs as build step
 */
 
 var templates = {};
@@ -118,7 +118,6 @@ page('/list', function (ctx) {
 });
 
 page('/seward-park-map', '/');
-
 page();
 
 
@@ -205,7 +204,7 @@ function resizeModal () {
 function createImageArrays (data) {
   data.forEach(function (item) {
     if (!item.image) return;
-    var images = item.image.split(' ');
+    var images = item.image.split(', ');
     images.forEach(function(image, i) {
       if (images[i].length > 0) {
         images[i] = images[i].replace(/ /g,'');
