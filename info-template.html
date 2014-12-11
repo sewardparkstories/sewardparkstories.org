@@ -8,9 +8,16 @@
   </div>
   {{/each}}
   
+  {{#if audio}}
+    {{{ audio }}}
+  {{/if}}
+  
   <div class="text">
     {{{ text }}}
   </div>
+  
+  <p><i>{{ credit }}</i></p>
+  
   <!--
   <p><b><a href="{{ link }}" target="_blank">Learn more</a></b></p>
   -->

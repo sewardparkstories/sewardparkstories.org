@@ -525,6 +525,7 @@ hr {
 
 .filter-option input {
   margin-right: 3px;
+  cursor: pointer;
 }
 
 header {
