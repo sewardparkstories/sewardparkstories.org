@@ -77,7 +77,7 @@ categories.forEach(function addCheckbox(item) {
 var streets = L.mapbox.tileLayer('sethvincent.de840f5b');
 
 var map = L.map('map', {
-  center: [47.555, -122.252],
+  center: [47.551398, -122.259555],
   zoom: 14,
   zoomControl: false,
   layers: [streets]
