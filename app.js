@@ -156,7 +156,9 @@ function addMarker (row, i) {
     })
   });
   
-  markerGroup.addLayer(marker);
+  console.log(row.title)
+  
+  if (row.title === 'Yokohama Taiko-Gata Lantern') markerGroup.addLayer(marker);
   
   marker.on('click', function(e) {
     modal(content);
@@ -197,7 +199,7 @@ function resizeModal () {
   if (window.innerWidth > 800) {
     content.style.width = window.innerWidth / 2 + 'px';
     content.style.maxWidth = '500px';
-    if (map.getZoom() < 16) map.panTo([47.55653, -122.26434]);
+    //if (map.getZoom() < 16) map.panTo([47.55653, -122.26434]);
   }
 }
 
