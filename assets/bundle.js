@@ -164,7 +164,7 @@ function addMarker (row, i) {
   var marker = L.marker(latlng, {
     icon: L.mapbox.marker.icon({
       'marker-size': 'small',
-      'marker-color': '#478'
+      'marker-color': '#335966'
     })
   });
     
