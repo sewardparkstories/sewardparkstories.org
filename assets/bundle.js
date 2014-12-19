@@ -37,7 +37,7 @@ templates.info = Handlebars.compile(
 );
 
 templates.list = Handlebars.compile(
-  "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\" class=\"ignore\">x</a>\n  \n  <div class=\"locations\">\n  {{#each locations}}\n    <div class=\"list-item\">\n      <h2><a href=\"/#/{{ id }}\">{{ title }}</h2>\n    </div>\n  {{/each}}\n  </div>\n\n</section"
+  "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\" class=\"ignore\">x</a>\n  \n  <div class=\"locations\">\n  {{#each locations}}\n    <div class=\"list-item\">\n      <h2><a href=\"/seward-park-map/#/{{ id }}\">{{ title }}</h2>\n    </div>\n  {{/each}}\n  </div>\n\n</section"
 );
 
 /* 
