@@ -95,7 +95,7 @@ new L.Control.Zoom({ position: 'topright' }).addTo(map);
 
 var location = L.marker([47, -122], {
   icon: L.mapbox.marker.icon({
-    'marker-size': 'medium',
+    'marker-size': 'small',
     'marker-color': '#fa0'
   })
 }).addTo(map);
@@ -164,7 +164,7 @@ function addMarker (row, i) {
   var marker = L.marker(latlng, {
     icon: L.mapbox.marker.icon({
       'marker-size': 'small',
-      'marker-color': '#aa3c3c'
+      'marker-color': '#000066'
     })
   });
     
