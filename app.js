@@ -17,6 +17,11 @@ var mapEl = document.getElementById('map');
 var data = require('./data.json');
 data = createImageArrays(data);
 
+var dataByID = {};
+for (var i = 0, l = data.length; i < l; i++) {
+  dataByID[data[i].id] = data[i];
+}
+
 L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw';
 
 
@@ -70,6 +75,7 @@ categories.forEach(function addCheckbox(item) {
   menu.appendChild(div);
 })
 
+
 /* 
 * create map using mapbox plugin 
 */
@@ -101,7 +107,9 @@ movement.on('error', function(err) {
   //console.error(err)
 });
 
-page.base('/seward-park-map/#')
+var baseurl = '/seward-park-map';
+
+page.base(baseurl+'/#')
 
 page('/', function () {
   page('/about');
@@ -117,7 +125,14 @@ page('/list', function (ctx) {
   modal(content);
 });
 
-page('/seward-park-map', '/');
+page(baseurl, '/');
+
+page('/:id', function (ctx) {
+  var row = dataByID[ctx.params.id];
+  var content = templates.info(row);
+  modal(content);
+});
+
 page();
 
 
@@ -127,13 +142,10 @@ on(document.body, 'a', 'click', function (e) {
   page(dest);
 });
 
-
 window.onresize = function (e) {
   var modal = document.querySelector('.modal');
   if (modal) resizeModal();
 };
-
-
 
 
 /* 
@@ -147,11 +159,10 @@ updateWithFilters();
 
 function addMarker (row, i) {
   var latlng = { lat: row['lat'], lng: row['long'] };
-  var content = templates.info(row);
   
   var marker = L.marker(latlng, {
     icon: L.mapbox.marker.icon({
-      'marker-size': 'large',
+      'marker-size': 'small',
       'marker-color': '#aa3c3c'
     })
   });
@@ -159,7 +170,7 @@ function addMarker (row, i) {
   markerGroup.addLayer(marker);
   
   marker.on('click', function(e) {
-    modal(content);
+    page('/'+row.id);
   });
 }
 
@@ -183,7 +194,6 @@ on(document.body, '#close-modal', 'click', function (e) {
 });
 
 function resizeModal () {
-  
   var content = document.querySelector('.modal-inner');
   content.style.width = (window.innerWidth - 44) + 'px';
 
