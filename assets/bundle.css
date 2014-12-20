@@ -623,6 +623,18 @@ h1 {
   height: auto;
 }
 
+.list-item h2 {
+  font-weight: 500;
+  margin-top: 0px;
+  font-size: 20px;
+  border-left: 4px solid #88B4C3;
+  padding-left: 8px;
+}
+
+.list-item h2:hover {
+  border-left: 4px solid #478;
+}
+
 /*
 * LEAFLET OVERRIDES
 */
