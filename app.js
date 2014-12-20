@@ -107,7 +107,7 @@ movement.on('error', function(err) {
   //console.error(err)
 });
 
-var baseurl = '';
+var baseurl = '/seward-park-map';
 
 page.base(baseurl+'/#')
 
