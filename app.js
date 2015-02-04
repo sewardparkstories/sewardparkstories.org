@@ -129,6 +129,7 @@ page(baseurl, '/');
 
 page('/:id', function (ctx) {
   var row = dataByID[ctx.params.id];
+  console.log(row);
   var content = templates.info(row);
   modal(content);
 });
@@ -215,8 +216,8 @@ function resizeModal () {
 
 function createImageArrays (data) {
   data.forEach(function (item) {
-    if (!item.image) return;
-    var images = item.image.split(' ');
+    if (!item['image_1']) return;
+    var images = [item['image_1'], item['image_2']];
     images.forEach(function(image, i) {
       if (images[i].length > 0) {
         images[i] = images[i].replace(/ /g,'');
