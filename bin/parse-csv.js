@@ -17,6 +17,3 @@ fs.createReadStream(__dirname + '/../data.csv')
   });
 
 
-function slugify (title) {
-  return title.toLowerCase().replace(/[^\w ]+/g,'').replace(/ +/g,'-')
-}
