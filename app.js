@@ -112,6 +112,10 @@ flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
     //console.error(err)
   });
 
+  var baseurl = 'http://sewardparkstories.org';
+
+  page.base(baseurl+'/#')
+
   page('/', function () {
     page('/about');
   });
@@ -125,6 +129,8 @@ flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
     var content = templates.list({ locations: data });
     modal(content);
   });
+
+  page(baseurl, '/');
 
   page('/:id', function (ctx) {
     var row = dataByID[ctx.params.id];
