@@ -113,10 +113,6 @@ flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
     //console.error(err)
   });
 
-  var baseurl = '/';
-
-  page.base(baseurl+'/#')
-
   page('/', function () {
     page('/about');
   });
