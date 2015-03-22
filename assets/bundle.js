@@ -127,8 +127,6 @@ flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
     modal(content);
   });
 
-  page(baseurl, '/');
-
   page('/:id', function (ctx) {
     var row = dataByID[ctx.params.id];
     console.log(row);
