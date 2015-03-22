@@ -112,7 +112,7 @@ flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
     //console.error(err)
   });
 
-  var baseurl = 'http://sewardparkstories.org';
+  var baseurl = window.location.origin;
 
   page.base(baseurl+'/#')
 
@@ -134,7 +134,6 @@ flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
 
   page('/:id', function (ctx) {
     var row = dataByID[ctx.params.id];
-    console.log(row);
     var content = templates.info(row);
     modal(content);
   });
@@ -215,7 +214,6 @@ flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
     if (window.innerWidth > 800) {
       content.style.width = window.innerWidth / 2 + 'px';
       content.style.maxWidth = '500px';
-      //if (map.getZoom() < 16) map.panTo([47.55653, -122.26434]);
     }
   }
 
@@ -224,7 +222,7 @@ flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
       if (!item['image_1']) return;
       var images = [item['image_1'], item['image_2']];
       images.forEach(function(image, i) {
-        if (images[i].length > 0) {
+        if (images[i].length > 1) {
           images[i] = images[i].replace(/ /g,'');
         }
       });
