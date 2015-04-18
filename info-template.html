@@ -1,24 +1,20 @@
 <section class="modal-inner">
   <a id="close-modal" href="#" class="ignore">x</a>
   <h2 class="location-title">{{ title }}</h2>
-  
+
   {{#each images}}
   <div class="image">
     <img src="{{ this }}">
   </div>
   {{/each}}
-  
+
   {{#if audio}}
     {{{ audio }}}
   {{/if}}
-  
+
   <div class="text">
     {{{ text }}}
   </div>
-  
+
   <p><i>{{ credit }}</i></p>
-  
-  <!--
-  <p><b><a href="{{ link }}" target="_blank">Learn more</a></b></p>
-  -->
 </section>
