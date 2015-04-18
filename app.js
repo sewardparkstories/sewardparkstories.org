@@ -4,7 +4,7 @@ var Handlebars = require('handlebars');
 var elClass = require('element-class');
 var on = require('component-delegate').bind;
 var movement = require('geolocation-stream')();
-var Scrollbar = require('scrollbar');
+//var Scrollbar = require('scrollbar');
 var Leaflet = require('leaflet');
 require('mapbox.js');
 
