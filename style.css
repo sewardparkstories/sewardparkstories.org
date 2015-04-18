@@ -142,6 +142,15 @@ h1 {
   line-height: 1.6;
 }
 
+.modal .text a {
+  color: #335966;
+}
+
+.modal .text a:hover,
+.modal .text a:focus {
+  color: #335966;
+}
+
 #close-modal {
   font-weight: 300;
   font-size: 25px;
