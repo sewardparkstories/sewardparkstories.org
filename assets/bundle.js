@@ -19,7 +19,7 @@ fastClick(document.body);
 var main = document.getElementById('main');
 var mapEl = document.getElementById('map');
 
-flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
+flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
   var data = createImageArrays(sheet.rows);
 
   var dataByID = {};
@@ -283,7 +283,7 @@ flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
 function slugify (title) {
   return title.toLowerCase().replace(/[^\w ]+/g,'').replace(/ +/g,'-')
 }
-},{"component-delegate":2,"element-class":7,"fastclick":8,"flatsheet-api-client":9,"geolocation-stream":17,"handlebars":32,"leaflet":33,"mapbox.js":46,"page":60}],2:[function(require,module,exports){
+},{"component-delegate":2,"element-class":7,"fastclick":8,"flatsheet-api-client":10,"geolocation-stream":19,"handlebars":34,"leaflet":35,"mapbox.js":48,"page":62}],2:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -1326,85 +1326,160 @@ if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) 
 }
 
 },{}],9:[function(require,module,exports){
-var request = require('request');
+module.exports = Accounts
 
-module.exports = Flatsheet;
-
-function Flatsheet (opts) {
-  if (!(this instanceof Flatsheet)) return new Flatsheet(opts);
-  opts || (opts = {});
-
-  this.account = {
-    username: opts.username || '',
-    password: opts.password || ''
-  }
-  
-  this.host = opts.host || 'https://app.flatsheet.io';
-  this.apiVersion = opts.apiVersion || '/v2/';
+/**
+ * Flatsheet Accounts
+ * @class Accounts
+ * @param {Object} client
+ * @example
+ * var flatsheet = require('flatsheet-api-client');
+ * var client = flatsheet();
+ * client.accounts.list()
+ */
+function Accounts (client) {
+  if (!(this instanceof Accounts)) return new Accounts(client)
+  this.client = client
 }
 
-Flatsheet.prototype.list = function list (cb) {
-  return this.req('get', 'sheets', {}, cb);
-};
+/**
+* Get an account
+* @param {Function} callback a callback with error and account arguments
+* @example
+* client.acounts.get(function (err, account)) {
+*
+* })
+*/
+Accounts.prototype.get = function (username, cb) {
+  return this.client.request('get', 'accounts/' + username, null, cb)
+}
 
-Flatsheet.prototype.index = Flatsheet.prototype.list;
+/**
+* Get list of accounts
+* @param {Function} callback a callback with error and accounts arguments
+* @example
+* client.acounts.list(function (err, accounts)) {
+*
+* })
+*/
+Accounts.prototype.list = function (opts, cb) {
+  return this.client.request('get', 'accounts', opts, cb)
+}
 
-Flatsheet.prototype.sheet = function sheet (id, cb) {
-  return this.req('get', 'sheets/' + id, {}, cb);
-};
+/**
+* Create an account
+* @param {Function} callback a callback with error and account arguments
+* @example
+* client.acounts.create(function (err, account)) {
+*
+* })
+*/
+Accounts.prototype.create = function (opts, cb) {
+  return this.client.request('post', 'accounts', opts, cb)
+}
 
-Flatsheet.prototype.fetch = Flatsheet.prototype.sheet;
-Flatsheet.prototype.get = Flatsheet.prototype.sheet;
+/**
+* Update an account
+* @param {Function} callback a callback with error and account arguments
+* @example
+* client.acounts.update(function (err, account)) {
+*
+* })
+*/
+Accounts.prototype.update = function (username, opts, cb) {
+  return this.client.request('put', 'accounts/' + username, opts, cb)
+}
 
-Flatsheet.prototype.create = function create (sheet, cb) {
-  return this.req('post', 'sheets', sheet, cb);
-};
+/**
+* Delete an account
+* @param {Function} callback a callback with error argument
+* @example
+* client.acounts.delete(function (err)) {
+*
+* })
+*/
+Accounts.prototype.delete = function (username, cb) {
+  return this.client.request('delete', 'accounts/' + username, null, cb)
+}
 
-Flatsheet.prototype.update = function update (sheet, cb) {
-  return this.req('put', 'sheets/' + sheet.id, sheet, cb);
-};
+},{}],10:[function(require,module,exports){
+var qs = require('querystring')
+var request = require('request')
 
-Flatsheet.prototype.destroy = function destroy (id, cb) {
-  return this.req('delete', 'sheets/' + id, {}, cb);
-};
+module.exports = Flatsheet
 
-Flatsheet.prototype.addRow = function addRow (id, row, cb) {
-  var self = this;
+/**
+ * Flatsheet API Client
+ * @class Flatsheet
+ * @param {Object} options options for the api client
+ * @param {String} options.host flatsheet server host
+ * @param {String} options.username username, only needed if making POST, PUT, DELETE requests
+ * @param {String} options.password password, only needed if making POST, PUT, DELETE requests
+ * @example
+ * var flatsheet = require('flatsheet-api-client');
+ * var client = flatsheet();
+ *
+ */
+function Flatsheet (options) {
+  if (!(this instanceof Flatsheet)) return new Flatsheet(options)
+  options || (options = {})
 
-  this.sheet(id, function(err, req){
-    var sheet = req;
-    sheet.rows.push(row);
-    self.update(sheet, cb);
-  });
-};
+  this.account = {
+    username: options.username || '',
+    password: options.password || ''
+  }
 
-Flatsheet.prototype.req = function req (method, path, params, cb) {
-  var opts = {
-    method: method,
-    uri: this.fullUrl(path, params),
-    headers: {
+  this.host = options.host || 'https://app.flatsheet.io'
+  this.apiVersion = options.apiVersion || '/v2/'
+
+  this.sheets = require('./sheets')(this)
+  this.accounts = require('./accounts')(this)
+}
+
+Flatsheet.prototype.request = function (method, path, params, cb) {
+  if (typeof params === 'function') {
+    cb = params
+    params = {}
+  }
+
+  var opts = {}
+
+  if (method === 'get') {
+    params = qs.stringify(params)
+    opts.uri = this.fullUrl(path, params)
+  } else {
+    opts.uri = this.fullUrl(path)
+    opts.body = params
+  }
+
+  opts.json = true
+  opts.method = method
+
+  if (this.account.username && this.account.password) {
+    opts.headers = {
       'Authorization': this.account.username + ':' + this.account.password
-    }, 
-    body: params,
-    json: true
-  };
-  
-  if (typeof cb === 'undefined') return request(opts);
-  else request(opts, getResponse);
-
-  function getResponse (error, response, body){
-    if (cb) {
-      if (error) return cb(error);
-      if (response.statusCode >= 400) return cb({ error: response.statusCode });
-      return cb(null, body);
     }
   }
-};
+
+  if (typeof cb === 'undefined') return request(opts)
+  else request(opts, getResponse)
+
+  function getResponse (error, response, body) {
+    if (cb) {
+      if (error) return cb(error)
+      if (response.statusCode >= 400) return cb({ error: response.statusCode })
+      return cb(null, body)
+    }
+  }
+}
 
 Flatsheet.prototype.fullUrl = function fullUrl (path, params) {
-  return this.host + '/api' + this.apiVersion + path + '/';
-};
-},{"request":10}],10:[function(require,module,exports){
+  var url = this.host + '/api' + this.apiVersion + path + '/'
+  if (params) url += '?' + params
+  return url
+}
+
+},{"./accounts":9,"./sheets":18,"querystring":73,"request":11}],11:[function(require,module,exports){
 var window = require("global/window")
 var once = require("once")
 var parseHeaders = require('parse-headers')
@@ -1583,7 +1658,7 @@ function createXHR(options, callback) {
 
 function noop() {}
 
-},{"global/window":11,"once":12,"parse-headers":16}],11:[function(require,module,exports){
+},{"global/window":12,"once":13,"parse-headers":17}],12:[function(require,module,exports){
 (function (global){
 if (typeof window !== "undefined") {
     module.exports = window;
@@ -1596,7 +1671,7 @@ if (typeof window !== "undefined") {
 }
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 module.exports = once
 
 once.proto = once(function () {
@@ -1617,7 +1692,7 @@ function once (fn) {
   }
 }
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var isFunction = require('is-function')
 
 module.exports = forEach
@@ -1665,7 +1740,7 @@ function forEachObject(object, iterator, context) {
     }
 }
 
-},{"is-function":14}],14:[function(require,module,exports){
+},{"is-function":15}],15:[function(require,module,exports){
 module.exports = isFunction
 
 var toString = Object.prototype.toString
@@ -1682,7 +1757,7 @@ function isFunction (fn) {
       fn === window.prompt))
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 
 exports = module.exports = trim;
 
@@ -1698,7 +1773,7 @@ exports.right = function(str){
   return str.replace(/\s*$/, '');
 };
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var trim = require('trim')
   , forEach = require('for-each')
   , isArray = function(arg) {
@@ -1730,7 +1805,110 @@ module.exports = function (headers) {
 
   return result
 }
-},{"for-each":13,"trim":15}],17:[function(require,module,exports){
+},{"for-each":14,"trim":16}],18:[function(require,module,exports){
+module.exports = Sheets
+
+/**
+ * Flatsheet Sheets
+ * @class Sheets
+ * @param {Object} client
+ * @example
+ * var flatsheet = require('flatsheet-api-client');
+ * var client = flatsheet();
+ * client.sheets.list()
+ */
+function Sheets (client) {
+  if (!(this instanceof Sheets)) return new Sheets(client)
+  this.client = client
+}
+
+/**
+* Get sheet
+* @param {String} id the ID of the sheet
+* @param {Function} callback a callback with error and sheet arguments
+* @example
+* client.sheets.get(function (err, sheet)) {
+*
+* })
+*/
+Sheets.prototype.get = function (id, cb) {
+  return this.client.request('get', 'sheets/' + id, null, cb)
+}
+
+/**
+* Get list of sheets
+* @param {Function} callback a callback with error and sheets arguments
+* @example
+* client.sheets.list(function (err, sheets)) {
+*
+* })
+*/
+Sheets.prototype.list = function (opts, cb) {
+  return this.client.request('get', 'sheets', opts, cb)
+}
+
+/**
+* Create a sheet
+* @param {Object} the sheet object
+* @param {Function} callback a callback with error and sheet arguments
+* @example
+* client.sheets.create(function (err, sheet)) {
+*
+* })
+*/
+Sheets.prototype.create = function (sheet, cb) {
+  return this.client.request('post', 'sheets', sheet, cb)
+}
+
+/**
+* Update a sheet
+* @param {Object} sheet the sheet object
+* @param {Function} callback a callback with error and sheet arguments
+* @example
+* client.sheets.update(function (err, sheet)) {
+*
+* })
+*/
+Sheets.prototype.update = function (sheet, cb) {
+  return this.client.request('put', 'sheets/' + sheet.id, sheet, cb)
+}
+
+/**
+* Add a row to a sheet
+* @param {String} id the ID of the sheet
+* @param {Object} row an object that represents a row in the sheet
+* @param {Function} callback a callback with error and sheet arguments
+* @example
+* client.addRow(function (err, sheet)) {
+*
+* })
+*
+*/
+Sheets.prototype.addRow = function addRow (id, row, cb) {
+  var self = this
+
+  this.get(id, function (err, req) {
+    if (err) return cb(err)
+    var sheet = req
+    sheet.rows.push(row)
+    self.update(sheet, cb)
+  })
+}
+
+/**
+* Delete a sheet
+* @param {String} id the ID of the sheet
+* @param {Function} callback a callback with error argument
+* @example
+* client.sheets.delete(function (err)) {
+*
+* })
+*/
+Sheets.prototype.delete = function (id, cb) {
+  return this.client.request('delete', 'sheets/' + id, null, cb)
+}
+
+},{}],19:[function(require,module,exports){
 var stream = require('stream')
 var util = require('util')
 
@@ -1770,7 +1948,7 @@ GeolocationStream.prototype.onError = function(position) {
   this.emit('error', position)
 }
 
-},{"stream":70,"util":78}],18:[function(require,module,exports){
+},{"stream":75,"util":83}],20:[function(require,module,exports){
 "use strict";
 /*globals Handlebars: true */
 var Handlebars = require("./handlebars.runtime")["default"];
@@ -1808,7 +1986,7 @@ Handlebars = create();
 Handlebars.create = create;
 
 exports["default"] = Handlebars;
-},{"./handlebars.runtime":19,"./handlebars/compiler/ast":21,"./handlebars/compiler/base":22,"./handlebars/compiler/compiler":23,"./handlebars/compiler/javascript-compiler":24}],19:[function(require,module,exports){
+},{"./handlebars.runtime":21,"./handlebars/compiler/ast":23,"./handlebars/compiler/base":24,"./handlebars/compiler/compiler":25,"./handlebars/compiler/javascript-compiler":26}],21:[function(require,module,exports){
 "use strict";
 /*globals Handlebars: true */
 var base = require("./handlebars/base");
@@ -1841,7 +2019,7 @@ var Handlebars = create();
 Handlebars.create = create;
 
 exports["default"] = Handlebars;
-},{"./handlebars/base":20,"./handlebars/exception":28,"./handlebars/runtime":29,"./handlebars/safe-string":30,"./handlebars/utils":31}],20:[function(require,module,exports){
+},{"./handlebars/base":22,"./handlebars/exception":30,"./handlebars/runtime":31,"./handlebars/safe-string":32,"./handlebars/utils":33}],22:[function(require,module,exports){
 "use strict";
 var Utils = require("./utils");
 var Exception = require("./exception")["default"];
@@ -2022,7 +2200,7 @@ exports.log = log;var createFrame = function(object) {
   return obj;
 };
 exports.createFrame = createFrame;
-},{"./exception":28,"./utils":31}],21:[function(require,module,exports){
+},{"./exception":30,"./utils":33}],23:[function(require,module,exports){
 "use strict";
 var Exception = require("../exception")["default"];
 
@@ -2250,7 +2428,7 @@ var AST = {
 // Must be exported as an object rather than the root of the module as the jison lexer
 // most modify the object to operate properly.
 exports["default"] = AST;
-},{"../exception":28}],22:[function(require,module,exports){
+},{"../exception":30}],24:[function(require,module,exports){
 "use strict";
 var parser = require("./parser")["default"];
 var AST = require("./ast")["default"];
@@ -2266,7 +2444,7 @@ function parse(input) {
 }
 
 exports.parse = parse;
-},{"./ast":21,"./parser":25}],23:[function(require,module,exports){
+},{"./ast":23,"./parser":27}],25:[function(require,module,exports){
 "use strict";
 var Exception = require("../exception")["default"];
 
@@ -2736,7 +2914,7 @@ exports.precompile = precompile;function compile(input, options, env) {
 }
 
 exports.compile = compile;
-},{"../exception":28}],24:[function(require,module,exports){
+},{"../exception":30}],26:[function(require,module,exports){
 "use strict";
 var COMPILER_REVISION = require("../base").COMPILER_REVISION;
 var REVISION_CHANGES = require("../base").REVISION_CHANGES;
@@ -3679,7 +3857,7 @@ JavaScriptCompiler.isValidJavaScriptVariableName = function(name) {
 };
 
 exports["default"] = JavaScriptCompiler;
-},{"../base":20,"../exception":28}],25:[function(require,module,exports){
+},{"../base":22,"../exception":30}],27:[function(require,module,exports){
 "use strict";
 /* jshint ignore:start */
 /* Jison generated parser */
@@ -4170,7 +4348,7 @@ function Parser () { this.yy = {}; }Parser.prototype = parser;parser.Parser = Pa
 return new Parser;
 })();exports["default"] = handlebars;
 /* jshint ignore:end */
-},{}],26:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 "use strict";
 var Visitor = require("./visitor")["default"];
 
@@ -4309,7 +4487,7 @@ PrintVisitor.prototype.content = function(content) {
 PrintVisitor.prototype.comment = function(comment) {
   return this.pad("{{! '" + comment.comment + "' }}");
 };
-},{"./visitor":27}],27:[function(require,module,exports){
+},{"./visitor":29}],29:[function(require,module,exports){
 "use strict";
 function Visitor() {}
 
@@ -4322,7 +4500,7 @@ Visitor.prototype = {
 };
 
 exports["default"] = Visitor;
-},{}],28:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 "use strict";
 
 var errorProps = ['description', 'fileName', 'lineNumber', 'message', 'name', 'number', 'stack'];
@@ -4351,7 +4529,7 @@ function Exception(message, node) {
 Exception.prototype = new Error();
 
 exports["default"] = Exception;
-},{}],29:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 "use strict";
 var Utils = require("./utils");
 var Exception = require("./exception")["default"];
@@ -4489,7 +4667,7 @@ exports.program = program;function invokePartial(partial, name, context, helpers
 exports.invokePartial = invokePartial;function noop() { return ""; }
 
 exports.noop = noop;
-},{"./base":20,"./exception":28,"./utils":31}],30:[function(require,module,exports){
+},{"./base":22,"./exception":30,"./utils":33}],32:[function(require,module,exports){
 "use strict";
 // Build out our basic SafeString type
 function SafeString(string) {
@@ -4501,7 +4679,7 @@ SafeString.prototype.toString = function() {
 };
 
 exports["default"] = SafeString;
-},{}],31:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 "use strict";
 /*jshint -W004 */
 var SafeString = require("./safe-string")["default"];
@@ -4578,7 +4756,7 @@ exports.escapeExpression = escapeExpression;function isEmpty(value) {
 }
 
 exports.isEmpty = isEmpty;
-},{"./safe-string":30}],32:[function(require,module,exports){
+},{"./safe-string":32}],34:[function(require,module,exports){
 // USAGE:
 // var handlebars = require('handlebars');
 
@@ -4605,7 +4783,7 @@ if (typeof require !== 'undefined' && require.extensions) {
   require.extensions[".hbs"] = extension;
 }
 
-},{"../dist/cjs/handlebars":18,"../dist/cjs/handlebars/compiler/printer":26,"../dist/cjs/handlebars/compiler/visitor":27,"fs":62}],33:[function(require,module,exports){
+},{"../dist/cjs/handlebars":20,"../dist/cjs/handlebars/compiler/printer":28,"../dist/cjs/handlebars/compiler/visitor":29,"fs":64}],35:[function(require,module,exports){
 /*
  Leaflet, a JavaScript library for mobile-friendly interactive maps. http://leafletjs.com
  (c) 2010-2013, Vladimir Agafonkin
@@ -13786,7 +13964,7 @@ L.Map.include({
 
 
 }(window, document));
-},{}],34:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 function corslite(url, callback, cors) {
     var sent = false;
 
@@ -13881,7 +14059,7 @@ function corslite(url, callback, cors) {
 
 if (typeof module !== 'undefined') module.exports = corslite;
 
-},{}],35:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 /*!
  * mustache.js - Logic-less {{mustache}} templates with JavaScript
  * http://github.com/janl/mustache.js
@@ -14434,7 +14612,7 @@ if (typeof module !== 'undefined') module.exports = corslite;
 
 }));
 
-},{}],36:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 var html_sanitize = require('./sanitizer-bundle.js');
 
 module.exports = function(_) {
@@ -14454,7 +14632,7 @@ function cleanUrl(url) {
 
 function cleanId(id) { return id; }
 
-},{"./sanitizer-bundle.js":37}],37:[function(require,module,exports){
+},{"./sanitizer-bundle.js":39}],39:[function(require,module,exports){
 
 // Copyright (C) 2010 Google Inc.
 //
@@ -16902,7 +17080,7 @@ if (typeof module !== 'undefined') {
     module.exports = html_sanitize;
 }
 
-},{}],38:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 module.exports={
   "author": {
     "name": "Mapbox"
@@ -17001,7 +17179,7 @@ module.exports={
   "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.0.tgz"
 }
 
-},{}],39:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -17011,7 +17189,7 @@ module.exports = {
     REQUIRE_ACCESS_TOKEN: true
 };
 
-},{}],40:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -17128,7 +17306,7 @@ module.exports.featureLayer = function(_, options) {
     return new FeatureLayer(_, options);
 };
 
-},{"./marker":53,"./request":54,"./simplestyle":56,"./url":58,"./util":59,"sanitize-caja":36}],41:[function(require,module,exports){
+},{"./marker":55,"./request":56,"./simplestyle":58,"./url":60,"./util":61,"sanitize-caja":38}],43:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -17227,7 +17405,7 @@ module.exports = function(url, options) {
     return geocoder;
 };
 
-},{"./request":54,"./url":58,"./util":59}],42:[function(require,module,exports){
+},{"./request":56,"./url":60,"./util":61}],44:[function(require,module,exports){
 'use strict';
 
 var geocoder = require('./geocoder'),
@@ -17416,7 +17594,7 @@ module.exports.geocoderControl = function(_, options) {
     return new GeocoderControl(_, options);
 };
 
-},{"./geocoder":41,"./util":59}],43:[function(require,module,exports){
+},{"./geocoder":43,"./util":61}],45:[function(require,module,exports){
 'use strict';
 
 function utfDecode(c) {
@@ -17434,7 +17612,7 @@ module.exports = function(data) {
     };
 };
 
-},{}],44:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -17634,7 +17812,7 @@ module.exports.gridControl = function(_, options) {
     return new GridControl(_, options);
 };
 
-},{"./util":59,"mustache":35,"sanitize-caja":36}],45:[function(require,module,exports){
+},{"./util":61,"mustache":37,"sanitize-caja":38}],47:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -17860,11 +18038,11 @@ module.exports.gridLayer = function(_, options) {
     return new GridLayer(_, options);
 };
 
-},{"./grid":43,"./load_tilejson":50,"./request":54,"./url":58,"./util":59}],46:[function(require,module,exports){
+},{"./grid":45,"./load_tilejson":52,"./request":56,"./url":60,"./util":61}],48:[function(require,module,exports){
 require('./leaflet');
 require('./mapbox');
 
-},{"./leaflet":48,"./mapbox":52}],47:[function(require,module,exports){
+},{"./leaflet":50,"./mapbox":54}],49:[function(require,module,exports){
 'use strict';
 
 var InfoControl = L.Control.extend({
@@ -17980,10 +18158,10 @@ module.exports.infoControl = function(options) {
     return new InfoControl(options);
 };
 
-},{"sanitize-caja":36}],48:[function(require,module,exports){
+},{"sanitize-caja":38}],50:[function(require,module,exports){
 window.L = require('leaflet/dist/leaflet-src');
 
-},{"leaflet/dist/leaflet-src":33}],49:[function(require,module,exports){
+},{"leaflet/dist/leaflet-src":35}],51:[function(require,module,exports){
 'use strict';
 
 var LegendControl = L.Control.extend({
@@ -18052,7 +18230,7 @@ module.exports.legendControl = function(options) {
     return new LegendControl(options);
 };
 
-},{"sanitize-caja":36}],50:[function(require,module,exports){
+},{"sanitize-caja":38}],52:[function(require,module,exports){
 'use strict';
 
 var request = require('./request'),
@@ -18078,7 +18256,7 @@ module.exports = {
     }
 };
 
-},{"./request":54,"./url":58,"./util":59}],51:[function(require,module,exports){
+},{"./request":56,"./url":60,"./util":61}],53:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -18259,7 +18437,7 @@ module.exports.map = function(element, _, options) {
     return new LMap(element, _, options);
 };
 
-},{"./feature_layer":40,"./grid_control":44,"./grid_layer":45,"./info_control":47,"./legend_control":49,"./load_tilejson":50,"./share_control":55,"./tile_layer":57,"./util":59}],52:[function(require,module,exports){
+},{"./feature_layer":42,"./grid_control":46,"./grid_layer":47,"./info_control":49,"./legend_control":51,"./load_tilejson":52,"./share_control":57,"./tile_layer":59,"./util":61}],54:[function(require,module,exports){
 'use strict';
 
 var geocoderControl = require('./geocoder_control'),
@@ -18311,7 +18489,7 @@ window.L.Icon.Default.imagePath =
     '//api.tiles.mapbox.com/mapbox.js/' + 'v' +
     require('../package.json').version + '/images';
 
-},{"../package.json":38,"./config":39,"./feature_layer":40,"./geocoder":41,"./geocoder_control":42,"./grid_control":44,"./grid_layer":45,"./info_control":47,"./legend_control":49,"./map":51,"./marker":53,"./share_control":55,"./simplestyle":56,"./tile_layer":57,"mustache":35,"sanitize-caja":36}],53:[function(require,module,exports){
+},{"../package.json":40,"./config":41,"./feature_layer":42,"./geocoder":43,"./geocoder_control":44,"./grid_control":46,"./grid_layer":47,"./info_control":49,"./legend_control":51,"./map":53,"./marker":55,"./share_control":57,"./simplestyle":58,"./tile_layer":59,"mustache":37,"sanitize-caja":38}],55:[function(require,module,exports){
 'use strict';
 
 var url = require('./url'),
@@ -18378,7 +18556,7 @@ module.exports = {
     createPopup: createPopup
 };
 
-},{"./url":58,"./util":59,"sanitize-caja":36}],54:[function(require,module,exports){
+},{"./url":60,"./util":61,"sanitize-caja":38}],56:[function(require,module,exports){
 'use strict';
 
 var corslite = require('corslite'),
@@ -18410,7 +18588,7 @@ module.exports = function(url, callback) {
     }
 };
 
-},{"./config":39,"./util":59,"corslite":34}],55:[function(require,module,exports){
+},{"./config":41,"./util":61,"corslite":36}],57:[function(require,module,exports){
 'use strict';
 
 var urlhelper = require('./url');
@@ -18513,7 +18691,7 @@ module.exports.shareControl = function(_, options) {
     return new ShareControl(_, options);
 };
 
-},{"./load_tilejson":50,"./url":58}],56:[function(require,module,exports){
+},{"./load_tilejson":52,"./url":60}],58:[function(require,module,exports){
 'use strict';
 
 // an implementation of the simplestyle spec for polygon and linestring features
@@ -18560,7 +18738,7 @@ module.exports = {
     defaults: defaults
 };
 
-},{}],57:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -18657,7 +18835,7 @@ module.exports.tileLayer = function(_, options) {
     return new TileLayer(_, options);
 };
 
-},{"./load_tilejson":50,"./url":58,"./util":59}],58:[function(require,module,exports){
+},{"./load_tilejson":52,"./url":60,"./util":61}],60:[function(require,module,exports){
 'use strict';
 
 var config = require('./config'),
@@ -18701,7 +18879,7 @@ module.exports.tileJSON = function(urlOrMapID, accessToken) {
     return url;
 };
 
-},{"../package.json":38,"./config":39}],59:[function(require,module,exports){
+},{"../package.json":40,"./config":41}],61:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -18748,7 +18926,7 @@ function contains(item, list) {
     return false;
 }
 
-},{}],60:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
   /* globals require, module */
 
 /**
@@ -19283,7 +19461,7 @@ function contains(item, list) {
 
   page.sameOrigin = sameOrigin;
 
-},{"path-to-regexp":61}],61:[function(require,module,exports){
+},{"path-to-regexp":63}],63:[function(require,module,exports){
 /**
  * Expose `pathtoRegexp`.
  */
@@ -19452,9 +19630,9 @@ function pathtoRegexp (path, keys, options) {
   return attachKeys(new RegExp('^' + path + (end ? '$' : ''), flags), keys);
 };
 
-},{}],62:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 
-},{}],63:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -20565,7 +20743,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":64,"ieee754":65}],64:[function(require,module,exports){
+},{"base64-js":66,"ieee754":67}],66:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -20687,7 +20865,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],65:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -20773,7 +20951,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],66:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21076,7 +21254,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],67:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -21101,7 +21279,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],68:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -21166,7 +21344,186 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],69:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+'use strict';
+
+// If obj.hasOwnProperty has been overridden, then calling
+// obj.hasOwnProperty(prop) will break.
+// See: https://github.com/joyent/node/issues/1707
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+module.exports = function(qs, sep, eq, options) {
+  sep = sep || '&';
+  eq = eq || '=';
+  var obj = {};
+
+  if (typeof qs !== 'string' || qs.length === 0) {
+    return obj;
+  }
+
+  var regexp = /\+/g;
+  qs = qs.split(sep);
+
+  var maxKeys = 1000;
+  if (options && typeof options.maxKeys === 'number') {
+    maxKeys = options.maxKeys;
+  }
+
+  var len = qs.length;
+  // maxKeys <= 0 means that we should not limit keys count
+  if (maxKeys > 0 && len > maxKeys) {
+    len = maxKeys;
+  }
+
+  for (var i = 0; i < len; ++i) {
+    var x = qs[i].replace(regexp, '%20'),
+        idx = x.indexOf(eq),
+        kstr, vstr, k, v;
+
+    if (idx >= 0) {
+      kstr = x.substr(0, idx);
+      vstr = x.substr(idx + 1);
+    } else {
+      kstr = x;
+      vstr = '';
+    }
+
+    k = decodeURIComponent(kstr);
+    v = decodeURIComponent(vstr);
+
+    if (!hasOwnProperty(obj, k)) {
+      obj[k] = v;
+    } else if (isArray(obj[k])) {
+      obj[k].push(v);
+    } else {
+      obj[k] = [obj[k], v];
+    }
+  }
+
+  return obj;
+};
+
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+
+},{}],72:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+'use strict';
+
+var stringifyPrimitive = function(v) {
+  switch (typeof v) {
+    case 'string':
+      return v;
+
+    case 'boolean':
+      return v ? 'true' : 'false';
+
+    case 'number':
+      return isFinite(v) ? v : '';
+
+    default:
+      return '';
+  }
+};
+
+module.exports = function(obj, sep, eq, name) {
+  sep = sep || '&';
+  eq = eq || '=';
+  if (obj === null) {
+    obj = undefined;
+  }
+
+  if (typeof obj === 'object') {
+    return map(objectKeys(obj), function(k) {
+      var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
+      if (isArray(obj[k])) {
+        return obj[k].map(function(v) {
+          return ks + encodeURIComponent(stringifyPrimitive(v));
+        }).join(sep);
+      } else {
+        return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+      }
+    }).join(sep);
+
+  }
+
+  if (!name) return '';
+  return encodeURIComponent(stringifyPrimitive(name)) + eq +
+         encodeURIComponent(stringifyPrimitive(obj));
+};
+
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+
+function map (xs, f) {
+  if (xs.map) return xs.map(f);
+  var res = [];
+  for (var i = 0; i < xs.length; i++) {
+    res.push(f(xs[i], i));
+  }
+  return res;
+}
+
+var objectKeys = Object.keys || function (obj) {
+  var res = [];
+  for (var key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
+  }
+  return res;
+};
+
+},{}],73:[function(require,module,exports){
+'use strict';
+
+exports.decode = exports.parse = require('./decode');
+exports.encode = exports.stringify = require('./encode');
+
+},{"./decode":71,"./encode":72}],74:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21240,7 +21597,7 @@ function onend() {
   });
 }
 
-},{"./readable.js":73,"./writable.js":75,"inherits":67,"process/browser.js":71}],70:[function(require,module,exports){
+},{"./readable.js":78,"./writable.js":80,"inherits":69,"process/browser.js":76}],75:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21369,7 +21726,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"./duplex.js":69,"./passthrough.js":72,"./readable.js":73,"./transform.js":74,"./writable.js":75,"events":66,"inherits":67}],71:[function(require,module,exports){
+},{"./duplex.js":74,"./passthrough.js":77,"./readable.js":78,"./transform.js":79,"./writable.js":80,"events":68,"inherits":69}],76:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -21424,7 +21781,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],72:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21467,7 +21824,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./transform.js":74,"inherits":67}],73:[function(require,module,exports){
+},{"./transform.js":79,"inherits":69}],78:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -22404,7 +22761,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("qvMYcC"))
-},{"./index.js":70,"buffer":63,"events":66,"inherits":67,"process/browser.js":71,"qvMYcC":68,"string_decoder":76}],74:[function(require,module,exports){
+},{"./index.js":75,"buffer":65,"events":68,"inherits":69,"process/browser.js":76,"qvMYcC":70,"string_decoder":81}],79:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22610,7 +22967,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./duplex.js":69,"inherits":67}],75:[function(require,module,exports){
+},{"./duplex.js":74,"inherits":69}],80:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22998,7 +23355,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./index.js":70,"buffer":63,"inherits":67,"process/browser.js":71}],76:[function(require,module,exports){
+},{"./index.js":75,"buffer":65,"inherits":69,"process/browser.js":76}],81:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -23191,14 +23548,14 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":63}],77:[function(require,module,exports){
+},{"buffer":65}],82:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],78:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -23788,4 +24145,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("qvMYcC"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":77,"inherits":67,"qvMYcC":68}]},{},[1])
+},{"./support/isBuffer":82,"inherits":69,"qvMYcC":70}]},{},[1])

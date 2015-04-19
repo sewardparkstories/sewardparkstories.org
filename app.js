@@ -18,7 +18,7 @@ fastClick(document.body);
 var main = document.getElementById('main');
 var mapEl = document.getElementById('map');
 
-flatsheet.sheet('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
+flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
   var data = createImageArrays(sheet.rows);
 
   var dataByID = {};
