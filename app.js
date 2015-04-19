@@ -18,6 +18,7 @@ fastClick(document.body);
 
 var main = document.getElementById('main');
 var mapEl = document.getElementById('map');
+var modal_container = document.getElementById('modal-container');
 
 flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
   var data = createImageArrays(sheet.rows);
@@ -155,9 +156,26 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
   */
 
   var markerGroup = new L.FeatureGroup();
+
   data.forEach(addMarker);
 
   updateWithFilters();
+
+  var active_marker = L.marker(L.latLng(0,0), {
+    icon: L.mapbox.marker.icon({
+      'marker-size': 'small',
+      'marker-line-color': '#335966',
+      'marker-line-opacity': 1,
+      'marker-color': '#a3a966',
+      'zIndexOffset': 99
+    })
+  })
+   markerGroup.addLayer(active_marker);
+
+  function moveActiveMarker(latlng) {
+    active_marker.setLatLng(latlng);
+    active_marker.update();
+  }
 
   function addMarker (row, i) {
     var latlng = { lat: row['lat'], lng: row['long'] };
@@ -175,25 +193,35 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
     
     marker.on('click', function(e) {
       window.location.hash = '/' + row.id
+      moveActiveMarker(this.getLatLng());
+
+      map.setView(this.getLatLng(), map.getMaxZoom() );
+
     });
   }
 
 
   function modal (content) {
     if (document.querySelector('.modal')) {
-      main.removeChild(document.querySelector('.modal'));
+      modal_container.removeChild(document.querySelector('.modal'));
     }
+
+    main.className = 'details-display';
 
     var modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = content;
-    main.appendChild(modal);
+    modal_container.appendChild(modal);
     resizeModal();
+
+    //map.setView(map.getCenter());
   }
 
   on(document.body, '#close-modal', 'click', function (e) {
     var modal = document.querySelector('.modal');
-    main.removeChild(modal);
+    modal_container.removeChild(modal);
+    main.className = '';
+    moveActiveMarker(L.latLng(0,0))
     e.preventDefault();
   });
 

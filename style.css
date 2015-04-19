@@ -1,5 +1,5 @@
 @import "normalize-css";
-@import "scrollbar";
+/*@import "scrollbar";*/
 
 html,
 body,
@@ -43,7 +43,7 @@ hr {
 }
 
 #menu {
-  height: 70px;
+  /*height: 70px;*/
   position: fixed;
   top: 0;
   left: 0;
@@ -196,11 +196,46 @@ h1 {
   margin-top: 170px;
 }
 
-
-
 .container {
   width: 90%;
   margin: 0px auto;
+}
+
+@media only screen and (max-width:469px) {
+
+  #main.details-display #map {
+    height:25vh;
+  }
+
+  #main.details-display #modal-container {
+    height:auto;
+  }
+
+  #main.details-display #menu {
+    display:none;
+
+  }
+
+  #modal-container {
+
+  }
+
+  .modal {
+    position:static;
+    float:left;
+    width:100%;
+    margin:0px;
+    box-sizing:border-box;
+  }
+
+  .modal-inner {
+    margin:0px;
+  }
+
+  #map {
+
+  }
+
 }
 
 @media only screen and (min-width: 470px) {

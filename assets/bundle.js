@@ -19,6 +19,7 @@ fastClick(document.body);
 
 var main = document.getElementById('main');
 var mapEl = document.getElementById('map');
+var modal_container = document.getElementById('modal-container');
 
 flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
   var data = createImageArrays(sheet.rows);
@@ -39,7 +40,7 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
   var templates = {};
 
   templates.info = Handlebars.compile(
-    "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\" class=\"ignore\">x</a>\n  <h2 class=\"location-title\">{{ title }}</h2>\n\n  {{#each images}}\n  <div class=\"image\">\n    <img src=\"{{ this }}\">\n  </div>\n  {{/each}}\n\n  {{#if audio}}\n    {{{ audio }}}\n  {{/if}}\n\n  <div class=\"text\">\n    {{{ text }}}\n  </div>\n\n  <p><i>{{ credit }}</i></p>\n</section>\n"
+    "<section class=\"modal-inner\">\n  <button id=\"close-modal\" href=\"#\" class=\"ignore\">x</button>\n  <h2 class=\"location-title\">{{ title }}</h2>\n\n  {{#each images}}\n  <div class=\"image\">\n    <img src=\"{{ this }}\">\n  </div>\n  {{/each}}\n\n  {{#if audio}}\n    {{{ audio }}}\n  {{/if}}\n\n  <div class=\"text\">\n    {{{ text }}}\n  </div>\n\n  <p><i>{{ credit }}</i></p>\n</section>\n"
   );
 
   templates.list = Handlebars.compile(
@@ -130,7 +131,7 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
   });
 
   router.on('/about', function () {
-    var content = "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"modal-content\">\n    \n    <h2>About <b>Sqebeqsed Stories</b></h2>\n    <p>Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.</p>\n    <p>“Place is a story happening many times.” So say the Kwakiutl people of coastal British Columbia.</p>\n    <p>Seward Park is stories happening over and over, many at once. People come here to celebrate, congregate, meditate, race, run, walk, swim, climb, picnic, play, reflect, relax, make art, learn, unlearn, unwind. This place has sustained local residents for ten thousand years.</p>\n    <p>Before it was named “Seward Park” a century ago, this forested peninsula jutting into Lake Washington was known as “Sqebeqsed,” or “fat nose” in the local language, Lushootseed. And so Seward Park Stories are <b>Sqebeqsed Stories</b>.</p>\n    <p>Here, you will find stories about life in Sqebeqsed and the many lives that intersect with it, both human and non-human, present and past.</p>\n    \n    \n    <hr>\n    \n    <p>Sqebeqsed Stories is created and curated by <a href=\"http://www.wendycall.com/\">Wendy Call</a>, in collaboration with photographer <a href=\"http://www.thomasbancroft.com/\">G. Thomas Bancroft</a>, researcher <a href=\"https://plu.academia.edu/ChristinaMontilla\">Christina Montilla</a>, web developer <a href=\"http://sethvincent.com\">Seth Vincent</a>, and many others who love Sqebeqsed. Made possible by an Individual Artist grant from <a href=\"http://www.4culture.org/\">4Culture</a>, with in-kind support from <a href=\"http://www.sewardpark.org/index.html\">Friends of Seward Park</a> and the <a href=\"http://sewardpark.audubon.org/\">Seward Park Audubon Center</a>.</p>\n  \n  <img src=\"assets/4culture.jpg\">\n  </div>\n\n</section>";
+    var content = "<section class=\"modal-inner\">\n  <button id=\"close-modal\" href=\"#\">x</button>\n  \n  <div class=\"modal-content\">\n    \n    <h2>About <b>Sqebeqsed Stories</b></h2>\n    <p>Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.</p>\n    <p>“Place is a story happening many times.” So say the Kwakiutl people of coastal British Columbia.</p>\n    <p>Seward Park is stories happening over and over, many at once. People come here to celebrate, congregate, meditate, race, run, walk, swim, climb, picnic, play, reflect, relax, make art, learn, unlearn, unwind. This place has sustained local residents for ten thousand years.</p>\n    <p>Before it was named “Seward Park” a century ago, this forested peninsula jutting into Lake Washington was known as “Sqebeqsed,” or “fat nose” in the local language, Lushootseed. And so Seward Park Stories are <b>Sqebeqsed Stories</b>.</p>\n    <p>Here, you will find stories about life in Sqebeqsed and the many lives that intersect with it, both human and non-human, present and past.</p>\n    \n    \n    <hr>\n    \n    <p>Sqebeqsed Stories is created and curated by <a href=\"http://www.wendycall.com/\">Wendy Call</a>, in collaboration with photographer <a href=\"http://www.thomasbancroft.com/\">G. Thomas Bancroft</a>, researcher <a href=\"https://plu.academia.edu/ChristinaMontilla\">Christina Montilla</a>, web developer <a href=\"http://sethvincent.com\">Seth Vincent</a>, and many others who love Sqebeqsed. Made possible by an Individual Artist grant from <a href=\"http://www.4culture.org/\">4Culture</a>, with in-kind support from <a href=\"http://www.sewardpark.org/index.html\">Friends of Seward Park</a> and the <a href=\"http://sewardpark.audubon.org/\">Seward Park Audubon Center</a>.</p>\n  \n  <img src=\"assets/4culture.jpg\">\n  </div>\n\n</section>";
     modal(content);
   })
 
@@ -156,9 +157,26 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
   */
 
   var markerGroup = new L.FeatureGroup();
+
   data.forEach(addMarker);
 
   updateWithFilters();
+
+  var active_marker = L.marker(L.latLng(0,0), {
+    icon: L.mapbox.marker.icon({
+      'marker-size': 'small',
+      'marker-line-color': '#335966',
+      'marker-line-opacity': 1,
+      'marker-color': '#a3a966',
+      'zIndexOffset': 99
+    })
+  })
+   markerGroup.addLayer(active_marker);
+
+  function moveActiveMarker(latlng) {
+    active_marker.setLatLng(latlng);
+    active_marker.update();
+  }
 
   function addMarker (row, i) {
     var latlng = { lat: row['lat'], lng: row['long'] };
@@ -176,25 +194,35 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
     
     marker.on('click', function(e) {
       window.location.hash = '/' + row.id
+      moveActiveMarker(this.getLatLng());
+
+      map.setView(this.getLatLng(), map.getMaxZoom() );
+
     });
   }
 
 
   function modal (content) {
     if (document.querySelector('.modal')) {
-      main.removeChild(document.querySelector('.modal'));
+      modal_container.removeChild(document.querySelector('.modal'));
     }
+
+    main.className = 'details-display';
 
     var modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = content;
-    main.appendChild(modal);
+    modal_container.appendChild(modal);
     resizeModal();
+
+    //map.setView(map.getCenter());
   }
 
   on(document.body, '#close-modal', 'click', function (e) {
     var modal = document.querySelector('.modal');
-    main.removeChild(modal);
+    modal_container.removeChild(modal);
+    main.className = '';
+    moveActiveMarker(L.latLng(0,0))
     e.preventDefault();
   });
 
@@ -280,7 +308,7 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
 function slugify (title) {
   return title.toLowerCase().replace(/[^\w ]+/g,'').replace(/ +/g,'-')
 }
-},{"component-delegate":2,"element-class":7,"fastclick":8,"flatsheet-api-client":10,"geolocation-stream":19,"handlebars":34,"hash-match":35,"leaflet":36,"mapbox.js":49,"wayfarer":84}],2:[function(require,module,exports){
+},{"component-delegate":2,"element-class":7,"fastclick":8,"flatsheet-api-client":10,"geolocation-stream":19,"handlebars":34,"hash-match":35,"leaflet":36,"mapbox.js":50,"wayfarer":86}],2:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -500,827 +528,847 @@ ElementClass.prototype.has = function(className) {
 }
 
 },{}],8:[function(require,module,exports){
-/**
- * @preserve FastClick: polyfill to remove click delays on browsers with touch UIs.
- *
- * @version 1.0.3
- * @codingstandard ftlabs-jsv2
- * @copyright The Financial Times Limited [All Rights Reserved]
- * @license MIT License (see LICENSE.txt)
- */
-
-/*jslint browser:true, node:true*/
-/*global define, Event, Node*/
-
-
-/**
- * Instantiate fast-clicking listeners on the specified layer.
- *
- * @constructor
- * @param {Element} layer The layer to listen on
- * @param {Object} options The options to override the defaults
- */
-function FastClick(layer, options) {
+;(function () {
 	'use strict';
-	var oldOnClick;
-
-	options = options || {};
 
 	/**
-	 * Whether a click is currently being tracked.
+	 * @preserve FastClick: polyfill to remove click delays on browsers with touch UIs.
+	 *
+	 * @codingstandard ftlabs-jsv2
+	 * @copyright The Financial Times Limited [All Rights Reserved]
+	 * @license MIT License (see LICENSE.txt)
+	 */
+
+	/*jslint browser:true, node:true*/
+	/*global define, Event, Node*/
+
+
+	/**
+	 * Instantiate fast-clicking listeners on the specified layer.
+	 *
+	 * @constructor
+	 * @param {Element} layer The layer to listen on
+	 * @param {Object} [options={}] The options to override the defaults
+	 */
+	function FastClick(layer, options) {
+		var oldOnClick;
+
+		options = options || {};
+
+		/**
+		 * Whether a click is currently being tracked.
+		 *
+		 * @type boolean
+		 */
+		this.trackingClick = false;
+
+
+		/**
+		 * Timestamp for when click tracking started.
+		 *
+		 * @type number
+		 */
+		this.trackingClickStart = 0;
+
+
+		/**
+		 * The element being tracked for a click.
+		 *
+		 * @type EventTarget
+		 */
+		this.targetElement = null;
+
+
+		/**
+		 * X-coordinate of touch start event.
+		 *
+		 * @type number
+		 */
+		this.touchStartX = 0;
+
+
+		/**
+		 * Y-coordinate of touch start event.
+		 *
+		 * @type number
+		 */
+		this.touchStartY = 0;
+
+
+		/**
+		 * ID of the last touch, retrieved from Touch.identifier.
+		 *
+		 * @type number
+		 */
+		this.lastTouchIdentifier = 0;
+
+
+		/**
+		 * Touchmove boundary, beyond which a click will be cancelled.
+		 *
+		 * @type number
+		 */
+		this.touchBoundary = options.touchBoundary || 10;
+
+
+		/**
+		 * The FastClick layer.
+		 *
+		 * @type Element
+		 */
+		this.layer = layer;
+
+		/**
+		 * The minimum time between tap(touchstart and touchend) events
+		 *
+		 * @type number
+		 */
+		this.tapDelay = options.tapDelay || 200;
+
+		/**
+		 * The maximum time for a tap
+		 *
+		 * @type number
+		 */
+		this.tapTimeout = options.tapTimeout || 700;
+
+		if (FastClick.notNeeded(layer)) {
+			return;
+		}
+
+		// Some old versions of Android don't have Function.prototype.bind
+		function bind(method, context) {
+			return function() { return method.apply(context, arguments); };
+		}
+
+
+		var methods = ['onMouse', 'onClick', 'onTouchStart', 'onTouchMove', 'onTouchEnd', 'onTouchCancel'];
+		var context = this;
+		for (var i = 0, l = methods.length; i < l; i++) {
+			context[methods[i]] = bind(context[methods[i]], context);
+		}
+
+		// Set up event handlers as required
+		if (deviceIsAndroid) {
+			layer.addEventListener('mouseover', this.onMouse, true);
+			layer.addEventListener('mousedown', this.onMouse, true);
+			layer.addEventListener('mouseup', this.onMouse, true);
+		}
+
+		layer.addEventListener('click', this.onClick, true);
+		layer.addEventListener('touchstart', this.onTouchStart, false);
+		layer.addEventListener('touchmove', this.onTouchMove, false);
+		layer.addEventListener('touchend', this.onTouchEnd, false);
+		layer.addEventListener('touchcancel', this.onTouchCancel, false);
+
+		// Hack is required for browsers that don't support Event#stopImmediatePropagation (e.g. Android 2)
+		// which is how FastClick normally stops click events bubbling to callbacks registered on the FastClick
+		// layer when they are cancelled.
+		if (!Event.prototype.stopImmediatePropagation) {
+			layer.removeEventListener = function(type, callback, capture) {
+				var rmv = Node.prototype.removeEventListener;
+				if (type === 'click') {
+					rmv.call(layer, type, callback.hijacked || callback, capture);
+				} else {
+					rmv.call(layer, type, callback, capture);
+				}
+			};
+
+			layer.addEventListener = function(type, callback, capture) {
+				var adv = Node.prototype.addEventListener;
+				if (type === 'click') {
+					adv.call(layer, type, callback.hijacked || (callback.hijacked = function(event) {
+						if (!event.propagationStopped) {
+							callback(event);
+						}
+					}), capture);
+				} else {
+					adv.call(layer, type, callback, capture);
+				}
+			};
+		}
+
+		// If a handler is already declared in the element's onclick attribute, it will be fired before
+		// FastClick's onClick handler. Fix this by pulling out the user-defined handler function and
+		// adding it as listener.
+		if (typeof layer.onclick === 'function') {
+
+			// Android browser on at least 3.2 requires a new reference to the function in layer.onclick
+			// - the old one won't work if passed to addEventListener directly.
+			oldOnClick = layer.onclick;
+			layer.addEventListener('click', function(event) {
+				oldOnClick(event);
+			}, false);
+			layer.onclick = null;
+		}
+	}
+
+	/**
+	* Windows Phone 8.1 fakes user agent string to look like Android and iPhone.
+	*
+	* @type boolean
+	*/
+	var deviceIsWindowsPhone = navigator.userAgent.indexOf("Windows Phone") >= 0;
+
+	/**
+	 * Android requires exceptions.
 	 *
 	 * @type boolean
 	 */
-	this.trackingClick = false;
+	var deviceIsAndroid = navigator.userAgent.indexOf('Android') > 0 && !deviceIsWindowsPhone;
 
 
 	/**
-	 * Timestamp for when click tracking started.
+	 * iOS requires exceptions.
 	 *
-	 * @type number
+	 * @type boolean
 	 */
-	this.trackingClickStart = 0;
+	var deviceIsIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !deviceIsWindowsPhone;
 
 
 	/**
-	 * The element being tracked for a click.
+	 * iOS 4 requires an exception for select elements.
 	 *
-	 * @type EventTarget
+	 * @type boolean
 	 */
-	this.targetElement = null;
+	var deviceIsIOS4 = deviceIsIOS && (/OS 4_\d(_\d)?/).test(navigator.userAgent);
 
 
 	/**
-	 * X-coordinate of touch start event.
+	 * iOS 6.0-7.* requires the target element to be manually derived
 	 *
-	 * @type number
+	 * @type boolean
 	 */
-	this.touchStartX = 0;
-
+	var deviceIsIOSWithBadTarget = deviceIsIOS && (/OS [6-7]_\d/).test(navigator.userAgent);
 
 	/**
-	 * Y-coordinate of touch start event.
+	 * BlackBerry requires exceptions.
 	 *
-	 * @type number
+	 * @type boolean
 	 */
-	this.touchStartY = 0;
-
+	var deviceIsBlackBerry10 = navigator.userAgent.indexOf('BB10') > 0;
 
 	/**
-	 * ID of the last touch, retrieved from Touch.identifier.
+	 * Determine whether a given element requires a native click.
 	 *
-	 * @type number
+	 * @param {EventTarget|Element} target Target DOM element
+	 * @returns {boolean} Returns true if the element needs a native click
 	 */
-	this.lastTouchIdentifier = 0;
+	FastClick.prototype.needsClick = function(target) {
+		switch (target.nodeName.toLowerCase()) {
 
-
-	/**
-	 * Touchmove boundary, beyond which a click will be cancelled.
-	 *
-	 * @type number
-	 */
-	this.touchBoundary = options.touchBoundary || 10;
-
-
-	/**
-	 * The FastClick layer.
-	 *
-	 * @type Element
-	 */
-	this.layer = layer;
-
-	/**
-	 * The minimum time between tap(touchstart and touchend) events
-	 *
-	 * @type number
-	 */
-	this.tapDelay = options.tapDelay || 200;
-
-	if (FastClick.notNeeded(layer)) {
-		return;
-	}
-
-	// Some old versions of Android don't have Function.prototype.bind
-	function bind(method, context) {
-		return function() { return method.apply(context, arguments); };
-	}
-
-
-	var methods = ['onMouse', 'onClick', 'onTouchStart', 'onTouchMove', 'onTouchEnd', 'onTouchCancel'];
-	var context = this;
-	for (var i = 0, l = methods.length; i < l; i++) {
-		context[methods[i]] = bind(context[methods[i]], context);
-	}
-
-	// Set up event handlers as required
-	if (deviceIsAndroid) {
-		layer.addEventListener('mouseover', this.onMouse, true);
-		layer.addEventListener('mousedown', this.onMouse, true);
-		layer.addEventListener('mouseup', this.onMouse, true);
-	}
-
-	layer.addEventListener('click', this.onClick, true);
-	layer.addEventListener('touchstart', this.onTouchStart, false);
-	layer.addEventListener('touchmove', this.onTouchMove, false);
-	layer.addEventListener('touchend', this.onTouchEnd, false);
-	layer.addEventListener('touchcancel', this.onTouchCancel, false);
-
-	// Hack is required for browsers that don't support Event#stopImmediatePropagation (e.g. Android 2)
-	// which is how FastClick normally stops click events bubbling to callbacks registered on the FastClick
-	// layer when they are cancelled.
-	if (!Event.prototype.stopImmediatePropagation) {
-		layer.removeEventListener = function(type, callback, capture) {
-			var rmv = Node.prototype.removeEventListener;
-			if (type === 'click') {
-				rmv.call(layer, type, callback.hijacked || callback, capture);
-			} else {
-				rmv.call(layer, type, callback, capture);
-			}
-		};
-
-		layer.addEventListener = function(type, callback, capture) {
-			var adv = Node.prototype.addEventListener;
-			if (type === 'click') {
-				adv.call(layer, type, callback.hijacked || (callback.hijacked = function(event) {
-					if (!event.propagationStopped) {
-						callback(event);
-					}
-				}), capture);
-			} else {
-				adv.call(layer, type, callback, capture);
-			}
-		};
-	}
-
-	// If a handler is already declared in the element's onclick attribute, it will be fired before
-	// FastClick's onClick handler. Fix this by pulling out the user-defined handler function and
-	// adding it as listener.
-	if (typeof layer.onclick === 'function') {
-
-		// Android browser on at least 3.2 requires a new reference to the function in layer.onclick
-		// - the old one won't work if passed to addEventListener directly.
-		oldOnClick = layer.onclick;
-		layer.addEventListener('click', function(event) {
-			oldOnClick(event);
-		}, false);
-		layer.onclick = null;
-	}
-}
-
-
-/**
- * Android requires exceptions.
- *
- * @type boolean
- */
-var deviceIsAndroid = navigator.userAgent.indexOf('Android') > 0;
-
-
-/**
- * iOS requires exceptions.
- *
- * @type boolean
- */
-var deviceIsIOS = /iP(ad|hone|od)/.test(navigator.userAgent);
-
-
-/**
- * iOS 4 requires an exception for select elements.
- *
- * @type boolean
- */
-var deviceIsIOS4 = deviceIsIOS && (/OS 4_\d(_\d)?/).test(navigator.userAgent);
-
-
-/**
- * iOS 6.0(+?) requires the target element to be manually derived
- *
- * @type boolean
- */
-var deviceIsIOSWithBadTarget = deviceIsIOS && (/OS ([6-9]|\d{2})_\d/).test(navigator.userAgent);
-
-/**
- * BlackBerry requires exceptions.
- *
- * @type boolean
- */
-var deviceIsBlackBerry10 = navigator.userAgent.indexOf('BB10') > 0;
-
-/**
- * Determine whether a given element requires a native click.
- *
- * @param {EventTarget|Element} target Target DOM element
- * @returns {boolean} Returns true if the element needs a native click
- */
-FastClick.prototype.needsClick = function(target) {
-	'use strict';
-	switch (target.nodeName.toLowerCase()) {
-
-	// Don't send a synthetic click to disabled inputs (issue #62)
-	case 'button':
-	case 'select':
-	case 'textarea':
-		if (target.disabled) {
-			return true;
-		}
-
-		break;
-	case 'input':
-
-		// File inputs need real clicks on iOS 6 due to a browser bug (issue #68)
-		if ((deviceIsIOS && target.type === 'file') || target.disabled) {
-			return true;
-		}
-
-		break;
-	case 'label':
-	case 'video':
-		return true;
-	}
-
-	return (/\bneedsclick\b/).test(target.className);
-};
-
-
-/**
- * Determine whether a given element requires a call to focus to simulate click into element.
- *
- * @param {EventTarget|Element} target Target DOM element
- * @returns {boolean} Returns true if the element requires a call to focus to simulate native click.
- */
-FastClick.prototype.needsFocus = function(target) {
-	'use strict';
-	switch (target.nodeName.toLowerCase()) {
-	case 'textarea':
-		return true;
-	case 'select':
-		return !deviceIsAndroid;
-	case 'input':
-		switch (target.type) {
+		// Don't send a synthetic click to disabled inputs (issue #62)
 		case 'button':
-		case 'checkbox':
-		case 'file':
-		case 'image':
-		case 'radio':
-		case 'submit':
-			return false;
-		}
-
-		// No point in attempting to focus disabled inputs
-		return !target.disabled && !target.readOnly;
-	default:
-		return (/\bneedsfocus\b/).test(target.className);
-	}
-};
-
-
-/**
- * Send a click event to the specified element.
- *
- * @param {EventTarget|Element} targetElement
- * @param {Event} event
- */
-FastClick.prototype.sendClick = function(targetElement, event) {
-	'use strict';
-	var clickEvent, touch;
-
-	// On some Android devices activeElement needs to be blurred otherwise the synthetic click will have no effect (#24)
-	if (document.activeElement && document.activeElement !== targetElement) {
-		document.activeElement.blur();
-	}
-
-	touch = event.changedTouches[0];
-
-	// Synthesise a click event, with an extra attribute so it can be tracked
-	clickEvent = document.createEvent('MouseEvents');
-	clickEvent.initMouseEvent(this.determineEventType(targetElement), true, true, window, 1, touch.screenX, touch.screenY, touch.clientX, touch.clientY, false, false, false, false, 0, null);
-	clickEvent.forwardedTouchEvent = true;
-	targetElement.dispatchEvent(clickEvent);
-};
-
-FastClick.prototype.determineEventType = function(targetElement) {
-	'use strict';
-
-	//Issue #159: Android Chrome Select Box does not open with a synthetic click event
-	if (deviceIsAndroid && targetElement.tagName.toLowerCase() === 'select') {
-		return 'mousedown';
-	}
-
-	return 'click';
-};
-
-
-/**
- * @param {EventTarget|Element} targetElement
- */
-FastClick.prototype.focus = function(targetElement) {
-	'use strict';
-	var length;
-
-	// Issue #160: on iOS 7, some input elements (e.g. date datetime) throw a vague TypeError on setSelectionRange. These elements don't have an integer value for the selectionStart and selectionEnd properties, but unfortunately that can't be used for detection because accessing the properties also throws a TypeError. Just check the type instead. Filed as Apple bug #15122724.
-	if (deviceIsIOS && targetElement.setSelectionRange && targetElement.type.indexOf('date') !== 0 && targetElement.type !== 'time') {
-		length = targetElement.value.length;
-		targetElement.setSelectionRange(length, length);
-	} else {
-		targetElement.focus();
-	}
-};
-
-
-/**
- * Check whether the given target element is a child of a scrollable layer and if so, set a flag on it.
- *
- * @param {EventTarget|Element} targetElement
- */
-FastClick.prototype.updateScrollParent = function(targetElement) {
-	'use strict';
-	var scrollParent, parentElement;
-
-	scrollParent = targetElement.fastClickScrollParent;
-
-	// Attempt to discover whether the target element is contained within a scrollable layer. Re-check if the
-	// target element was moved to another parent.
-	if (!scrollParent || !scrollParent.contains(targetElement)) {
-		parentElement = targetElement;
-		do {
-			if (parentElement.scrollHeight > parentElement.offsetHeight) {
-				scrollParent = parentElement;
-				targetElement.fastClickScrollParent = parentElement;
-				break;
+		case 'select':
+		case 'textarea':
+			if (target.disabled) {
+				return true;
 			}
 
-			parentElement = parentElement.parentElement;
-		} while (parentElement);
-	}
+			break;
+		case 'input':
 
-	// Always update the scroll top tracker if possible.
-	if (scrollParent) {
-		scrollParent.fastClickLastScrollTop = scrollParent.scrollTop;
-	}
-};
+			// File inputs need real clicks on iOS 6 due to a browser bug (issue #68)
+			if ((deviceIsIOS && target.type === 'file') || target.disabled) {
+				return true;
+			}
 
-
-/**
- * @param {EventTarget} targetElement
- * @returns {Element|EventTarget}
- */
-FastClick.prototype.getTargetElementFromEventTarget = function(eventTarget) {
-	'use strict';
-
-	// On some older browsers (notably Safari on iOS 4.1 - see issue #56) the event target may be a text node.
-	if (eventTarget.nodeType === Node.TEXT_NODE) {
-		return eventTarget.parentNode;
-	}
-
-	return eventTarget;
-};
-
-
-/**
- * On touch start, record the position and scroll offset.
- *
- * @param {Event} event
- * @returns {boolean}
- */
-FastClick.prototype.onTouchStart = function(event) {
-	'use strict';
-	var targetElement, touch, selection;
-
-	// Ignore multiple touches, otherwise pinch-to-zoom is prevented if both fingers are on the FastClick element (issue #111).
-	if (event.targetTouches.length > 1) {
-		return true;
-	}
-
-	targetElement = this.getTargetElementFromEventTarget(event.target);
-	touch = event.targetTouches[0];
-
-	if (deviceIsIOS) {
-
-		// Only trusted events will deselect text on iOS (issue #49)
-		selection = window.getSelection();
-		if (selection.rangeCount && !selection.isCollapsed) {
+			break;
+		case 'label':
+		case 'iframe': // iOS8 homescreen apps can prevent events bubbling into frames
+		case 'video':
 			return true;
 		}
 
-		if (!deviceIsIOS4) {
+		return (/\bneedsclick\b/).test(target.className);
+	};
 
-			// Weird things happen on iOS when an alert or confirm dialog is opened from a click event callback (issue #23):
-			// when the user next taps anywhere else on the page, new touchstart and touchend events are dispatched
-			// with the same identifier as the touch event that previously triggered the click that triggered the alert.
-			// Sadly, there is an issue on iOS 4 that causes some normal touch events to have the same identifier as an
-			// immediately preceeding touch event (issue #52), so this fix is unavailable on that platform.
-			// Issue 120: touch.identifier is 0 when Chrome dev tools 'Emulate touch events' is set with an iOS device UA string,
-			// which causes all touch events to be ignored. As this block only applies to iOS, and iOS identifiers are always long,
-			// random integers, it's safe to to continue if the identifier is 0 here.
-			if (touch.identifier && touch.identifier === this.lastTouchIdentifier) {
-				event.preventDefault();
+
+	/**
+	 * Determine whether a given element requires a call to focus to simulate click into element.
+	 *
+	 * @param {EventTarget|Element} target Target DOM element
+	 * @returns {boolean} Returns true if the element requires a call to focus to simulate native click.
+	 */
+	FastClick.prototype.needsFocus = function(target) {
+		switch (target.nodeName.toLowerCase()) {
+		case 'textarea':
+			return true;
+		case 'select':
+			return !deviceIsAndroid;
+		case 'input':
+			switch (target.type) {
+			case 'button':
+			case 'checkbox':
+			case 'file':
+			case 'image':
+			case 'radio':
+			case 'submit':
 				return false;
 			}
 
-			this.lastTouchIdentifier = touch.identifier;
-
-			// If the target element is a child of a scrollable layer (using -webkit-overflow-scrolling: touch) and:
-			// 1) the user does a fling scroll on the scrollable layer
-			// 2) the user stops the fling scroll with another tap
-			// then the event.target of the last 'touchend' event will be the element that was under the user's finger
-			// when the fling scroll was started, causing FastClick to send a click event to that layer - unless a check
-			// is made to ensure that a parent layer was not scrolled before sending a synthetic click (issue #42).
-			this.updateScrollParent(targetElement);
+			// No point in attempting to focus disabled inputs
+			return !target.disabled && !target.readOnly;
+		default:
+			return (/\bneedsfocus\b/).test(target.className);
 		}
-	}
-
-	this.trackingClick = true;
-	this.trackingClickStart = event.timeStamp;
-	this.targetElement = targetElement;
-
-	this.touchStartX = touch.pageX;
-	this.touchStartY = touch.pageY;
-
-	// Prevent phantom clicks on fast double-tap (issue #36)
-	if ((event.timeStamp - this.lastClickTime) < this.tapDelay) {
-		event.preventDefault();
-	}
-
-	return true;
-};
+	};
 
 
-/**
- * Based on a touchmove event object, check whether the touch has moved past a boundary since it started.
- *
- * @param {Event} event
- * @returns {boolean}
- */
-FastClick.prototype.touchHasMoved = function(event) {
-	'use strict';
-	var touch = event.changedTouches[0], boundary = this.touchBoundary;
+	/**
+	 * Send a click event to the specified element.
+	 *
+	 * @param {EventTarget|Element} targetElement
+	 * @param {Event} event
+	 */
+	FastClick.prototype.sendClick = function(targetElement, event) {
+		var clickEvent, touch;
 
-	if (Math.abs(touch.pageX - this.touchStartX) > boundary || Math.abs(touch.pageY - this.touchStartY) > boundary) {
-		return true;
-	}
+		// On some Android devices activeElement needs to be blurred otherwise the synthetic click will have no effect (#24)
+		if (document.activeElement && document.activeElement !== targetElement) {
+			document.activeElement.blur();
+		}
 
-	return false;
-};
-
-
-/**
- * Update the last position.
- *
- * @param {Event} event
- * @returns {boolean}
- */
-FastClick.prototype.onTouchMove = function(event) {
-	'use strict';
-	if (!this.trackingClick) {
-		return true;
-	}
-
-	// If the touch has moved, cancel the click tracking
-	if (this.targetElement !== this.getTargetElementFromEventTarget(event.target) || this.touchHasMoved(event)) {
-		this.trackingClick = false;
-		this.targetElement = null;
-	}
-
-	return true;
-};
-
-
-/**
- * Attempt to find the labelled control for the given label element.
- *
- * @param {EventTarget|HTMLLabelElement} labelElement
- * @returns {Element|null}
- */
-FastClick.prototype.findControl = function(labelElement) {
-	'use strict';
-
-	// Fast path for newer browsers supporting the HTML5 control attribute
-	if (labelElement.control !== undefined) {
-		return labelElement.control;
-	}
-
-	// All browsers under test that support touch events also support the HTML5 htmlFor attribute
-	if (labelElement.htmlFor) {
-		return document.getElementById(labelElement.htmlFor);
-	}
-
-	// If no for attribute exists, attempt to retrieve the first labellable descendant element
-	// the list of which is defined here: http://www.w3.org/TR/html5/forms.html#category-label
-	return labelElement.querySelector('button, input:not([type=hidden]), keygen, meter, output, progress, select, textarea');
-};
-
-
-/**
- * On touch end, determine whether to send a click event at once.
- *
- * @param {Event} event
- * @returns {boolean}
- */
-FastClick.prototype.onTouchEnd = function(event) {
-	'use strict';
-	var forElement, trackingClickStart, targetTagName, scrollParent, touch, targetElement = this.targetElement;
-
-	if (!this.trackingClick) {
-		return true;
-	}
-
-	// Prevent phantom clicks on fast double-tap (issue #36)
-	if ((event.timeStamp - this.lastClickTime) < this.tapDelay) {
-		this.cancelNextClick = true;
-		return true;
-	}
-
-	// Reset to prevent wrong click cancel on input (issue #156).
-	this.cancelNextClick = false;
-
-	this.lastClickTime = event.timeStamp;
-
-	trackingClickStart = this.trackingClickStart;
-	this.trackingClick = false;
-	this.trackingClickStart = 0;
-
-	// On some iOS devices, the targetElement supplied with the event is invalid if the layer
-	// is performing a transition or scroll, and has to be re-detected manually. Note that
-	// for this to function correctly, it must be called *after* the event target is checked!
-	// See issue #57; also filed as rdar://13048589 .
-	if (deviceIsIOSWithBadTarget) {
 		touch = event.changedTouches[0];
 
-		// In certain cases arguments of elementFromPoint can be negative, so prevent setting targetElement to null
-		targetElement = document.elementFromPoint(touch.pageX - window.pageXOffset, touch.pageY - window.pageYOffset) || targetElement;
-		targetElement.fastClickScrollParent = this.targetElement.fastClickScrollParent;
-	}
+		// Synthesise a click event, with an extra attribute so it can be tracked
+		clickEvent = document.createEvent('MouseEvents');
+		clickEvent.initMouseEvent(this.determineEventType(targetElement), true, true, window, 1, touch.screenX, touch.screenY, touch.clientX, touch.clientY, false, false, false, false, 0, null);
+		clickEvent.forwardedTouchEvent = true;
+		targetElement.dispatchEvent(clickEvent);
+	};
 
-	targetTagName = targetElement.tagName.toLowerCase();
-	if (targetTagName === 'label') {
-		forElement = this.findControl(targetElement);
-		if (forElement) {
-			this.focus(targetElement);
-			if (deviceIsAndroid) {
-				return false;
+	FastClick.prototype.determineEventType = function(targetElement) {
+
+		//Issue #159: Android Chrome Select Box does not open with a synthetic click event
+		if (deviceIsAndroid && targetElement.tagName.toLowerCase() === 'select') {
+			return 'mousedown';
+		}
+
+		return 'click';
+	};
+
+
+	/**
+	 * @param {EventTarget|Element} targetElement
+	 */
+	FastClick.prototype.focus = function(targetElement) {
+		var length;
+
+		// Issue #160: on iOS 7, some input elements (e.g. date datetime month) throw a vague TypeError on setSelectionRange. These elements don't have an integer value for the selectionStart and selectionEnd properties, but unfortunately that can't be used for detection because accessing the properties also throws a TypeError. Just check the type instead. Filed as Apple bug #15122724.
+		if (deviceIsIOS && targetElement.setSelectionRange && targetElement.type.indexOf('date') !== 0 && targetElement.type !== 'time' && targetElement.type !== 'month') {
+			length = targetElement.value.length;
+			targetElement.setSelectionRange(length, length);
+		} else {
+			targetElement.focus();
+		}
+	};
+
+
+	/**
+	 * Check whether the given target element is a child of a scrollable layer and if so, set a flag on it.
+	 *
+	 * @param {EventTarget|Element} targetElement
+	 */
+	FastClick.prototype.updateScrollParent = function(targetElement) {
+		var scrollParent, parentElement;
+
+		scrollParent = targetElement.fastClickScrollParent;
+
+		// Attempt to discover whether the target element is contained within a scrollable layer. Re-check if the
+		// target element was moved to another parent.
+		if (!scrollParent || !scrollParent.contains(targetElement)) {
+			parentElement = targetElement;
+			do {
+				if (parentElement.scrollHeight > parentElement.offsetHeight) {
+					scrollParent = parentElement;
+					targetElement.fastClickScrollParent = parentElement;
+					break;
+				}
+
+				parentElement = parentElement.parentElement;
+			} while (parentElement);
+		}
+
+		// Always update the scroll top tracker if possible.
+		if (scrollParent) {
+			scrollParent.fastClickLastScrollTop = scrollParent.scrollTop;
+		}
+	};
+
+
+	/**
+	 * @param {EventTarget} targetElement
+	 * @returns {Element|EventTarget}
+	 */
+	FastClick.prototype.getTargetElementFromEventTarget = function(eventTarget) {
+
+		// On some older browsers (notably Safari on iOS 4.1 - see issue #56) the event target may be a text node.
+		if (eventTarget.nodeType === Node.TEXT_NODE) {
+			return eventTarget.parentNode;
+		}
+
+		return eventTarget;
+	};
+
+
+	/**
+	 * On touch start, record the position and scroll offset.
+	 *
+	 * @param {Event} event
+	 * @returns {boolean}
+	 */
+	FastClick.prototype.onTouchStart = function(event) {
+		var targetElement, touch, selection;
+
+		// Ignore multiple touches, otherwise pinch-to-zoom is prevented if both fingers are on the FastClick element (issue #111).
+		if (event.targetTouches.length > 1) {
+			return true;
+		}
+
+		targetElement = this.getTargetElementFromEventTarget(event.target);
+		touch = event.targetTouches[0];
+
+		if (deviceIsIOS) {
+
+			// Only trusted events will deselect text on iOS (issue #49)
+			selection = window.getSelection();
+			if (selection.rangeCount && !selection.isCollapsed) {
+				return true;
 			}
 
-			targetElement = forElement;
+			if (!deviceIsIOS4) {
+
+				// Weird things happen on iOS when an alert or confirm dialog is opened from a click event callback (issue #23):
+				// when the user next taps anywhere else on the page, new touchstart and touchend events are dispatched
+				// with the same identifier as the touch event that previously triggered the click that triggered the alert.
+				// Sadly, there is an issue on iOS 4 that causes some normal touch events to have the same identifier as an
+				// immediately preceeding touch event (issue #52), so this fix is unavailable on that platform.
+				// Issue 120: touch.identifier is 0 when Chrome dev tools 'Emulate touch events' is set with an iOS device UA string,
+				// which causes all touch events to be ignored. As this block only applies to iOS, and iOS identifiers are always long,
+				// random integers, it's safe to to continue if the identifier is 0 here.
+				if (touch.identifier && touch.identifier === this.lastTouchIdentifier) {
+					event.preventDefault();
+					return false;
+				}
+
+				this.lastTouchIdentifier = touch.identifier;
+
+				// If the target element is a child of a scrollable layer (using -webkit-overflow-scrolling: touch) and:
+				// 1) the user does a fling scroll on the scrollable layer
+				// 2) the user stops the fling scroll with another tap
+				// then the event.target of the last 'touchend' event will be the element that was under the user's finger
+				// when the fling scroll was started, causing FastClick to send a click event to that layer - unless a check
+				// is made to ensure that a parent layer was not scrolled before sending a synthetic click (issue #42).
+				this.updateScrollParent(targetElement);
+			}
 		}
-	} else if (this.needsFocus(targetElement)) {
 
-		// Case 1: If the touch started a while ago (best guess is 100ms based on tests for issue #36) then focus will be triggered anyway. Return early and unset the target element reference so that the subsequent click will be allowed through.
-		// Case 2: Without this exception for input elements tapped when the document is contained in an iframe, then any inputted text won't be visible even though the value attribute is updated as the user types (issue #37).
-		if ((event.timeStamp - trackingClickStart) > 100 || (deviceIsIOS && window.top !== window && targetTagName === 'input')) {
-			this.targetElement = null;
-			return false;
-		}
+		this.trackingClick = true;
+		this.trackingClickStart = event.timeStamp;
+		this.targetElement = targetElement;
 
-		this.focus(targetElement);
-		this.sendClick(targetElement, event);
+		this.touchStartX = touch.pageX;
+		this.touchStartY = touch.pageY;
 
-		// Select elements need the event to go through on iOS 4, otherwise the selector menu won't open.
-		// Also this breaks opening selects when VoiceOver is active on iOS6, iOS7 (and possibly others)
-		if (!deviceIsIOS || targetTagName !== 'select') {
-			this.targetElement = null;
+		// Prevent phantom clicks on fast double-tap (issue #36)
+		if ((event.timeStamp - this.lastClickTime) < this.tapDelay) {
 			event.preventDefault();
 		}
 
-		return false;
-	}
+		return true;
+	};
 
-	if (deviceIsIOS && !deviceIsIOS4) {
 
-		// Don't send a synthetic click event if the target element is contained within a parent layer that was scrolled
-		// and this tap is being used to stop the scrolling (usually initiated by a fling - issue #42).
-		scrollParent = targetElement.fastClickScrollParent;
-		if (scrollParent && scrollParent.fastClickLastScrollTop !== scrollParent.scrollTop) {
+	/**
+	 * Based on a touchmove event object, check whether the touch has moved past a boundary since it started.
+	 *
+	 * @param {Event} event
+	 * @returns {boolean}
+	 */
+	FastClick.prototype.touchHasMoved = function(event) {
+		var touch = event.changedTouches[0], boundary = this.touchBoundary;
+
+		if (Math.abs(touch.pageX - this.touchStartX) > boundary || Math.abs(touch.pageY - this.touchStartY) > boundary) {
 			return true;
 		}
-	}
-
-	// Prevent the actual click from going though - unless the target node is marked as requiring
-	// real clicks or if it is in the whitelist in which case only non-programmatic clicks are permitted.
-	if (!this.needsClick(targetElement)) {
-		event.preventDefault();
-		this.sendClick(targetElement, event);
-	}
-
-	return false;
-};
-
-
-/**
- * On touch cancel, stop tracking the click.
- *
- * @returns {void}
- */
-FastClick.prototype.onTouchCancel = function() {
-	'use strict';
-	this.trackingClick = false;
-	this.targetElement = null;
-};
-
-
-/**
- * Determine mouse events which should be permitted.
- *
- * @param {Event} event
- * @returns {boolean}
- */
-FastClick.prototype.onMouse = function(event) {
-	'use strict';
-
-	// If a target element was never set (because a touch event was never fired) allow the event
-	if (!this.targetElement) {
-		return true;
-	}
-
-	if (event.forwardedTouchEvent) {
-		return true;
-	}
-
-	// Programmatically generated events targeting a specific element should be permitted
-	if (!event.cancelable) {
-		return true;
-	}
-
-	// Derive and check the target element to see whether the mouse event needs to be permitted;
-	// unless explicitly enabled, prevent non-touch click events from triggering actions,
-	// to prevent ghost/doubleclicks.
-	if (!this.needsClick(this.targetElement) || this.cancelNextClick) {
-
-		// Prevent any user-added listeners declared on FastClick element from being fired.
-		if (event.stopImmediatePropagation) {
-			event.stopImmediatePropagation();
-		} else {
-
-			// Part of the hack for browsers that don't support Event#stopImmediatePropagation (e.g. Android 2)
-			event.propagationStopped = true;
-		}
-
-		// Cancel the event
-		event.stopPropagation();
-		event.preventDefault();
 
 		return false;
-	}
-
-	// If the mouse event is permitted, return true for the action to go through.
-	return true;
-};
+	};
 
 
-/**
- * On actual clicks, determine whether this is a touch-generated click, a click action occurring
- * naturally after a delay after a touch (which needs to be cancelled to avoid duplication), or
- * an actual click which should be permitted.
- *
- * @param {Event} event
- * @returns {boolean}
- */
-FastClick.prototype.onClick = function(event) {
-	'use strict';
-	var permitted;
+	/**
+	 * Update the last position.
+	 *
+	 * @param {Event} event
+	 * @returns {boolean}
+	 */
+	FastClick.prototype.onTouchMove = function(event) {
+		if (!this.trackingClick) {
+			return true;
+		}
 
-	// It's possible for another FastClick-like library delivered with third-party code to fire a click event before FastClick does (issue #44). In that case, set the click-tracking flag back to false and return early. This will cause onTouchEnd to return early.
-	if (this.trackingClick) {
-		this.targetElement = null;
+		// If the touch has moved, cancel the click tracking
+		if (this.targetElement !== this.getTargetElementFromEventTarget(event.target) || this.touchHasMoved(event)) {
+			this.trackingClick = false;
+			this.targetElement = null;
+		}
+
+		return true;
+	};
+
+
+	/**
+	 * Attempt to find the labelled control for the given label element.
+	 *
+	 * @param {EventTarget|HTMLLabelElement} labelElement
+	 * @returns {Element|null}
+	 */
+	FastClick.prototype.findControl = function(labelElement) {
+
+		// Fast path for newer browsers supporting the HTML5 control attribute
+		if (labelElement.control !== undefined) {
+			return labelElement.control;
+		}
+
+		// All browsers under test that support touch events also support the HTML5 htmlFor attribute
+		if (labelElement.htmlFor) {
+			return document.getElementById(labelElement.htmlFor);
+		}
+
+		// If no for attribute exists, attempt to retrieve the first labellable descendant element
+		// the list of which is defined here: http://www.w3.org/TR/html5/forms.html#category-label
+		return labelElement.querySelector('button, input:not([type=hidden]), keygen, meter, output, progress, select, textarea');
+	};
+
+
+	/**
+	 * On touch end, determine whether to send a click event at once.
+	 *
+	 * @param {Event} event
+	 * @returns {boolean}
+	 */
+	FastClick.prototype.onTouchEnd = function(event) {
+		var forElement, trackingClickStart, targetTagName, scrollParent, touch, targetElement = this.targetElement;
+
+		if (!this.trackingClick) {
+			return true;
+		}
+
+		// Prevent phantom clicks on fast double-tap (issue #36)
+		if ((event.timeStamp - this.lastClickTime) < this.tapDelay) {
+			this.cancelNextClick = true;
+			return true;
+		}
+
+		if ((event.timeStamp - this.trackingClickStart) > this.tapTimeout) {
+			return true;
+		}
+
+		// Reset to prevent wrong click cancel on input (issue #156).
+		this.cancelNextClick = false;
+
+		this.lastClickTime = event.timeStamp;
+
+		trackingClickStart = this.trackingClickStart;
 		this.trackingClick = false;
-		return true;
-	}
+		this.trackingClickStart = 0;
 
-	// Very odd behaviour on iOS (issue #18): if a submit element is present inside a form and the user hits enter in the iOS simulator or clicks the Go button on the pop-up OS keyboard the a kind of 'fake' click event will be triggered with the submit-type input element as the target.
-	if (event.target.type === 'submit' && event.detail === 0) {
-		return true;
-	}
+		// On some iOS devices, the targetElement supplied with the event is invalid if the layer
+		// is performing a transition or scroll, and has to be re-detected manually. Note that
+		// for this to function correctly, it must be called *after* the event target is checked!
+		// See issue #57; also filed as rdar://13048589 .
+		if (deviceIsIOSWithBadTarget) {
+			touch = event.changedTouches[0];
 
-	permitted = this.onMouse(event);
+			// In certain cases arguments of elementFromPoint can be negative, so prevent setting targetElement to null
+			targetElement = document.elementFromPoint(touch.pageX - window.pageXOffset, touch.pageY - window.pageYOffset) || targetElement;
+			targetElement.fastClickScrollParent = this.targetElement.fastClickScrollParent;
+		}
 
-	// Only unset targetElement if the click is not permitted. This will ensure that the check for !targetElement in onMouse fails and the browser's click doesn't go through.
-	if (!permitted) {
+		targetTagName = targetElement.tagName.toLowerCase();
+		if (targetTagName === 'label') {
+			forElement = this.findControl(targetElement);
+			if (forElement) {
+				this.focus(targetElement);
+				if (deviceIsAndroid) {
+					return false;
+				}
+
+				targetElement = forElement;
+			}
+		} else if (this.needsFocus(targetElement)) {
+
+			// Case 1: If the touch started a while ago (best guess is 100ms based on tests for issue #36) then focus will be triggered anyway. Return early and unset the target element reference so that the subsequent click will be allowed through.
+			// Case 2: Without this exception for input elements tapped when the document is contained in an iframe, then any inputted text won't be visible even though the value attribute is updated as the user types (issue #37).
+			if ((event.timeStamp - trackingClickStart) > 100 || (deviceIsIOS && window.top !== window && targetTagName === 'input')) {
+				this.targetElement = null;
+				return false;
+			}
+
+			this.focus(targetElement);
+			this.sendClick(targetElement, event);
+
+			// Select elements need the event to go through on iOS 4, otherwise the selector menu won't open.
+			// Also this breaks opening selects when VoiceOver is active on iOS6, iOS7 (and possibly others)
+			if (!deviceIsIOS || targetTagName !== 'select') {
+				this.targetElement = null;
+				event.preventDefault();
+			}
+
+			return false;
+		}
+
+		if (deviceIsIOS && !deviceIsIOS4) {
+
+			// Don't send a synthetic click event if the target element is contained within a parent layer that was scrolled
+			// and this tap is being used to stop the scrolling (usually initiated by a fling - issue #42).
+			scrollParent = targetElement.fastClickScrollParent;
+			if (scrollParent && scrollParent.fastClickLastScrollTop !== scrollParent.scrollTop) {
+				return true;
+			}
+		}
+
+		// Prevent the actual click from going though - unless the target node is marked as requiring
+		// real clicks or if it is in the whitelist in which case only non-programmatic clicks are permitted.
+		if (!this.needsClick(targetElement)) {
+			event.preventDefault();
+			this.sendClick(targetElement, event);
+		}
+
+		return false;
+	};
+
+
+	/**
+	 * On touch cancel, stop tracking the click.
+	 *
+	 * @returns {void}
+	 */
+	FastClick.prototype.onTouchCancel = function() {
+		this.trackingClick = false;
 		this.targetElement = null;
-	}
-
-	// If clicks are permitted, return true for the action to go through.
-	return permitted;
-};
+	};
 
 
-/**
- * Remove all FastClick's event listeners.
- *
- * @returns {void}
- */
-FastClick.prototype.destroy = function() {
-	'use strict';
-	var layer = this.layer;
+	/**
+	 * Determine mouse events which should be permitted.
+	 *
+	 * @param {Event} event
+	 * @returns {boolean}
+	 */
+	FastClick.prototype.onMouse = function(event) {
 
-	if (deviceIsAndroid) {
-		layer.removeEventListener('mouseover', this.onMouse, true);
-		layer.removeEventListener('mousedown', this.onMouse, true);
-		layer.removeEventListener('mouseup', this.onMouse, true);
-	}
+		// If a target element was never set (because a touch event was never fired) allow the event
+		if (!this.targetElement) {
+			return true;
+		}
 
-	layer.removeEventListener('click', this.onClick, true);
-	layer.removeEventListener('touchstart', this.onTouchStart, false);
-	layer.removeEventListener('touchmove', this.onTouchMove, false);
-	layer.removeEventListener('touchend', this.onTouchEnd, false);
-	layer.removeEventListener('touchcancel', this.onTouchCancel, false);
-};
+		if (event.forwardedTouchEvent) {
+			return true;
+		}
 
+		// Programmatically generated events targeting a specific element should be permitted
+		if (!event.cancelable) {
+			return true;
+		}
 
-/**
- * Check whether FastClick is needed.
- *
- * @param {Element} layer The layer to listen on
- */
-FastClick.notNeeded = function(layer) {
-	'use strict';
-	var metaViewport;
-	var chromeVersion;
-	var blackberryVersion;
+		// Derive and check the target element to see whether the mouse event needs to be permitted;
+		// unless explicitly enabled, prevent non-touch click events from triggering actions,
+		// to prevent ghost/doubleclicks.
+		if (!this.needsClick(this.targetElement) || this.cancelNextClick) {
 
-	// Devices that don't support touch don't need FastClick
-	if (typeof window.ontouchstart === 'undefined') {
+			// Prevent any user-added listeners declared on FastClick element from being fired.
+			if (event.stopImmediatePropagation) {
+				event.stopImmediatePropagation();
+			} else {
+
+				// Part of the hack for browsers that don't support Event#stopImmediatePropagation (e.g. Android 2)
+				event.propagationStopped = true;
+			}
+
+			// Cancel the event
+			event.stopPropagation();
+			event.preventDefault();
+
+			return false;
+		}
+
+		// If the mouse event is permitted, return true for the action to go through.
 		return true;
-	}
+	};
 
-	// Chrome version - zero for other browsers
-	chromeVersion = +(/Chrome\/([0-9]+)/.exec(navigator.userAgent) || [,0])[1];
 
-	if (chromeVersion) {
+	/**
+	 * On actual clicks, determine whether this is a touch-generated click, a click action occurring
+	 * naturally after a delay after a touch (which needs to be cancelled to avoid duplication), or
+	 * an actual click which should be permitted.
+	 *
+	 * @param {Event} event
+	 * @returns {boolean}
+	 */
+	FastClick.prototype.onClick = function(event) {
+		var permitted;
+
+		// It's possible for another FastClick-like library delivered with third-party code to fire a click event before FastClick does (issue #44). In that case, set the click-tracking flag back to false and return early. This will cause onTouchEnd to return early.
+		if (this.trackingClick) {
+			this.targetElement = null;
+			this.trackingClick = false;
+			return true;
+		}
+
+		// Very odd behaviour on iOS (issue #18): if a submit element is present inside a form and the user hits enter in the iOS simulator or clicks the Go button on the pop-up OS keyboard the a kind of 'fake' click event will be triggered with the submit-type input element as the target.
+		if (event.target.type === 'submit' && event.detail === 0) {
+			return true;
+		}
+
+		permitted = this.onMouse(event);
+
+		// Only unset targetElement if the click is not permitted. This will ensure that the check for !targetElement in onMouse fails and the browser's click doesn't go through.
+		if (!permitted) {
+			this.targetElement = null;
+		}
+
+		// If clicks are permitted, return true for the action to go through.
+		return permitted;
+	};
+
+
+	/**
+	 * Remove all FastClick's event listeners.
+	 *
+	 * @returns {void}
+	 */
+	FastClick.prototype.destroy = function() {
+		var layer = this.layer;
 
 		if (deviceIsAndroid) {
-			metaViewport = document.querySelector('meta[name=viewport]');
+			layer.removeEventListener('mouseover', this.onMouse, true);
+			layer.removeEventListener('mousedown', this.onMouse, true);
+			layer.removeEventListener('mouseup', this.onMouse, true);
+		}
 
-			if (metaViewport) {
-				// Chrome on Android with user-scalable="no" doesn't need FastClick (issue #89)
-				if (metaViewport.content.indexOf('user-scalable=no') !== -1) {
-					return true;
-				}
-				// Chrome 32 and above with width=device-width or less don't need FastClick
-				if (chromeVersion > 31 && document.documentElement.scrollWidth <= window.outerWidth) {
-					return true;
-				}
-			}
+		layer.removeEventListener('click', this.onClick, true);
+		layer.removeEventListener('touchstart', this.onTouchStart, false);
+		layer.removeEventListener('touchmove', this.onTouchMove, false);
+		layer.removeEventListener('touchend', this.onTouchEnd, false);
+		layer.removeEventListener('touchcancel', this.onTouchCancel, false);
+	};
 
-		// Chrome desktop doesn't need FastClick (issue #15)
-		} else {
+
+	/**
+	 * Check whether FastClick is needed.
+	 *
+	 * @param {Element} layer The layer to listen on
+	 */
+	FastClick.notNeeded = function(layer) {
+		var metaViewport;
+		var chromeVersion;
+		var blackberryVersion;
+		var firefoxVersion;
+
+		// Devices that don't support touch don't need FastClick
+		if (typeof window.ontouchstart === 'undefined') {
 			return true;
 		}
-	}
 
-	if (deviceIsBlackBerry10) {
-		blackberryVersion = navigator.userAgent.match(/Version\/([0-9]*)\.([0-9]*)/);
+		// Chrome version - zero for other browsers
+		chromeVersion = +(/Chrome\/([0-9]+)/.exec(navigator.userAgent) || [,0])[1];
 
-		// BlackBerry 10.3+ does not require Fastclick library.
-		// https://github.com/ftlabs/fastclick/issues/251
-		if (blackberryVersion[1] >= 10 && blackberryVersion[2] >= 3) {
-			metaViewport = document.querySelector('meta[name=viewport]');
+		if (chromeVersion) {
 
-			if (metaViewport) {
-				// user-scalable=no eliminates click delay.
-				if (metaViewport.content.indexOf('user-scalable=no') !== -1) {
-					return true;
+			if (deviceIsAndroid) {
+				metaViewport = document.querySelector('meta[name=viewport]');
+
+				if (metaViewport) {
+					// Chrome on Android with user-scalable="no" doesn't need FastClick (issue #89)
+					if (metaViewport.content.indexOf('user-scalable=no') !== -1) {
+						return true;
+					}
+					// Chrome 32 and above with width=device-width or less don't need FastClick
+					if (chromeVersion > 31 && document.documentElement.scrollWidth <= window.outerWidth) {
+						return true;
+					}
 				}
-				// width=device-width (or less than device-width) eliminates click delay.
-				if (document.documentElement.scrollWidth <= window.outerWidth) {
-					return true;
+
+			// Chrome desktop doesn't need FastClick (issue #15)
+			} else {
+				return true;
+			}
+		}
+
+		if (deviceIsBlackBerry10) {
+			blackberryVersion = navigator.userAgent.match(/Version\/([0-9]*)\.([0-9]*)/);
+
+			// BlackBerry 10.3+ does not require Fastclick library.
+			// https://github.com/ftlabs/fastclick/issues/251
+			if (blackberryVersion[1] >= 10 && blackberryVersion[2] >= 3) {
+				metaViewport = document.querySelector('meta[name=viewport]');
+
+				if (metaViewport) {
+					// user-scalable=no eliminates click delay.
+					if (metaViewport.content.indexOf('user-scalable=no') !== -1) {
+						return true;
+					}
+					// width=device-width (or less than device-width) eliminates click delay.
+					if (document.documentElement.scrollWidth <= window.outerWidth) {
+						return true;
+					}
 				}
 			}
 		}
+
+		// IE10 with -ms-touch-action: none or manipulation, which disables double-tap-to-zoom (issue #97)
+		if (layer.style.msTouchAction === 'none' || layer.style.touchAction === 'manipulation') {
+			return true;
+		}
+
+		// Firefox version - zero for other browsers
+		firefoxVersion = +(/Firefox\/([0-9]+)/.exec(navigator.userAgent) || [,0])[1];
+
+		if (firefoxVersion >= 27) {
+			// Firefox 27+ does not have tap delay if the content is not zoomable - https://bugzilla.mozilla.org/show_bug.cgi?id=922896
+
+			metaViewport = document.querySelector('meta[name=viewport]');
+			if (metaViewport && (metaViewport.content.indexOf('user-scalable=no') !== -1 || document.documentElement.scrollWidth <= window.outerWidth)) {
+				return true;
+			}
+		}
+
+		// IE11: prefixed -ms-touch-action is no longer supported and it's recomended to use non-prefixed version
+		// http://msdn.microsoft.com/en-us/library/windows/apps/Hh767313.aspx
+		if (layer.style.touchAction === 'none' || layer.style.touchAction === 'manipulation') {
+			return true;
+		}
+
+		return false;
+	};
+
+
+	/**
+	 * Factory method for creating a FastClick object
+	 *
+	 * @param {Element} layer The layer to listen on
+	 * @param {Object} [options={}] The options to override the defaults
+	 */
+	FastClick.attach = function(layer, options) {
+		return new FastClick(layer, options);
+	};
+
+
+	if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
+
+		// AMD. Register as an anonymous module.
+		define(function() {
+			return FastClick;
+		});
+	} else if (typeof module !== 'undefined' && module.exports) {
+		module.exports = FastClick.attach;
+		module.exports.FastClick = FastClick;
+	} else {
+		window.FastClick = FastClick;
 	}
-
-	// IE10 with -ms-touch-action: none, which disables double-tap-to-zoom (issue #97)
-	if (layer.style.msTouchAction === 'none') {
-		return true;
-	}
-
-	return false;
-};
-
-
-/**
- * Factory method for creating a FastClick object
- *
- * @param {Element} layer The layer to listen on
- * @param {Object} options The options to override the defaults
- */
-FastClick.attach = function(layer, options) {
-	'use strict';
-	return new FastClick(layer, options);
-};
-
-
-if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) {
-
-	// AMD. Register as an anonymous module.
-	define(function() {
-		'use strict';
-		return FastClick;
-	});
-} else if (typeof module !== 'undefined' && module.exports) {
-	module.exports = FastClick.attach;
-	module.exports.FastClick = FastClick;
-} else {
-	window.FastClick = FastClick;
-}
+}());
 
 },{}],9:[function(require,module,exports){
 module.exports = Accounts
@@ -1476,7 +1524,7 @@ Flatsheet.prototype.fullUrl = function fullUrl (path, params) {
   return url
 }
 
-},{"./accounts":9,"./sheets":18,"querystring":73,"request":11}],11:[function(require,module,exports){
+},{"./accounts":9,"./sheets":18,"querystring":75,"request":11}],11:[function(require,module,exports){
 var window = require("global/window")
 var once = require("once")
 var parseHeaders = require('parse-headers')
@@ -1945,7 +1993,7 @@ GeolocationStream.prototype.onError = function(position) {
   this.emit('error', position)
 }
 
-},{"stream":75,"util":83}],20:[function(require,module,exports){
+},{"stream":77,"util":85}],20:[function(require,module,exports){
 "use strict";
 /*globals Handlebars: true */
 var Handlebars = require("./handlebars.runtime")["default"];
@@ -4780,7 +4828,7 @@ if (typeof require !== 'undefined' && require.extensions) {
   require.extensions[".hbs"] = extension;
 }
 
-},{"../dist/cjs/handlebars":20,"../dist/cjs/handlebars/compiler/printer":28,"../dist/cjs/handlebars/compiler/visitor":29,"fs":63}],35:[function(require,module,exports){
+},{"../dist/cjs/handlebars":20,"../dist/cjs/handlebars/compiler/printer":28,"../dist/cjs/handlebars/compiler/visitor":29,"fs":65}],35:[function(require,module,exports){
 module.exports = function hashMatch (hash, prefix) {
   var pre = prefix || '/';
   if (hash.length === 0) return pre;
@@ -15719,6 +15767,7 @@ html4.eflags = {
   'VIRTUALIZED': 256
 };
 html4[ 'eflags' ] = html4.eflags;
+// these are bitmasks of the eflags above.
 html4.ELEMENTS = {
   'a': 0,
   'abbr': 0,
@@ -15779,7 +15828,7 @@ html4.ELEMENTS = {
   'hr': 2,
   'html': 305,
   'i': 0,
-  'iframe': 4,
+  'iframe': 16,
   'img': 2,
   'input': 2,
   'ins': 0,
@@ -17093,7 +17142,7 @@ module.exports={
   },
   "name": "mapbox.js",
   "description": "mapbox javascript api",
-  "version": "2.1.0",
+  "version": "2.1.8",
   "homepage": "http://mapbox.com/",
   "repository": {
     "type": "git",
@@ -17104,40 +17153,39 @@ module.exports={
     "leaflet": "0.7.3",
     "mustache": "0.7.3",
     "corslite": "0.0.6",
-    "sanitize-caja": "0.1.2"
+    "sanitize-caja": "0.1.3"
   },
   "scripts": {
     "test": "jshint src/*.js && mocha-phantomjs test/index.html"
   },
   "devDependencies": {
-    "leaflet-hash": "0.2.1",
-    "leaflet-fullscreen": "0.0.0",
-    "uglify-js": "2.4.8",
-    "mocha": "1.17.1",
-    "expect.js": "0.3.1",
-    "sinon": "1.10.2",
-    "mocha-phantomjs": "3.1.6",
-    "happen": "0.1.3",
-    "browserify": "3.23.1",
-    "jshint": "2.4.4",
+    "browserify": "^6.3.2",
     "clean-css": "~2.0.7",
+    "expect.js": "0.3.1",
+    "happen": "0.1.3",
+    "jshint": "2.4.4",
+    "leaflet-fullscreen": "0.0.4",
+    "leaflet-hash": "0.2.1",
+    "marked": "~0.3.0",
+    "minifyify": "^6.1.0",
     "minimist": "0.0.5",
-    "marked": "~0.3.0"
+    "mocha": "1.17.1",
+    "mocha-phantomjs": "3.1.6",
+    "sinon": "1.10.2"
   },
   "optionalDependencies": {},
   "engines": {
     "node": "*"
   },
+  "gitHead": "2752621ff689537ba38e6d14063f441d40ea1f12",
   "bugs": {
     "url": "https://github.com/mapbox/mapbox.js/issues"
   },
-  "_id": "mapbox.js@2.1.0",
-  "dist": {
-    "shasum": "133e3baa42151c65ef95d3d23053974dc5bd2abb",
-    "tarball": "http://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.0.tgz"
-  },
-  "_from": "mapbox.js@",
-  "_npmVersion": "1.3.24",
+  "_id": "mapbox.js@2.1.8",
+  "_shasum": "150136cd20464e2561f106bfd69be482b8c7f076",
+  "_from": "mapbox.js@>=2.1.0 <3.0.0",
+  "_npmVersion": "2.3.0",
+  "_nodeVersion": "0.10.36",
   "_npmUser": {
     "name": "tmcw",
     "email": "tom@macwright.org"
@@ -17178,11 +17226,106 @@ module.exports={
     {
       "name": "mapbox",
       "email": "accounts@mapbox.com"
+    },
+    {
+      "name": "edenh",
+      "email": "eden@mapbox.com"
+    },
+    {
+      "name": "sgillies",
+      "email": "sean@mapbox.com"
+    },
+    {
+      "name": "lbud",
+      "email": "lauren@mapbox.com"
+    },
+    {
+      "name": "bsudekum",
+      "email": "bobby@mapbox.com"
+    },
+    {
+      "name": "dnomadb",
+      "email": "damon@mapbox.com"
+    },
+    {
+      "name": "ian29",
+      "email": "ian.villeda@gmail.com"
+    },
+    {
+      "name": "dvncan",
+      "email": "duncan@mapbox.com"
+    },
+    {
+      "name": "nickidlugash",
+      "email": "nicki@mapbox.com"
+    },
+    {
+      "name": "samanbb",
+      "email": "saman@mapbox.com"
+    },
+    {
+      "name": "ajashton",
+      "email": "aj.ashton@gmail.com"
+    },
+    {
+      "name": "lxbarth",
+      "email": "alex@developmentseed.org"
+    },
+    {
+      "name": "mikemorris",
+      "email": "michael.patrick.morris@gmail.com"
+    },
+    {
+      "name": "ianshward",
+      "email": "ian@mapbox.com"
+    },
+    {
+      "name": "ingalls",
+      "email": "nicholas.ingalls@gmail.com"
+    },
+    {
+      "name": "miccolis",
+      "email": "jeff@miccolis.net"
+    },
+    {
+      "name": "gretacb",
+      "email": "carol@mapbox.com"
+    },
+    {
+      "name": "aaronlidman",
+      "email": "aaronlidman@gmail.com"
+    },
+    {
+      "name": "morganherlocker",
+      "email": "morgan.herlocker@gmail.com"
+    },
+    {
+      "name": "camilleanne",
+      "email": "camille@mapbox.com"
+    },
+    {
+      "name": "rclark",
+      "email": "ryan.clark.j@gmail.com"
+    },
+    {
+      "name": "springmeyer",
+      "email": "dane@mapbox.com"
+    },
+    {
+      "name": "kkaefer",
+      "email": "kkaefer@gmail.com"
+    },
+    {
+      "name": "dthompson",
+      "email": "dthompson@gmail.com"
     }
   ],
+  "dist": {
+    "shasum": "150136cd20464e2561f106bfd69be482b8c7f076",
+    "tarball": "http://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz"
+  },
   "directories": {},
-  "_shasum": "133e3baa42151c65ef95d3d23053974dc5bd2abb",
-  "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.0.tgz"
+  "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz"
 }
 
 },{}],42:[function(require,module,exports){
@@ -17286,13 +17429,18 @@ var FeatureLayer = L.FeatureGroup.extend({
         } else if (this.options.filter(json)) {
 
             var opts = {accessToken: this.options.accessToken},
-                layer = L.GeoJSON.geometryToLayer(json, function(feature, latlon) {
-                    return marker.style(feature, latlon, opts);
-                }),
-                popupHtml = marker.createPopup(json, this.options.sanitizer);
+                pointToLayer = this.options.pointToLayer || function(feature, latlon) {
+                  return marker.style(feature, latlon, opts);
+                },
+                layer = L.GeoJSON.geometryToLayer(json, pointToLayer),
+                popupHtml = marker.createPopup(json, this.options.sanitizer),
+                style = this.options.style;
 
-            if ('setStyle' in layer) {
-                layer.setStyle(simplestyle.style(json));
+            if (style && 'setStyle' in layer) {
+                if (typeof style === 'function') {
+                    style = style(json);
+                }
+                layer.setStyle(style);
             }
 
             layer.feature = json;
@@ -17312,11 +17460,26 @@ module.exports.featureLayer = function(_, options) {
     return new FeatureLayer(_, options);
 };
 
-},{"./marker":56,"./request":57,"./simplestyle":59,"./url":61,"./util":62,"sanitize-caja":39}],44:[function(require,module,exports){
+},{"./marker":58,"./request":59,"./simplestyle":61,"./url":63,"./util":64,"sanitize-caja":39}],44:[function(require,module,exports){
+'use strict';
+
+var Feedback = L.Class.extend({
+    includes: L.Mixin.Events,
+    data: {},
+    record: function(data) {
+        L.extend(this.data, data);
+        this.fire('change');
+    }
+});
+
+module.exports = new Feedback();
+
+},{}],45:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
     urlhelper = require('./url'),
+    feedback = require('./feedback'),
     request = require('./request');
 
 // Low-level geocoding interface - wraps specific API calls and their
@@ -17336,19 +17499,20 @@ module.exports = function(url, options) {
     };
 
     geocoder.queryURL = function(_) {
+        var query;
+
         if (typeof _ !== 'string') {
             var parts = [];
             for (var i = 0; i < _.length; i++) {
                 parts[i] = encodeURIComponent(_[i]);
             }
-            return L.Util.template(geocoder.getURL(), {
-                query: parts.join(';')
-            });
+            query = parts.join(';');
         } else {
-            return L.Util.template(geocoder.getURL(), {
-                query: encodeURIComponent(_)
-            });
+            query = encodeURIComponent(_);
         }
+
+        feedback.record({geocoding: query});
+        return L.Util.template(geocoder.getURL(), {query: query});
     };
 
     geocoder.query = function(_, callback) {
@@ -17411,7 +17575,7 @@ module.exports = function(url, options) {
     return geocoder;
 };
 
-},{"./request":57,"./url":61,"./util":62}],45:[function(require,module,exports){
+},{"./feedback":44,"./request":59,"./url":63,"./util":64}],46:[function(require,module,exports){
 'use strict';
 
 var geocoder = require('./geocoder'),
@@ -17541,6 +17705,9 @@ var GeocoderControl = L.Control.extend({
             if (resp.results && resp.results.features) {
                 features = resp.results.features;
             }
+            if (features.length) {
+                this.fire('found', {results: resp.results});
+            }
             this._displayResults(features);
         }
     },
@@ -17600,7 +17767,7 @@ module.exports.geocoderControl = function(_, options) {
     return new GeocoderControl(_, options);
 };
 
-},{"./geocoder":44,"./util":62}],46:[function(require,module,exports){
+},{"./geocoder":45,"./util":64}],47:[function(require,module,exports){
 'use strict';
 
 function utfDecode(c) {
@@ -17618,7 +17785,7 @@ module.exports = function(data) {
     };
 };
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -17818,11 +17985,10 @@ module.exports.gridControl = function(_, options) {
     return new GridControl(_, options);
 };
 
-},{"./util":62,"mustache":38,"sanitize-caja":39}],48:[function(require,module,exports){
+},{"./util":64,"mustache":38,"sanitize-caja":39}],49:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
-    url = require('./url'),
     request = require('./request'),
     grid = require('./grid');
 
@@ -18044,11 +18210,11 @@ module.exports.gridLayer = function(_, options) {
     return new GridLayer(_, options);
 };
 
-},{"./grid":46,"./load_tilejson":53,"./request":57,"./url":61,"./util":62}],49:[function(require,module,exports){
+},{"./grid":47,"./load_tilejson":54,"./request":59,"./util":64}],50:[function(require,module,exports){
 require('./leaflet');
 require('./mapbox');
 
-},{"./leaflet":51,"./mapbox":55}],50:[function(require,module,exports){
+},{"./leaflet":52,"./mapbox":56}],51:[function(require,module,exports){
 'use strict';
 
 var InfoControl = L.Control.extend({
@@ -18060,6 +18226,7 @@ var InfoControl = L.Control.extend({
     initialize: function(options) {
         L.setOptions(this, options);
         this._info = {};
+        console.warn('infoControl has been deprecated and will be removed in mapbox.js v3.0.0. Use the default attribution control instead, which is now responsive.');
     },
 
     onAdd: function(map) {
@@ -18164,10 +18331,10 @@ module.exports.infoControl = function(options) {
     return new InfoControl(options);
 };
 
-},{"sanitize-caja":39}],51:[function(require,module,exports){
+},{"sanitize-caja":39}],52:[function(require,module,exports){
 window.L = require('leaflet/dist/leaflet-src');
 
-},{"leaflet/dist/leaflet-src":36}],52:[function(require,module,exports){
+},{"leaflet/dist/leaflet-src":36}],53:[function(require,module,exports){
 'use strict';
 
 var LegendControl = L.Control.extend({
@@ -18236,7 +18403,7 @@ module.exports.legendControl = function(options) {
     return new LegendControl(options);
 };
 
-},{"sanitize-caja":39}],53:[function(require,module,exports){
+},{"sanitize-caja":39}],54:[function(require,module,exports){
 'use strict';
 
 var request = require('./request'),
@@ -18262,7 +18429,7 @@ module.exports = {
     }
 };
 
-},{"./request":57,"./url":61,"./util":62}],54:[function(require,module,exports){
+},{"./request":59,"./url":63,"./util":64}],55:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -18272,7 +18439,9 @@ var util = require('./util'),
     gridControl = require('./grid_control').gridControl,
     infoControl = require('./info_control').infoControl,
     shareControl = require('./share_control').shareControl,
-    legendControl = require('./legend_control').legendControl;
+    legendControl = require('./legend_control').legendControl,
+    mapboxLogoControl = require('./mapbox_logo').mapboxLogoControl,
+    feedback = require('./feedback');
 
 function withAccessToken(options, accessToken) {
     if (!accessToken || options.accessToken)
@@ -18290,7 +18459,8 @@ var LMap = L.Map.extend({
         legendControl: {},
         gridControl: {},
         infoControl: false,
-        shareControl: false
+        shareControl: false,
+        sanitizer: require('sanitize-caja')
     },
 
     _tilejson: {},
@@ -18300,8 +18470,27 @@ var LMap = L.Map.extend({
         L.Map.prototype.initialize.call(this, element,
             L.extend({}, L.Map.prototype.options, options));
 
-        // disable the default 'Leaflet' text
-        if (this.attributionControl) this.attributionControl.setPrefix('');
+        // Disable the default 'Leaflet' text
+        if (this.attributionControl) {
+            this.attributionControl.setPrefix('');
+
+            var compact =  this.options.attributionControl.compact;
+            // Set a compact display if map container width is < 640 or
+            // compact is set to `true` in attributionControl options.
+            if (compact || (compact !== false && this._container.offsetWidth <= 640)) {
+                L.DomUtil.addClass(this.attributionControl._container, 'leaflet-compact-attribution');
+            }
+
+            if (compact === undefined) {
+                this.on('resize', function() {
+                    if (this._container.offsetWidth > 640) {
+                        L.DomUtil.removeClass(this.attributionControl._container, 'leaflet-compact-attribution');
+                    } else {
+                        L.DomUtil.addClass(this.attributionControl._container, 'leaflet-compact-attribution');
+                    }
+                });
+            }
+        }
 
         if (this.options.tileLayer) {
             this.tileLayer = tileLayer(undefined,
@@ -18342,13 +18531,22 @@ var LMap = L.Map.extend({
             this.addControl(this.shareControl);
         }
 
-        this._loadTileJSON(_);
-    },
+        this._mapboxLogoControl = mapboxLogoControl(this.options.mapboxLogoControl);
+        this.addControl(this._mapboxLogoControl);
 
-    // Update certain properties on 'ready' event
-    addLayer: function(layer) {
-        if ('on' in layer) { layer.on('ready', L.bind(function() { this._updateLayer(layer); }, this)); }
-        return L.Map.prototype.addLayer.call(this, layer);
+        this._loadTileJSON(_);
+
+        this.on('layeradd', this._onLayerAdd, this)
+            .on('layerremove', this._onLayerRemove, this)
+            .on('moveend', this._updateMapFeedbackLink, this);
+
+        this.whenReady(function () {
+            feedback.on('change', this._updateMapFeedbackLink, this);
+        });
+
+        this.on('unload', function () {
+            feedback.off('change', this._updateMapFeedbackLink, this);
+        });
     },
 
     // use a javascript object of tilejson data to configure this layer
@@ -18378,7 +18576,8 @@ var LMap = L.Map.extend({
         }
 
         if (this.infoControl && json.attribution) {
-            this.infoControl.addInfo(json.attribution);
+            this.infoControl.addInfo(this.options.sanitizer(json.attribution));
+            this._updateMapFeedbackLink();
         }
 
         if (this.legendControl && json.legend) {
@@ -18389,6 +18588,8 @@ var LMap = L.Map.extend({
             this.shareControl._setTileJSON(json);
         }
 
+        this._mapboxLogoControl._setTileJSON(json);
+
         if (!this._loaded && json.center) {
             var zoom = this.getZoom() !== undefined ? this.getZoom() : json.center[2],
                 center = L.latLng(json.center[1], json.center[0]);
@@ -18397,7 +18598,7 @@ var LMap = L.Map.extend({
         }
     },
 
-    _editLink: function() {
+    _updateMapFeedbackLink: function() {
         if (!this._controlContainer.getElementsByClassName) return;
         var link = this._controlContainer.getElementsByClassName('mapbox-improve-map');
         if (link.length && this._loaded) {
@@ -18405,13 +18606,37 @@ var LMap = L.Map.extend({
             var tilejson = this._tilejson || {};
             var id = tilejson.id || '';
 
+            var hash = '#' + id + '/' +
+                center.lng.toFixed(3) + '/' +
+                center.lat.toFixed(3) + '/' +
+                this.getZoom();
+
+            for (var key in feedback.data) {
+                hash += '/' + key + '=' + feedback.data[key];
+            }
+
             for (var i = 0; i < link.length; i++) {
-                link[i].href = link[i].href.split('#')[0] + '#' + id + '/' +
-                    center.lng.toFixed(3) + '/' +
-                    center.lat.toFixed(3) + '/' +
-                    this.getZoom();
+                link[i].hash = hash;
             }
         }
+    },
+
+    _onLayerAdd: function(e) {
+        if ('on' in e.layer) {
+            e.layer.on('ready', this._onLayerReady, this);
+        }
+        window.setTimeout(L.bind(this._updateMapFeedbackLink, this), 0); // Update after attribution control resets the HTML.
+    },
+
+    _onLayerRemove: function(e) {
+        if ('on' in e.layer) {
+            e.layer.off('ready', this._onLayerReady, this);
+        }
+        window.setTimeout(L.bind(this._updateMapFeedbackLink, this), 0); // Update after attribution control resets the HTML.
+    },
+
+    _onLayerReady: function(e) {
+        this._updateLayer(e.target);
     },
 
     _updateLayer: function(layer) {
@@ -18425,14 +18650,12 @@ var LMap = L.Map.extend({
             this.attributionControl.addAttribution(layer.getAttribution());
         }
 
-        this.on('moveend', this._editLink, this);
-
         if (!(L.stamp(layer) in this._zoomBoundLayers) &&
                 (layer.options.maxZoom || layer.options.minZoom)) {
             this._zoomBoundLayers[L.stamp(layer)] = layer;
         }
 
-        this._editLink();
+        this._updateMapFeedbackLink();
         this._updateZoomLevels();
     }
 });
@@ -18443,7 +18666,7 @@ module.exports.map = function(element, _, options) {
     return new LMap(element, _, options);
 };
 
-},{"./feature_layer":43,"./grid_control":47,"./grid_layer":48,"./info_control":50,"./legend_control":52,"./load_tilejson":53,"./share_control":58,"./tile_layer":60,"./util":62}],55:[function(require,module,exports){
+},{"./feature_layer":43,"./feedback":44,"./grid_control":48,"./grid_layer":49,"./info_control":51,"./legend_control":53,"./load_tilejson":54,"./mapbox_logo":57,"./share_control":60,"./tile_layer":62,"./util":64,"sanitize-caja":39}],56:[function(require,module,exports){
 'use strict';
 
 var geocoderControl = require('./geocoder_control'),
@@ -18481,7 +18704,8 @@ L.mapbox = module.exports = {
     Map: map.Map,
     config: require('./config'),
     sanitize: require('sanitize-caja'),
-    template: require('mustache').to_html
+    template: require('mustache').to_html,
+    feedback: require('./feedback')
 };
 
 
@@ -18495,7 +18719,41 @@ window.L.Icon.Default.imagePath =
     '//api.tiles.mapbox.com/mapbox.js/' + 'v' +
     require('../package.json').version + '/images';
 
-},{"../package.json":41,"./config":42,"./feature_layer":43,"./geocoder":44,"./geocoder_control":45,"./grid_control":47,"./grid_layer":48,"./info_control":50,"./legend_control":52,"./map":54,"./marker":56,"./share_control":58,"./simplestyle":59,"./tile_layer":60,"mustache":38,"sanitize-caja":39}],56:[function(require,module,exports){
+},{"../package.json":41,"./config":42,"./feature_layer":43,"./feedback":44,"./geocoder":45,"./geocoder_control":46,"./grid_control":48,"./grid_layer":49,"./info_control":51,"./legend_control":53,"./map":55,"./marker":58,"./share_control":60,"./simplestyle":61,"./tile_layer":62,"mustache":38,"sanitize-caja":39}],57:[function(require,module,exports){
+'use strict';
+
+var MapboxLogoControl = L.Control.extend({
+
+    options: {
+        position: 'bottomleft',
+    },
+
+    initialize: function(options) {
+        L.setOptions(this, options);
+    },
+
+    onAdd: function(map) {
+        this._container = L.DomUtil.create('div', 'mapbox-logo');
+        return this._container;
+    },
+
+    _setTileJSON: function(json) {
+        // Check if account referenced by the accessToken
+        // is asscociated with the Mapbox Logo
+        // as determined by mapbox-maps.
+        if (json.mapbox_logo) {
+            L.DomUtil.addClass(this._container, 'mapbox-logo-true');
+        }
+    }
+});
+
+module.exports.MapboxLogoControl = MapboxLogoControl;
+
+module.exports.mapboxLogoControl = function(options) {
+    return new MapboxLogoControl(options);
+};
+
+},{}],58:[function(require,module,exports){
 'use strict';
 
 var url = require('./url'),
@@ -18514,7 +18772,7 @@ function icon(fp, options) {
             large: [35, 90]
         },
         size = fp['marker-size'] || 'medium',
-        symbol = (fp['marker-symbol']) ? '-' + fp['marker-symbol'] : '',
+        symbol = ('marker-symbol' in fp && fp['marker-symbol'] !== '') ? '-' + fp['marker-symbol'] : '',
         color = (fp['marker-color'] || '7e7e7e').replace('#', '');
 
     return L.icon({
@@ -18562,7 +18820,7 @@ module.exports = {
     createPopup: createPopup
 };
 
-},{"./url":61,"./util":62,"sanitize-caja":39}],57:[function(require,module,exports){
+},{"./url":63,"./util":64,"sanitize-caja":39}],59:[function(require,module,exports){
 'use strict';
 
 var corslite = require('corslite'),
@@ -18594,7 +18852,7 @@ module.exports = function(url, callback) {
     }
 };
 
-},{"./config":42,"./util":62,"corslite":37}],58:[function(require,module,exports){
+},{"./config":42,"./util":64,"corslite":37}],60:[function(require,module,exports){
 'use strict';
 
 var urlhelper = require('./url');
@@ -18652,8 +18910,8 @@ var ShareControl = L.Control.extend({
         var tilejson = this._tilejson || this._map._tilejson || {},
             url = encodeURIComponent(this.options.url || tilejson.webpage || window.location),
             name = encodeURIComponent(tilejson.name),
-            image = urlhelper(tilejson.id + '/' + this._map.getCenter().lng + ',' + this._map.getCenter().lat + ',' + this._map.getZoom() + '/600x600.png', this.options.accessToken),
-            embed = urlhelper(tilejson.id + '.html', this.options.accessToken),
+            image = urlhelper('/' + tilejson.id + '/' + this._map.getCenter().lng + ',' + this._map.getCenter().lat + ',' + this._map.getZoom() + '/600x600.png', this.options.accessToken),
+            embed = urlhelper('/' + tilejson.id + '.html', this.options.accessToken),
             twitter = '//twitter.com/intent/tweet?status=' + name + ' ' + url,
             facebook = '//www.facebook.com/sharer.php?u=' + url + '&t=' + encodeURIComponent(tilejson.name),
             pinterest = '//www.pinterest.com/pin/create/button/?url=' + url + '&media=' + image + '&description=' + tilejson.name,
@@ -18697,7 +18955,7 @@ module.exports.shareControl = function(_, options) {
     return new ShareControl(_, options);
 };
 
-},{"./load_tilejson":53,"./url":61}],59:[function(require,module,exports){
+},{"./load_tilejson":54,"./url":63}],61:[function(require,module,exports){
 'use strict';
 
 // an implementation of the simplestyle spec for polygon and linestring features
@@ -18744,22 +19002,22 @@ module.exports = {
     defaults: defaults
 };
 
-},{}],60:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 'use strict';
 
-var util = require('./util'),
-    url = require('./url');
+var util = require('./util');
+var formatPattern = /\.((?:png|jpg)\d*)(?=$|\?)/;
 
 var TileLayer = L.TileLayer.extend({
     includes: [require('./load_tilejson')],
 
     options: {
-        format: 'png'
+        sanitizer: require('sanitize-caja')
     },
 
     // http://mapbox.com/developers/api/#image_quality
     formats: [
-        'png',
+        'png', 'jpg',
         // PNG
         'png32', 'png64', 'png128', 'png256',
         // JPG
@@ -18792,9 +19050,12 @@ var TileLayer = L.TileLayer.extend({
     _setTileJSON: function(json) {
         util.strict(json, 'object');
 
+        this.options.format = this.options.format ||
+            json.tiles[0].match(formatPattern)[1];
+
         L.extend(this.options, {
             tiles: json.tiles,
-            attribution: json.attribution,
+            attribution: this.options.sanitizer(json.attribution),
             minZoom: json.minzoom || 0,
             maxZoom: json.maxzoom || 18,
             tms: json.scheme === 'tms',
@@ -18821,7 +19082,7 @@ var TileLayer = L.TileLayer.extend({
         if (!templated) {
             return templated;
         } else {
-            return templated.replace('.png',
+            return templated.replace(formatPattern,
                 (L.Browser.retina ? this.scalePrefix : '.') + this.options.format);
         }
     },
@@ -18841,7 +19102,7 @@ module.exports.tileLayer = function(_, options) {
     return new TileLayer(_, options);
 };
 
-},{"./load_tilejson":53,"./url":61,"./util":62}],61:[function(require,module,exports){
+},{"./load_tilejson":54,"./util":64,"sanitize-caja":39}],63:[function(require,module,exports){
 'use strict';
 
 var config = require('./config'),
@@ -18885,7 +19146,7 @@ module.exports.tileJSON = function(urlOrMapID, accessToken) {
     return url;
 };
 
-},{"../package.json":41,"./config":42}],62:[function(require,module,exports){
+},{"../package.json":41,"./config":42}],64:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -18932,9 +19193,9 @@ function contains(item, list) {
     return false;
 }
 
-},{}],63:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 
-},{}],64:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -19296,7 +19557,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":83}],65:[function(require,module,exports){
+},{"util/":85}],67:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -20407,7 +20668,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":66,"ieee754":67}],66:[function(require,module,exports){
+},{"base64-js":68,"ieee754":69}],68:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -20422,12 +20683,16 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	var NUMBER = '0'.charCodeAt(0)
 	var LOWER  = 'a'.charCodeAt(0)
 	var UPPER  = 'A'.charCodeAt(0)
+	var PLUS_URL_SAFE = '-'.charCodeAt(0)
+	var SLASH_URL_SAFE = '_'.charCodeAt(0)
 
 	function decode (elt) {
 		var code = elt.charCodeAt(0)
-		if (code === PLUS)
+		if (code === PLUS ||
+		    code === PLUS_URL_SAFE)
 			return 62 // '+'
-		if (code === SLASH)
+		if (code === SLASH ||
+		    code === SLASH_URL_SAFE)
 			return 63 // '/'
 		if (code < NUMBER)
 			return -1 //no match
@@ -20529,7 +20794,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],67:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -20615,7 +20880,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],68:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20918,7 +21183,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],69:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -20943,7 +21208,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],70:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -21008,7 +21273,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],71:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21094,7 +21359,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],72:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21181,13 +21446,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],73:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":71,"./encode":72}],74:[function(require,module,exports){
+},{"./decode":73,"./encode":74}],76:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21261,7 +21526,7 @@ function onend() {
   });
 }
 
-},{"./readable.js":78,"./writable.js":80,"inherits":69,"process/browser.js":76}],75:[function(require,module,exports){
+},{"./readable.js":80,"./writable.js":82,"inherits":71,"process/browser.js":78}],77:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21390,7 +21655,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"./duplex.js":74,"./passthrough.js":77,"./readable.js":78,"./transform.js":79,"./writable.js":80,"events":68,"inherits":69}],76:[function(require,module,exports){
+},{"./duplex.js":76,"./passthrough.js":79,"./readable.js":80,"./transform.js":81,"./writable.js":82,"events":70,"inherits":71}],78:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -21445,7 +21710,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],77:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21488,7 +21753,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./transform.js":79,"inherits":69}],78:[function(require,module,exports){
+},{"./transform.js":81,"inherits":71}],80:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -22425,7 +22690,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("qvMYcC"))
-},{"./index.js":75,"buffer":65,"events":68,"inherits":69,"process/browser.js":76,"qvMYcC":70,"string_decoder":81}],79:[function(require,module,exports){
+},{"./index.js":77,"buffer":67,"events":70,"inherits":71,"process/browser.js":78,"qvMYcC":72,"string_decoder":83}],81:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22631,7 +22896,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./duplex.js":74,"inherits":69}],80:[function(require,module,exports){
+},{"./duplex.js":76,"inherits":71}],82:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -23019,7 +23284,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./index.js":75,"buffer":65,"inherits":69,"process/browser.js":76}],81:[function(require,module,exports){
+},{"./index.js":77,"buffer":67,"inherits":71,"process/browser.js":78}],83:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -23212,14 +23477,14 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":65}],82:[function(require,module,exports){
+},{"buffer":67}],84:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],83:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -23809,7 +24074,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("qvMYcC"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":82,"inherits":69,"qvMYcC":70}],84:[function(require,module,exports){
+},{"./support/isBuffer":84,"inherits":71,"qvMYcC":72}],86:[function(require,module,exports){
 
 var router = require('routington')
 var assert = require('assert')
@@ -23860,7 +24125,7 @@ wayfarer.match = function(path) {
 wayfarer.path = wayfarer.on
 wayfarer.route = wayfarer.on
 
-},{"assert":64,"routington":86}],85:[function(require,module,exports){
+},{"assert":66,"routington":88}],87:[function(require,module,exports){
 
 var flatten = require('flatten')
 
@@ -23916,7 +24181,7 @@ function Define(frags, root) {
     : nodes
 }
 
-},{"./routington":89,"flatten":90}],86:[function(require,module,exports){
+},{"./routington":91,"flatten":92}],88:[function(require,module,exports){
 
 module.exports = require('./routington');
 
@@ -23924,7 +24189,7 @@ require('./define');
 require('./match');
 require('./parse');
 
-},{"./define":85,"./match":87,"./parse":88,"./routington":89}],87:[function(require,module,exports){
+},{"./define":87,"./match":89,"./parse":90,"./routington":91}],89:[function(require,module,exports){
 
 var assert = require('http-assert')
 
@@ -24004,7 +24269,7 @@ function decode(string) {
   }
 }
 
-},{"./routington":89,"http-assert":91}],88:[function(require,module,exports){
+},{"./routington":91,"http-assert":93}],90:[function(require,module,exports){
 
 var assert = require('assert')
 
@@ -24069,7 +24334,7 @@ function isPipeSeparatedString(x) {
   return /^[\w\.\-][\w\.\-\|]+[\w\.\-]$/.test(x)
 }
 
-},{"./routington":89,"assert":64}],89:[function(require,module,exports){
+},{"./routington":91,"assert":66}],91:[function(require,module,exports){
 
 module.exports = Routington
 
@@ -24131,7 +24396,7 @@ Routington.prototype._attach = function (node) {
   return node
 }
 
-},{}],90:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 module.exports = function flatten(list, depth) {
   depth = (typeof depth == 'number') ? depth : Infinity;
 
@@ -24149,7 +24414,7 @@ module.exports = function flatten(list, depth) {
   }
 };
 
-},{}],91:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 var createError = require('http-errors');
 var eql = require('deep-equal');
 
@@ -24184,7 +24449,7 @@ assert.notDeepEqual = function(a, b, status, msg, opts) {
   assert(!eql(a, b), status, msg, opts);
 };
 
-},{"deep-equal":92,"http-errors":95}],92:[function(require,module,exports){
+},{"deep-equal":94,"http-errors":97}],94:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var objectKeys = require('./lib/keys.js');
 var isArguments = require('./lib/is_arguments.js');
@@ -24280,7 +24545,7 @@ function objEquiv(a, b, opts) {
   return typeof a === typeof b;
 }
 
-},{"./lib/is_arguments.js":93,"./lib/keys.js":94}],93:[function(require,module,exports){
+},{"./lib/is_arguments.js":95,"./lib/keys.js":96}],95:[function(require,module,exports){
 var supportsArgumentsClass = (function(){
   return Object.prototype.toString.call(arguments)
 })() == '[object Arguments]';
@@ -24302,7 +24567,7 @@ function unsupported(object){
     false;
 };
 
-},{}],94:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 exports = module.exports = typeof Object.keys === 'function'
   ? Object.keys : shim;
 
@@ -24313,7 +24578,7 @@ function shim (obj) {
   return keys;
 }
 
-},{}],95:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 
 var statuses = require('statuses');
 var inherits = require('inherits');
@@ -24435,9 +24700,9 @@ codes.forEach(function (code) {
 // backwards-compatibility
 exports["I'mateapot"] = exports.ImATeapot
 
-},{"inherits":96,"statuses":98}],96:[function(require,module,exports){
-module.exports=require(69)
-},{}],97:[function(require,module,exports){
+},{"inherits":98,"statuses":100}],98:[function(require,module,exports){
+module.exports=require(71)
+},{}],99:[function(require,module,exports){
 module.exports={
   "100": "Continue",
   "101": "Switching Protocols",
@@ -24502,7 +24767,7 @@ module.exports={
   "510": "Not Extended",
   "511": "Network Authentication Required"
 }
-},{}],98:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 
 var codes = require('./codes.json');
 
@@ -24564,4 +24829,4 @@ function status(code) {
   return n;
 }
 
-},{"./codes.json":97}]},{},[1])
+},{"./codes.json":99}]},{},[1])
