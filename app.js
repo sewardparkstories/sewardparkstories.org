@@ -1,5 +1,6 @@
 var fs = require('fs');
-var page = require('page');
+var hashMatch = require('hash-match');
+var router = require('wayfarer')({ default: '/' });
 var Handlebars = require('handlebars');
 var elClass = require('element-class');
 var on = require('component-delegate').bind;
@@ -96,7 +97,6 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
 
   new L.Control.Zoom({ position: 'topright' }).addTo(map);
 
-
   var location = L.marker([47, -122], {
     icon: L.mapbox.marker.icon({
       'marker-size': 'small',
@@ -112,39 +112,36 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
     //console.error(err)
   });
 
-  var baseurl = window.location.origin;
+  router.on('/', function () {
+    window.location.hash = '#/about';
+  })
 
-  page.base(baseurl+'/#')
-
-  page('/', function () {
-    page('/about');
-  });
-
-  page('/about', function (ctx) {
-    var content = fs.readFileSync('about.html', 'utf8');
-    modal(content);
-  });
-
-  page('/list', function (ctx) {
-    var content = templates.list({ locations: data });
-    modal(content);
-  });
-
-  page(baseurl, '/');
-
-  page('/:id', function (ctx) {
-    var row = dataByID[ctx.params.id];
+  router.on('/:id', function (page) {
+    var id = page.substring(1)
+    var row = dataByID[id];
     var content = templates.info(row);
     modal(content);
   });
 
-  page();
+  router.on('/list', function (ctx) {
+    var content = templates.list({ locations: data });
+    modal(content);
+  });
 
+  router.on('/about', function () {
+    var content = fs.readFileSync('about.html', 'utf8');
+    modal(content);
+  })
+
+  router.match(hashMatch(window.location.hash));
+  window.addEventListener('hashchange', function (e) {
+    router.match(hashMatch(window.location.hash));
+  });
 
   on(document.body, 'a', 'click', function (e) {
     if (elClass(e.target).has('ignore')) return;
     var dest = e.target.hash.substring(1, e.target.hash.length);
-    page(dest);
+    window.location.hash = dest
   });
 
   window.onresize = function (e) {
@@ -177,7 +174,7 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
     markerGroup.addLayer(marker);
     
     marker.on('click', function(e) {
-      page('/'+row.id);
+      window.location.hash = '/' + row.id
     });
   }
 

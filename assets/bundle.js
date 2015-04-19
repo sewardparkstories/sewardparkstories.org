@@ -1,6 +1,7 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
-var page = require('page');
+var hashMatch = require('hash-match');
+var router = require('wayfarer')({ default: '/' });
 var Handlebars = require('handlebars');
 var elClass = require('element-class');
 var on = require('component-delegate').bind;
@@ -97,7 +98,6 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
 
   new L.Control.Zoom({ position: 'topright' }).addTo(map);
 
-
   var location = L.marker([47, -122], {
     icon: L.mapbox.marker.icon({
       'marker-size': 'small',
@@ -113,39 +113,36 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
     //console.error(err)
   });
 
-  var baseurl = window.location.origin;
+  router.on('/', function () {
+    window.location.hash = '#/about';
+  })
 
-  page.base(baseurl+'/#')
-
-  page('/', function () {
-    page('/about');
-  });
-
-  page('/about', function (ctx) {
-    var content = "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"modal-content\">\n    \n    <h2>About <b>Sqebeqsed Stories</b></h2>\n    <p>Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.</p>\n    <p>“Place is a story happening many times.” So say the Kwakiutl people of coastal British Columbia.</p>\n    <p>Seward Park is stories happening over and over, many at once. People come here to celebrate, congregate, meditate, race, run, walk, swim, climb, picnic, play, reflect, relax, make art, learn, unlearn, unwind. This place has sustained local residents for ten thousand years.</p>\n    <p>Before it was named “Seward Park” a century ago, this forested peninsula jutting into Lake Washington was known as “Sqebeqsed,” or “fat nose” in the local language, Lushootseed. And so Seward Park Stories are <b>Sqebeqsed Stories</b>.</p>\n    <p>Here, you will find stories about life in Sqebeqsed and the many lives that intersect with it, both human and non-human, present and past.</p>\n    \n    \n    <hr>\n    \n    <p>Sqebeqsed Stories is created and curated by <a href=\"http://www.wendycall.com/\">Wendy Call</a>, in collaboration with photographer <a href=\"http://www.thomasbancroft.com/\">G. Thomas Bancroft</a>, researcher <a href=\"https://plu.academia.edu/ChristinaMontilla\">Christina Montilla</a>, web developer <a href=\"http://sethvincent.com\">Seth Vincent</a>, and many others who love Sqebeqsed. Made possible by an Individual Artist grant from <a href=\"http://www.4culture.org/\">4Culture</a>, with in-kind support from <a href=\"http://www.sewardpark.org/index.html\">Friends of Seward Park</a> and the <a href=\"http://sewardpark.audubon.org/\">Seward Park Audubon Center</a>.</p>\n  \n  <img src=\"assets/4culture.jpg\">\n  </div>\n\n</section>";
-    modal(content);
-  });
-
-  page('/list', function (ctx) {
-    var content = templates.list({ locations: data });
-    modal(content);
-  });
-
-  page(baseurl, '/');
-
-  page('/:id', function (ctx) {
-    var row = dataByID[ctx.params.id];
+  router.on('/:id', function (page) {
+    var id = page.substring(1)
+    var row = dataByID[id];
     var content = templates.info(row);
     modal(content);
   });
 
-  page();
+  router.on('/list', function (ctx) {
+    var content = templates.list({ locations: data });
+    modal(content);
+  });
 
+  router.on('/about', function () {
+    var content = "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"modal-content\">\n    \n    <h2>About <b>Sqebeqsed Stories</b></h2>\n    <p>Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.</p>\n    <p>“Place is a story happening many times.” So say the Kwakiutl people of coastal British Columbia.</p>\n    <p>Seward Park is stories happening over and over, many at once. People come here to celebrate, congregate, meditate, race, run, walk, swim, climb, picnic, play, reflect, relax, make art, learn, unlearn, unwind. This place has sustained local residents for ten thousand years.</p>\n    <p>Before it was named “Seward Park” a century ago, this forested peninsula jutting into Lake Washington was known as “Sqebeqsed,” or “fat nose” in the local language, Lushootseed. And so Seward Park Stories are <b>Sqebeqsed Stories</b>.</p>\n    <p>Here, you will find stories about life in Sqebeqsed and the many lives that intersect with it, both human and non-human, present and past.</p>\n    \n    \n    <hr>\n    \n    <p>Sqebeqsed Stories is created and curated by <a href=\"http://www.wendycall.com/\">Wendy Call</a>, in collaboration with photographer <a href=\"http://www.thomasbancroft.com/\">G. Thomas Bancroft</a>, researcher <a href=\"https://plu.academia.edu/ChristinaMontilla\">Christina Montilla</a>, web developer <a href=\"http://sethvincent.com\">Seth Vincent</a>, and many others who love Sqebeqsed. Made possible by an Individual Artist grant from <a href=\"http://www.4culture.org/\">4Culture</a>, with in-kind support from <a href=\"http://www.sewardpark.org/index.html\">Friends of Seward Park</a> and the <a href=\"http://sewardpark.audubon.org/\">Seward Park Audubon Center</a>.</p>\n  \n  <img src=\"assets/4culture.jpg\">\n  </div>\n\n</section>";
+    modal(content);
+  })
+
+  router.match(hashMatch(window.location.hash));
+  window.addEventListener('hashchange', function (e) {
+    router.match(hashMatch(window.location.hash));
+  });
 
   on(document.body, 'a', 'click', function (e) {
     if (elClass(e.target).has('ignore')) return;
     var dest = e.target.hash.substring(1, e.target.hash.length);
-    page(dest);
+    window.location.hash = dest
   });
 
   window.onresize = function (e) {
@@ -178,7 +175,7 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
     markerGroup.addLayer(marker);
     
     marker.on('click', function(e) {
-      page('/'+row.id);
+      window.location.hash = '/' + row.id
     });
   }
 
@@ -283,7 +280,7 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
 function slugify (title) {
   return title.toLowerCase().replace(/[^\w ]+/g,'').replace(/ +/g,'-')
 }
-},{"component-delegate":2,"element-class":7,"fastclick":8,"flatsheet-api-client":10,"geolocation-stream":19,"handlebars":34,"leaflet":35,"mapbox.js":48,"page":62}],2:[function(require,module,exports){
+},{"component-delegate":2,"element-class":7,"fastclick":8,"flatsheet-api-client":10,"geolocation-stream":19,"handlebars":34,"hash-match":35,"leaflet":36,"mapbox.js":49,"wayfarer":84}],2:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -4783,7 +4780,16 @@ if (typeof require !== 'undefined' && require.extensions) {
   require.extensions[".hbs"] = extension;
 }
 
-},{"../dist/cjs/handlebars":20,"../dist/cjs/handlebars/compiler/printer":28,"../dist/cjs/handlebars/compiler/visitor":29,"fs":64}],35:[function(require,module,exports){
+},{"../dist/cjs/handlebars":20,"../dist/cjs/handlebars/compiler/printer":28,"../dist/cjs/handlebars/compiler/visitor":29,"fs":63}],35:[function(require,module,exports){
+module.exports = function hashMatch (hash, prefix) {
+  var pre = prefix || '/';
+  if (hash.length === 0) return pre;
+  hash = hash.replace('#', '');
+  if (hash.indexOf('/') != 0) hash = '/' + hash;
+  if (pre == '/') return hash;
+  else return hash.replace(pre, '');
+}
+},{}],36:[function(require,module,exports){
 /*
  Leaflet, a JavaScript library for mobile-friendly interactive maps. http://leafletjs.com
  (c) 2010-2013, Vladimir Agafonkin
@@ -13964,7 +13970,7 @@ L.Map.include({
 
 
 }(window, document));
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 function corslite(url, callback, cors) {
     var sent = false;
 
@@ -14059,7 +14065,7 @@ function corslite(url, callback, cors) {
 
 if (typeof module !== 'undefined') module.exports = corslite;
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /*!
  * mustache.js - Logic-less {{mustache}} templates with JavaScript
  * http://github.com/janl/mustache.js
@@ -14612,7 +14618,7 @@ if (typeof module !== 'undefined') module.exports = corslite;
 
 }));
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 var html_sanitize = require('./sanitizer-bundle.js');
 
 module.exports = function(_) {
@@ -14632,7 +14638,7 @@ function cleanUrl(url) {
 
 function cleanId(id) { return id; }
 
-},{"./sanitizer-bundle.js":39}],39:[function(require,module,exports){
+},{"./sanitizer-bundle.js":40}],40:[function(require,module,exports){
 
 // Copyright (C) 2010 Google Inc.
 //
@@ -17080,7 +17086,7 @@ if (typeof module !== 'undefined') {
     module.exports = html_sanitize;
 }
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 module.exports={
   "author": {
     "name": "Mapbox"
@@ -17179,7 +17185,7 @@ module.exports={
   "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.0.tgz"
 }
 
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -17189,7 +17195,7 @@ module.exports = {
     REQUIRE_ACCESS_TOKEN: true
 };
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -17306,7 +17312,7 @@ module.exports.featureLayer = function(_, options) {
     return new FeatureLayer(_, options);
 };
 
-},{"./marker":55,"./request":56,"./simplestyle":58,"./url":60,"./util":61,"sanitize-caja":38}],43:[function(require,module,exports){
+},{"./marker":56,"./request":57,"./simplestyle":59,"./url":61,"./util":62,"sanitize-caja":39}],44:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -17405,7 +17411,7 @@ module.exports = function(url, options) {
     return geocoder;
 };
 
-},{"./request":56,"./url":60,"./util":61}],44:[function(require,module,exports){
+},{"./request":57,"./url":61,"./util":62}],45:[function(require,module,exports){
 'use strict';
 
 var geocoder = require('./geocoder'),
@@ -17594,7 +17600,7 @@ module.exports.geocoderControl = function(_, options) {
     return new GeocoderControl(_, options);
 };
 
-},{"./geocoder":43,"./util":61}],45:[function(require,module,exports){
+},{"./geocoder":44,"./util":62}],46:[function(require,module,exports){
 'use strict';
 
 function utfDecode(c) {
@@ -17612,7 +17618,7 @@ module.exports = function(data) {
     };
 };
 
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -17812,7 +17818,7 @@ module.exports.gridControl = function(_, options) {
     return new GridControl(_, options);
 };
 
-},{"./util":61,"mustache":37,"sanitize-caja":38}],47:[function(require,module,exports){
+},{"./util":62,"mustache":38,"sanitize-caja":39}],48:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -18038,11 +18044,11 @@ module.exports.gridLayer = function(_, options) {
     return new GridLayer(_, options);
 };
 
-},{"./grid":45,"./load_tilejson":52,"./request":56,"./url":60,"./util":61}],48:[function(require,module,exports){
+},{"./grid":46,"./load_tilejson":53,"./request":57,"./url":61,"./util":62}],49:[function(require,module,exports){
 require('./leaflet');
 require('./mapbox');
 
-},{"./leaflet":50,"./mapbox":54}],49:[function(require,module,exports){
+},{"./leaflet":51,"./mapbox":55}],50:[function(require,module,exports){
 'use strict';
 
 var InfoControl = L.Control.extend({
@@ -18158,10 +18164,10 @@ module.exports.infoControl = function(options) {
     return new InfoControl(options);
 };
 
-},{"sanitize-caja":38}],50:[function(require,module,exports){
+},{"sanitize-caja":39}],51:[function(require,module,exports){
 window.L = require('leaflet/dist/leaflet-src');
 
-},{"leaflet/dist/leaflet-src":35}],51:[function(require,module,exports){
+},{"leaflet/dist/leaflet-src":36}],52:[function(require,module,exports){
 'use strict';
 
 var LegendControl = L.Control.extend({
@@ -18230,7 +18236,7 @@ module.exports.legendControl = function(options) {
     return new LegendControl(options);
 };
 
-},{"sanitize-caja":38}],52:[function(require,module,exports){
+},{"sanitize-caja":39}],53:[function(require,module,exports){
 'use strict';
 
 var request = require('./request'),
@@ -18256,7 +18262,7 @@ module.exports = {
     }
 };
 
-},{"./request":56,"./url":60,"./util":61}],53:[function(require,module,exports){
+},{"./request":57,"./url":61,"./util":62}],54:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -18437,7 +18443,7 @@ module.exports.map = function(element, _, options) {
     return new LMap(element, _, options);
 };
 
-},{"./feature_layer":42,"./grid_control":46,"./grid_layer":47,"./info_control":49,"./legend_control":51,"./load_tilejson":52,"./share_control":57,"./tile_layer":59,"./util":61}],54:[function(require,module,exports){
+},{"./feature_layer":43,"./grid_control":47,"./grid_layer":48,"./info_control":50,"./legend_control":52,"./load_tilejson":53,"./share_control":58,"./tile_layer":60,"./util":62}],55:[function(require,module,exports){
 'use strict';
 
 var geocoderControl = require('./geocoder_control'),
@@ -18489,7 +18495,7 @@ window.L.Icon.Default.imagePath =
     '//api.tiles.mapbox.com/mapbox.js/' + 'v' +
     require('../package.json').version + '/images';
 
-},{"../package.json":40,"./config":41,"./feature_layer":42,"./geocoder":43,"./geocoder_control":44,"./grid_control":46,"./grid_layer":47,"./info_control":49,"./legend_control":51,"./map":53,"./marker":55,"./share_control":57,"./simplestyle":58,"./tile_layer":59,"mustache":37,"sanitize-caja":38}],55:[function(require,module,exports){
+},{"../package.json":41,"./config":42,"./feature_layer":43,"./geocoder":44,"./geocoder_control":45,"./grid_control":47,"./grid_layer":48,"./info_control":50,"./legend_control":52,"./map":54,"./marker":56,"./share_control":58,"./simplestyle":59,"./tile_layer":60,"mustache":38,"sanitize-caja":39}],56:[function(require,module,exports){
 'use strict';
 
 var url = require('./url'),
@@ -18556,7 +18562,7 @@ module.exports = {
     createPopup: createPopup
 };
 
-},{"./url":60,"./util":61,"sanitize-caja":38}],56:[function(require,module,exports){
+},{"./url":61,"./util":62,"sanitize-caja":39}],57:[function(require,module,exports){
 'use strict';
 
 var corslite = require('corslite'),
@@ -18588,7 +18594,7 @@ module.exports = function(url, callback) {
     }
 };
 
-},{"./config":41,"./util":61,"corslite":36}],57:[function(require,module,exports){
+},{"./config":42,"./util":62,"corslite":37}],58:[function(require,module,exports){
 'use strict';
 
 var urlhelper = require('./url');
@@ -18691,7 +18697,7 @@ module.exports.shareControl = function(_, options) {
     return new ShareControl(_, options);
 };
 
-},{"./load_tilejson":52,"./url":60}],58:[function(require,module,exports){
+},{"./load_tilejson":53,"./url":61}],59:[function(require,module,exports){
 'use strict';
 
 // an implementation of the simplestyle spec for polygon and linestring features
@@ -18738,7 +18744,7 @@ module.exports = {
     defaults: defaults
 };
 
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -18835,7 +18841,7 @@ module.exports.tileLayer = function(_, options) {
     return new TileLayer(_, options);
 };
 
-},{"./load_tilejson":52,"./url":60,"./util":61}],60:[function(require,module,exports){
+},{"./load_tilejson":53,"./url":61,"./util":62}],61:[function(require,module,exports){
 'use strict';
 
 var config = require('./config'),
@@ -18879,7 +18885,7 @@ module.exports.tileJSON = function(urlOrMapID, accessToken) {
     return url;
 };
 
-},{"../package.json":40,"./config":41}],61:[function(require,module,exports){
+},{"../package.json":41,"./config":42}],62:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -18926,713 +18932,371 @@ function contains(item, list) {
     return false;
 }
 
-},{}],62:[function(require,module,exports){
-  /* globals require, module */
+},{}],63:[function(require,module,exports){
 
-/**
-   * Module dependencies.
-   */
+},{}],64:[function(require,module,exports){
+// http://wiki.commonjs.org/wiki/Unit_Testing/1.0
+//
+// THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
+//
+// Originally from narwhal.js (http://narwhaljs.org)
+// Copyright (c) 2009 Thomas Robinson <280north.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the 'Software'), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-  var pathtoRegexp = require('path-to-regexp');
+// when used in node, this will actually load the util module we depend on
+// versus loading the builtin util module as happens otherwise
+// this is a bug in node module loading as far as I am concerned
+var util = require('util/');
 
-  /**
-   * Module exports.
-   */
+var pSlice = Array.prototype.slice;
+var hasOwn = Object.prototype.hasOwnProperty;
 
-  module.exports = page;
+// 1. The assert module provides functions that throw
+// AssertionError's when particular conditions are not met. The
+// assert module must conform to the following interface.
 
-  /**
-   * To work properly with the URL
-   * history.location generated polyfill in https://github.com/devote/HTML5-History-API
-   */
+var assert = module.exports = ok;
 
-  var location = window.history.location || window.location;
+// 2. The AssertionError is defined in assert.
+// new assert.AssertionError({ message: message,
+//                             actual: actual,
+//                             expected: expected })
 
-  /**
-   * Perform initial dispatch.
-   */
+assert.AssertionError = function AssertionError(options) {
+  this.name = 'AssertionError';
+  this.actual = options.actual;
+  this.expected = options.expected;
+  this.operator = options.operator;
+  if (options.message) {
+    this.message = options.message;
+    this.generatedMessage = false;
+  } else {
+    this.message = getMessage(this);
+    this.generatedMessage = true;
+  }
+  var stackStartFunction = options.stackStartFunction || fail;
 
-  var dispatch = true;
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, stackStartFunction);
+  }
+  else {
+    // non v8 browsers so we can have a stacktrace
+    var err = new Error();
+    if (err.stack) {
+      var out = err.stack;
 
-  /**
-   * Base path.
-   */
-
-  var base = '';
-
-  /**
-   * Running flag.
-   */
-
-  var running;
-
-  /**
-  * HashBang option
-  */
-
-  var hashbang = false;
-
-  /**
-   * Previous context, for capturing
-   * page exit events.
-   */
-
-  var prevContext;
-
-  /**
-   * Register `path` with callback `fn()`,
-   * or route `path`, or redirection,
-   * or `page.start()`.
-   *
-   *   page(fn);
-   *   page('*', fn);
-   *   page('/user/:id', load, user);
-   *   page('/user/' + user.id, { some: 'thing' });
-   *   page('/user/' + user.id);
-   *   page('/from', '/to')
-   *   page();
-   *
-   * @param {String|Function} path
-   * @param {Function} fn...
-   * @api public
-   */
-
-  function page(path, fn) {
-    // <callback>
-    if ('function' === typeof path) {
-      return page('*', path);
-    }
-
-    // route <path> to <callback ...>
-    if ('function' === typeof fn) {
-      var route = new Route(path);
-      for (var i = 1; i < arguments.length; ++i) {
-        page.callbacks.push(route.middleware(arguments[i]));
+      // try to strip useless frames
+      var fn_name = stackStartFunction.name;
+      var idx = out.indexOf('\n' + fn_name);
+      if (idx >= 0) {
+        // once we have located the function frame
+        // we need to strip out everything before it (and its line)
+        var next_line = out.indexOf('\n', idx + 1);
+        out = out.substring(next_line + 1);
       }
-    // show <path> with [state]
-    } else if ('string' == typeof path) {
-      'string' === typeof fn
-        ? page.redirect(path, fn)
-        : page.show(path, fn);
-    // start [options]
-    } else {
-      page.start(path);
+
+      this.stack = out;
     }
   }
+};
 
-  /**
-   * Callback functions.
-   */
+// assert.AssertionError instanceof Error
+util.inherits(assert.AssertionError, Error);
 
-  page.callbacks = [];
-  page.exits = [];
-
-  /**
-   * Get or set basepath to `path`.
-   *
-   * @param {String} path
-   * @api public
-   */
-
-  page.base = function(path){
-    if (0 === arguments.length) return base;
-    base = path;
-  };
-
-  /**
-   * Bind with the given `options`.
-   *
-   * Options:
-   *
-   *    - `click` bind to click events [true]
-   *    - `popstate` bind to popstate [true]
-   *    - `dispatch` perform initial dispatch [true]
-   *
-   * @param {Object} options
-   * @api public
-   */
-
-  page.start = function(options){
-    options = options || {};
-    if (running) return;
-    running = true;
-    if (false === options.dispatch) dispatch = false;
-    if (false !== options.popstate) window.addEventListener('popstate', onpopstate, false);
-    if (false !== options.click) window.addEventListener('click', onclick, false);
-    if (true === options.hashbang) hashbang = true;
-    if (!dispatch) return;
-    var url = (hashbang && ~location.hash.indexOf('#!'))
-      ? location.hash.substr(2) + location.search
-      : location.pathname + location.search + location.hash;
-    page.replace(url, null, true, dispatch);
-  };
-
-  /**
-   * Unbind click and popstate event handlers.
-   *
-   * @api public
-   */
-
-  page.stop = function(){
-    if (!running) return;
-    running = false;
-    window.removeEventListener('click', onclick, false);
-    window.removeEventListener('popstate', onpopstate, false);
-  };
-
-  /**
-   * Show `path` with optional `state` object.
-   *
-   * @param {String} path
-   * @param {Object} state
-   * @param {Boolean} dispatch
-   * @return {Context}
-   * @api public
-   */
-
-  page.show = function(path, state, dispatch){
-    var ctx = new Context(path, state);
-    if (false !== dispatch) page.dispatch(ctx);
-    if (false !== ctx.handled) ctx.pushState();
-    return ctx;
-  };
-
-  /**
-   * Register route to redirect from one path to other
-   * or just redirect to another route
-   *
-   * @param {String} from - if param 'to' is undefined redirects to 'from'
-   * @param {String} [to]
-   * @api public
-   */
-  page.redirect = function(from, to) {
-    // Define route from a path to another
-    if ('string' === typeof from && 'string' === typeof to) {
-      page(from, function (e) {
-        setTimeout(function() {
-          page.replace(to);
-        },0);
-      });
-    }
-
-    // Wait for the push state and replace it with another
-    if('string' === typeof from && 'undefined' === typeof to) {
-      setTimeout(function() {
-          page.replace(from);
-      },0);
-    }
-  };
-
-  /**
-   * Replace `path` with optional `state` object.
-   *
-   * @param {String} path
-   * @param {Object} state
-   * @return {Context}
-   * @api public
-   */
-
-  page.replace = function(path, state, init, dispatch){
-    var ctx = new Context(path, state);
-    ctx.init = init;
-    ctx.save(); // save before dispatching, which may redirect
-    if (false !== dispatch) page.dispatch(ctx);
-    return ctx;
-  };
-
-  /**
-   * Dispatch the given `ctx`.
-   *
-   * @param {Object} ctx
-   * @api private
-   */
-
-  page.dispatch = function(ctx){
-    var prev = prevContext;
-    var i = 0;
-    var j = 0;
-
-    prevContext = ctx;
-
-    function nextExit() {
-      var fn = page.exits[j++];
-      if (!fn) return nextEnter();
-      fn(prev, nextExit);
-    }
-
-    function nextEnter() {
-      var fn = page.callbacks[i++];
-      if (!fn) return unhandled(ctx);
-      fn(ctx, nextEnter);
-    }
-
-    if (prev) {
-      nextExit();
-    } else {
-      nextEnter();
-    }
-  };
-
-  /**
-   * Unhandled `ctx`. When it's not the initial
-   * popstate then redirect. If you wish to handle
-   * 404s on your own use `page('*', callback)`.
-   *
-   * @param {Context} ctx
-   * @api private
-   */
-
-  function unhandled(ctx) {
-    if (ctx.handled) return;
-    var current;
-
-    if (hashbang) {
-      current = base + location.hash.replace('#!','');
-    } else {
-      current = location.pathname + location.search;
-    }
-
-    if (current === ctx.canonicalPath) return;
-    page.stop();
-    ctx.handled = false;
-    location.href = ctx.canonicalPath;
+function replacer(key, value) {
+  if (util.isUndefined(value)) {
+    return '' + value;
   }
-
-  /**
-   * Register an exit route on `path` with
-   * callback `fn()`, which will be called
-   * on the previous context when a new
-   * page is visited.
-   */
-  page.exit = function(path, fn) {
-    if (typeof path == 'function') {
-      return page.exit('*', path);
-    };
-
-    var route = new Route(path);
-    for (var i = 1; i < arguments.length; ++i) {
-      page.exits.push(route.middleware(arguments[i]));
-    }
-  };
-
-  /**
-  * Remove URL encoding from the given `str`.
-  * Accommodates whitespace in both x-www-form-urlencoded
-  * and regular percent-encoded form.
-  *
-  * @param {str} URL component to decode
-  */
-  function decodeURLEncodedURIComponent(str) {
-    return decodeURIComponent(str.replace(/\+/g, ' '));
+  if (util.isNumber(value) && (isNaN(value) || !isFinite(value))) {
+    return value.toString();
   }
-
-  /**
-   * Initialize a new "request" `Context`
-   * with the given `path` and optional initial `state`.
-   *
-   * @param {String} path
-   * @param {Object} state
-   * @api public
-   */
-
-  function Context(path, state) {
-    path = decodeURLEncodedURIComponent(path);
-    if ('/' === path[0] && 0 !== path.indexOf(base)) path = base + path;
-    var i = path.indexOf('?');
-
-    this.canonicalPath = path;
-    this.path = path.replace(base, '') || '/';
-
-    this.title = document.title;
-    this.state = state || {};
-    this.state.path = path;
-    this.querystring = ~i
-      ? path.slice(i + 1)
-      : '';
-    this.pathname = ~i
-      ? path.slice(0, i)
-      : path;
-    this.params = [];
-
-    // fragment
-    this.hash = '';
-    if (!~this.path.indexOf('#')) return;
-    var parts = this.path.split('#');
-    this.path = parts[0];
-    this.hash = parts[1] || '';
-    this.querystring = this.querystring.split('#')[0];
+  if (util.isFunction(value) || util.isRegExp(value)) {
+    return value.toString();
   }
+  return value;
+}
 
-  /**
-   * Expose `Context`.
-   */
-
-  page.Context = Context;
-
-  /**
-   * Push state.
-   *
-   * @api private
-   */
-
-  Context.prototype.pushState = function(){
-    history.pushState(this.state
-      , this.title
-      , hashbang && this.path !== '/'
-        ? '#!' + this.path
-        : this.canonicalPath);
-  };
-
-  /**
-   * Save the context state.
-   *
-   * @api public
-   */
-
-  Context.prototype.save = function(){
-    history.replaceState(this.state
-      , this.title
-      , hashbang && this.path !== '/'
-        ? '#!' + this.path
-        : this.canonicalPath);
-  };
-
-  /**
-   * Initialize `Route` with the given HTTP `path`,
-   * and an array of `callbacks` and `options`.
-   *
-   * Options:
-   *
-   *   - `sensitive`    enable case-sensitive routes
-   *   - `strict`       enable strict matching for trailing slashes
-   *
-   * @param {String} path
-   * @param {Object} options.
-   * @api private
-   */
-
-  function Route(path, options) {
-    options = options || {};
-    this.path = (path === '*') ? '(.*)' : path;
-    this.method = 'GET';
-    this.regexp = pathtoRegexp(this.path,
-      this.keys = [],
-      options.sensitive,
-      options.strict);
+function truncate(s, n) {
+  if (util.isString(s)) {
+    return s.length < n ? s : s.slice(0, n);
+  } else {
+    return s;
   }
+}
 
-  /**
-   * Expose `Route`.
-   */
+function getMessage(self) {
+  return truncate(JSON.stringify(self.actual, replacer), 128) + ' ' +
+         self.operator + ' ' +
+         truncate(JSON.stringify(self.expected, replacer), 128);
+}
 
-  page.Route = Route;
+// At present only the three keys mentioned above are used and
+// understood by the spec. Implementations or sub modules can pass
+// other keys to the AssertionError's constructor - they will be
+// ignored.
 
-  /**
-   * Return route middleware with
-   * the given callback `fn()`.
-   *
-   * @param {Function} fn
-   * @return {Function}
-   * @api public
-   */
+// 3. All of the following functions must throw an AssertionError
+// when a corresponding condition is not met, with a message that
+// may be undefined if not provided.  All assertion methods provide
+// both the actual and expected values to the assertion error for
+// display purposes.
 
-  Route.prototype.middleware = function(fn){
-    var self = this;
-    return function(ctx, next){
-      if (self.match(ctx.path, ctx.params)) return fn(ctx, next);
-      next();
-    };
-  };
+function fail(actual, expected, message, operator, stackStartFunction) {
+  throw new assert.AssertionError({
+    message: message,
+    actual: actual,
+    expected: expected,
+    operator: operator,
+    stackStartFunction: stackStartFunction
+  });
+}
 
-  /**
-   * Check if this route matches `path`, if so
-   * populate `params`.
-   *
-   * @param {String} path
-   * @param {Array} params
-   * @return {Boolean}
-   * @api private
-   */
+// EXTENSION! allows for well behaved errors defined elsewhere.
+assert.fail = fail;
 
-  Route.prototype.match = function(path, params){
-    var keys = this.keys,
-        qsIndex = path.indexOf('?'),
-        pathname = ~qsIndex
-          ? path.slice(0, qsIndex)
-          : path,
-        m = this.regexp.exec(decodeURIComponent(pathname));
+// 4. Pure assertion tests whether a value is truthy, as determined
+// by !!guard.
+// assert.ok(guard, message_opt);
+// This statement is equivalent to assert.equal(true, !!guard,
+// message_opt);. To test strictly for the value true, use
+// assert.strictEqual(true, guard, message_opt);.
 
-    if (!m) return false;
+function ok(value, message) {
+  if (!value) fail(value, true, message, '==', assert.ok);
+}
+assert.ok = ok;
 
-    for (var i = 1, len = m.length; i < len; ++i) {
-      var key = keys[i - 1];
+// 5. The equality assertion tests shallow, coercive equality with
+// ==.
+// assert.equal(actual, expected, message_opt);
 
-      var val = 'string' === typeof m[i]
-        ? decodeURIComponent(m[i])
-        : m[i];
+assert.equal = function equal(actual, expected, message) {
+  if (actual != expected) fail(actual, expected, message, '==', assert.equal);
+};
 
-      if (key) {
-        params[key.name] = undefined !== params[key.name]
-          ? params[key.name]
-          : val;
-      } else {
-        params.push(val);
-      }
+// 6. The non-equality assertion tests for whether two objects are not equal
+// with != assert.notEqual(actual, expected, message_opt);
+
+assert.notEqual = function notEqual(actual, expected, message) {
+  if (actual == expected) {
+    fail(actual, expected, message, '!=', assert.notEqual);
+  }
+};
+
+// 7. The equivalence assertion tests a deep equality relation.
+// assert.deepEqual(actual, expected, message_opt);
+
+assert.deepEqual = function deepEqual(actual, expected, message) {
+  if (!_deepEqual(actual, expected)) {
+    fail(actual, expected, message, 'deepEqual', assert.deepEqual);
+  }
+};
+
+function _deepEqual(actual, expected) {
+  // 7.1. All identical values are equivalent, as determined by ===.
+  if (actual === expected) {
+    return true;
+
+  } else if (util.isBuffer(actual) && util.isBuffer(expected)) {
+    if (actual.length != expected.length) return false;
+
+    for (var i = 0; i < actual.length; i++) {
+      if (actual[i] !== expected[i]) return false;
     }
 
     return true;
-  };
 
-  /**
-   * Handle "populate" events.
-   */
+  // 7.2. If the expected value is a Date object, the actual value is
+  // equivalent if it is also a Date object that refers to the same time.
+  } else if (util.isDate(actual) && util.isDate(expected)) {
+    return actual.getTime() === expected.getTime();
 
-  function onpopstate(e) {
-    if (e.state) {
-      var path = e.state.path;
-      page.replace(path, e.state);
-    }
+  // 7.3 If the expected value is a RegExp object, the actual value is
+  // equivalent if it is also a RegExp object with the same source and
+  // properties (`global`, `multiline`, `lastIndex`, `ignoreCase`).
+  } else if (util.isRegExp(actual) && util.isRegExp(expected)) {
+    return actual.source === expected.source &&
+           actual.global === expected.global &&
+           actual.multiline === expected.multiline &&
+           actual.lastIndex === expected.lastIndex &&
+           actual.ignoreCase === expected.ignoreCase;
+
+  // 7.4. Other pairs that do not both pass typeof value == 'object',
+  // equivalence is determined by ==.
+  } else if (!util.isObject(actual) && !util.isObject(expected)) {
+    return actual == expected;
+
+  // 7.5 For all other Object pairs, including Array objects, equivalence is
+  // determined by having the same number of owned properties (as verified
+  // with Object.prototype.hasOwnProperty.call), the same set of keys
+  // (although not necessarily the same order), equivalent values for every
+  // corresponding key, and an identical 'prototype' property. Note: this
+  // accounts for both named and indexed properties on Arrays.
+  } else {
+    return objEquiv(actual, expected);
   }
-
-  /**
-   * Handle "click" events.
-   */
-
-  function onclick(e) {
-    if (1 != which(e)) return;
-    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-    if (e.defaultPrevented) return;
-
-    // ensure link
-    var el = e.target;
-    while (el && 'A' != el.nodeName) el = el.parentNode;
-    if (!el || 'A' != el.nodeName) return;
-
-    // Ignore if tag has a "download" attribute
-    if (el.getAttribute("download")) return;
-
-    // ensure non-hash for the same path
-    var link = el.getAttribute('href');
-    if (el.pathname === location.pathname && (el.hash || '#' === link)) return;
-
-    // Check for mailto: in the href
-    if (link && link.indexOf("mailto:") > -1) return;
-
-    // check target
-    if (el.target) return;
-
-    // x-origin
-    if (!sameOrigin(el.href)) return;
-
-    // rebuild path
-    var path = el.pathname + el.search + (el.hash || '');
-
-    // same page
-    var orig = path;
-
-    path = path.replace(base, '');
-
-    if (base && orig === path) return;
-
-    e.preventDefault();
-    page.show(orig);
-  }
-
-  /**
-   * Event button.
-   */
-
-  function which(e) {
-    e = e || window.event;
-    return null === e.which
-      ? e.button
-      : e.which;
-  }
-
-  /**
-   * Check if `href` is the same origin.
-   */
-
-  function sameOrigin(href) {
-    var origin = location.protocol + '//' + location.hostname;
-    if (location.port) origin += ':' + location.port;
-    return (href && (0 === href.indexOf(origin)));
-  }
-
-  page.sameOrigin = sameOrigin;
-
-},{"path-to-regexp":63}],63:[function(require,module,exports){
-/**
- * Expose `pathtoRegexp`.
- */
-module.exports = pathtoRegexp;
-
-/**
- * The main path matching regexp utility.
- *
- * @type {RegExp}
- */
-var PATH_REGEXP = new RegExp([
-  // Match already escaped characters that would otherwise incorrectly appear
-  // in future matches. This allows the user to escape special characters that
-  // shouldn't be transformed.
-  '(\\\\.)',
-  // Match Express-style parameters and un-named parameters with a prefix
-  // and optional suffixes. Matches appear as:
-  //
-  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?"]
-  // "/route(\\d+)" => [undefined, undefined, undefined, "\d+", undefined]
-  '([\\/.])?(?:\\:(\\w+)(?:\\(((?:\\\\.|[^)])*)\\))?|\\(((?:\\\\.|[^)])*)\\))([+*?])?',
-  // Match regexp special characters that should always be escaped.
-  '([.+*?=^!:${}()[\\]|\\/])'
-].join('|'), 'g');
-
-/**
- * Escape the capturing group by escaping special characters and meaning.
- *
- * @param  {String} group
- * @return {String}
- */
-function escapeGroup (group) {
-  return group.replace(/([=!:$\/()])/g, '\\$1');
 }
 
-/**
- * Attach the keys as a property of the regexp.
- *
- * @param  {RegExp} re
- * @param  {Array}  keys
- * @return {RegExp}
- */
-var attachKeys = function (re, keys) {
-  re.keys = keys;
+function isArguments(object) {
+  return Object.prototype.toString.call(object) == '[object Arguments]';
+}
 
-  return re;
+function objEquiv(a, b) {
+  if (util.isNullOrUndefined(a) || util.isNullOrUndefined(b))
+    return false;
+  // an identical 'prototype' property.
+  if (a.prototype !== b.prototype) return false;
+  //~~~I've managed to break Object.keys through screwy arguments passing.
+  //   Converting to array solves the problem.
+  if (isArguments(a)) {
+    if (!isArguments(b)) {
+      return false;
+    }
+    a = pSlice.call(a);
+    b = pSlice.call(b);
+    return _deepEqual(a, b);
+  }
+  try {
+    var ka = objectKeys(a),
+        kb = objectKeys(b),
+        key, i;
+  } catch (e) {//happens when one is a string literal and the other isn't
+    return false;
+  }
+  // having the same number of owned properties (keys incorporates
+  // hasOwnProperty)
+  if (ka.length != kb.length)
+    return false;
+  //the same set of keys (although not necessarily the same order),
+  ka.sort();
+  kb.sort();
+  //~~~cheap key test
+  for (i = ka.length - 1; i >= 0; i--) {
+    if (ka[i] != kb[i])
+      return false;
+  }
+  //equivalent values for every corresponding key, and
+  //~~~possibly expensive deep test
+  for (i = ka.length - 1; i >= 0; i--) {
+    key = ka[i];
+    if (!_deepEqual(a[key], b[key])) return false;
+  }
+  return true;
+}
+
+// 8. The non-equivalence assertion tests for any deep inequality.
+// assert.notDeepEqual(actual, expected, message_opt);
+
+assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
+  if (_deepEqual(actual, expected)) {
+    fail(actual, expected, message, 'notDeepEqual', assert.notDeepEqual);
+  }
 };
 
-/**
- * Normalize the given path string, returning a regular expression.
- *
- * An empty array should be passed in, which will contain the placeholder key
- * names. For example `/user/:id` will then contain `["id"]`.
- *
- * @param  {(String|RegExp|Array)} path
- * @param  {Array}                 keys
- * @param  {Object}                options
- * @return {RegExp}
- */
-function pathtoRegexp (path, keys, options) {
-  if (keys && !Array.isArray(keys)) {
-    options = keys;
-    keys = null;
+// 9. The strict equality assertion tests strict equality, as determined by ===.
+// assert.strictEqual(actual, expected, message_opt);
+
+assert.strictEqual = function strictEqual(actual, expected, message) {
+  if (actual !== expected) {
+    fail(actual, expected, message, '===', assert.strictEqual);
   }
-
-  keys = keys || [];
-  options = options || {};
-
-  var strict = options.strict;
-  var end = options.end !== false;
-  var flags = options.sensitive ? '' : 'i';
-  var index = 0;
-
-  if (path instanceof RegExp) {
-    // Match all capturing groups of a regexp.
-    var groups = path.source.match(/\((?!\?)/g) || [];
-
-    // Map all the matches to their numeric keys and push into the keys.
-    keys.push.apply(keys, groups.map(function (match, index) {
-      return {
-        name:      index,
-        delimiter: null,
-        optional:  false,
-        repeat:    false
-      };
-    }));
-
-    // Return the source back to the user.
-    return attachKeys(path, keys);
-  }
-
-  if (Array.isArray(path)) {
-    // Map array parts into regexps and return their source. We also pass
-    // the same keys and options instance into every generation to get
-    // consistent matching groups before we join the sources together.
-    path = path.map(function (value) {
-      return pathtoRegexp(value, keys, options).source;
-    });
-
-    // Generate a new regexp instance by joining all the parts together.
-    return attachKeys(new RegExp('(?:' + path.join('|') + ')', flags), keys);
-  }
-
-  // Alter the path string into a usable regexp.
-  path = path.replace(PATH_REGEXP, function (match, escaped, prefix, key, capture, group, suffix, escape) {
-    // Avoiding re-escaping escaped characters.
-    if (escaped) {
-      return escaped;
-    }
-
-    // Escape regexp special characters.
-    if (escape) {
-      return '\\' + escape;
-    }
-
-    var repeat   = suffix === '+' || suffix === '*';
-    var optional = suffix === '?' || suffix === '*';
-
-    keys.push({
-      name:      key || index++,
-      delimiter: prefix || '/',
-      optional:  optional,
-      repeat:    repeat
-    });
-
-    // Escape the prefix character.
-    prefix = prefix ? '\\' + prefix : '';
-
-    // Match using the custom capturing group, or fallback to capturing
-    // everything up to the next slash (or next period if the param was
-    // prefixed with a period).
-    capture = escapeGroup(capture || group || '[^' + (prefix || '\\/') + ']+?');
-
-    // Allow parameters to be repeated more than once.
-    if (repeat) {
-      capture = capture + '(?:' + prefix + capture + ')*';
-    }
-
-    // Allow a parameter to be optional.
-    if (optional) {
-      return '(?:' + prefix + '(' + capture + '))?';
-    }
-
-    // Basic parameter support.
-    return prefix + '(' + capture + ')';
-  });
-
-  // Check whether the path ends in a slash as it alters some match behaviour.
-  var endsWithSlash = path[path.length - 1] === '/';
-
-  // In non-strict mode we allow an optional trailing slash in the match. If
-  // the path to match already ended with a slash, we need to remove it for
-  // consistency. The slash is only valid at the very end of a path match, not
-  // anywhere in the middle. This is important for non-ending mode, otherwise
-  // "/test/" will match "/test//route".
-  if (!strict) {
-    path = (endsWithSlash ? path.slice(0, -2) : path) + '(?:\\/(?=$))?';
-  }
-
-  // In non-ending mode, we need prompt the capturing groups to match as much
-  // as possible by using a positive lookahead for the end or next path segment.
-  if (!end) {
-    path += strict && endsWithSlash ? '' : '(?=\\/|$)';
-  }
-
-  return attachKeys(new RegExp('^' + path + (end ? '$' : ''), flags), keys);
 };
 
-},{}],64:[function(require,module,exports){
+// 10. The strict non-equality assertion tests for strict inequality, as
+// determined by !==.  assert.notStrictEqual(actual, expected, message_opt);
 
-},{}],65:[function(require,module,exports){
+assert.notStrictEqual = function notStrictEqual(actual, expected, message) {
+  if (actual === expected) {
+    fail(actual, expected, message, '!==', assert.notStrictEqual);
+  }
+};
+
+function expectedException(actual, expected) {
+  if (!actual || !expected) {
+    return false;
+  }
+
+  if (Object.prototype.toString.call(expected) == '[object RegExp]') {
+    return expected.test(actual);
+  } else if (actual instanceof expected) {
+    return true;
+  } else if (expected.call({}, actual) === true) {
+    return true;
+  }
+
+  return false;
+}
+
+function _throws(shouldThrow, block, expected, message) {
+  var actual;
+
+  if (util.isString(expected)) {
+    message = expected;
+    expected = null;
+  }
+
+  try {
+    block();
+  } catch (e) {
+    actual = e;
+  }
+
+  message = (expected && expected.name ? ' (' + expected.name + ').' : '.') +
+            (message ? ' ' + message : '.');
+
+  if (shouldThrow && !actual) {
+    fail(actual, expected, 'Missing expected exception' + message);
+  }
+
+  if (!shouldThrow && expectedException(actual, expected)) {
+    fail(actual, expected, 'Got unwanted exception' + message);
+  }
+
+  if ((shouldThrow && actual && expected &&
+      !expectedException(actual, expected)) || (!shouldThrow && actual)) {
+    throw actual;
+  }
+}
+
+// 11. Expected to throw an error:
+// assert.throws(block, Error_opt, message_opt);
+
+assert.throws = function(block, /*optional*/error, /*optional*/message) {
+  _throws.apply(this, [true].concat(pSlice.call(arguments)));
+};
+
+// EXTENSION! This is annoying to write outside this module.
+assert.doesNotThrow = function(block, /*optional*/message) {
+  _throws.apply(this, [false].concat(pSlice.call(arguments)));
+};
+
+assert.ifError = function(err) { if (err) {throw err;}};
+
+var objectKeys = Object.keys || function (obj) {
+  var keys = [];
+  for (var key in obj) {
+    if (hasOwn.call(obj, key)) keys.push(key);
+  }
+  return keys;
+};
+
+},{"util/":83}],65:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -24145,4 +23809,759 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("qvMYcC"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":82,"inherits":69,"qvMYcC":70}]},{},[1])
+},{"./support/isBuffer":82,"inherits":69,"qvMYcC":70}],84:[function(require,module,exports){
+
+var router = require('routington')
+var assert = require('assert')
+
+var wayfarer = Wayfarer.prototype
+
+module.exports = Wayfarer
+
+// Create a new router.
+// @param  {Object} opts
+//   @prop {String} default
+// @return {Object}
+function Wayfarer(opts) {
+  if (!(this instanceof Wayfarer)) return new Wayfarer(opts)
+  opts = opts || {}
+  this.router = router()
+  this.defaultPath = opts.default || ''
+}
+
+// Define a new path.
+// @param {String} path
+// @param {Function} cb
+// @return {Wayfarer}
+wayfarer.on = function(path, cb) {
+  assert('string' == typeof path, 'Path should be a string')
+  assert('function' == typeof cb, 'Callback should be a function')
+  var node = this.router.define(path)[0]
+  node.cb = cb
+
+  return this
+}
+
+// Math a route against the paths.
+// @param {String} path
+// @return {Any}
+// @api public
+wayfarer.match = function(path) {
+  assert('string' == typeof path, 'Path should be a string')
+
+  var nw = path.split('?')[0]
+  var match = this.router.match(nw)
+  if (!match) match = this.router.match(this.defaultPath)
+
+  return match.node.cb(path, match ? match.param : {})
+}
+
+// Aliases.
+wayfarer.path = wayfarer.on
+wayfarer.route = wayfarer.on
+
+},{"assert":64,"routington":86}],85:[function(require,module,exports){
+
+var flatten = require('flatten')
+
+var Routington = require('./routington')
+
+/*
+
+  @route {string}
+
+  returns []routington
+
+*/
+Routington.prototype.define = function (route) {
+  if (typeof route !== 'string') throw new TypeError('Only strings can be defined.')
+
+  try {
+    return Define(route.split('/'), this)
+  } catch (err) {
+    err.route = route
+    throw err
+  }
+}
+
+function Define(frags, root) {
+  var frag = frags[0]
+  var info = Routington.parse(frag)
+  var name = info.name
+
+  var nodes = Object.keys(info.string).map(function (x) {
+    return {
+      name: name,
+      string: x
+    }
+  })
+
+  if (info.regex) {
+    nodes.push({
+      name: name,
+      regex: info.regex
+    })
+  }
+
+  if (!nodes.length) {
+    nodes = [{
+      name: name
+    }]
+  }
+
+  nodes = nodes.map(root._add, root)
+
+  return frags.length - 1
+    ? flatten(nodes.map(Define.bind(null, frags.slice(1))))
+    : nodes
+}
+
+},{"./routington":89,"flatten":90}],86:[function(require,module,exports){
+
+module.exports = require('./routington');
+
+require('./define');
+require('./match');
+require('./parse');
+
+},{"./define":85,"./match":87,"./parse":88,"./routington":89}],87:[function(require,module,exports){
+
+var assert = require('http-assert')
+
+var Routington = require('./routington')
+
+/*
+
+  @url {string}
+
+  returns {object} {
+    param: {
+      {name}: {string}
+    },
+    node: {routington}
+  }
+
+*/
+
+Routington.prototype.match = function (url) {
+  var root = this
+  var frags = url.split('/')
+  var length = frags.length
+
+  var match = {
+    param: {}
+  }
+
+  var frag, node, nodes, regex, name
+
+  top:
+  while (length) {
+    frag = decode(frags.shift())
+    assert(frag !== -1, 404, 'malformed url: ' + url)
+    length = frags.length
+
+    // Check by name
+    if (node = root.child[frag]) {
+      if (name = node.name) match.param[name] = frag
+
+      if (!length) {
+        match.node = node
+        return match
+      }
+
+      root = node
+      continue top
+    }
+
+    // Check array of names/regexs
+    nodes = root.children
+    for (var i = 0, l = nodes.length; i < l; i++) {
+      node = nodes[i]
+
+      if (!(regex = node.regex) || regex.test(frag)) {
+        if (name = node.name) match.param[name] = frag
+
+        if (!length) {
+          match.node = node
+          return match
+        }
+
+        root = node
+        continue top
+      }
+    }
+
+    // No string or regex match, 404
+    return
+  }
+}
+
+function decode(string) {
+  try {
+    return decodeURIComponent(string)
+  } catch (err) {
+    return -1
+  }
+}
+
+},{"./routington":89,"http-assert":91}],88:[function(require,module,exports){
+
+var assert = require('assert')
+
+var Routington = require('./routington')
+
+Routington.parse = function (string) {
+  var options = Parse(string)
+  assert(options, 'Invalid parsed string: ' + string)
+  return options
+}
+
+function Parse(string) {
+  var options = {
+    name: '',
+    string: {},
+    regex: ''
+  }
+
+  // Is a simple string
+  if (isValidSlug(string)) {
+    options.string[string] = true
+    return options
+  }
+
+  // Pipe-separated strings
+  if (isPipeSeparatedString(string)) {
+    string.split('|').forEach(function (x) {
+      options.string[x] = true
+    })
+    return options
+  }
+
+  // Find a parameter name for the string
+  string = string.replace(/^\:\w+\b/, function (_) {
+    options.name = _.slice(1)
+    return ''
+  })
+
+  // Return if the string is now empty
+  if (!string) return options
+
+  // Assume the capture is a regex if there are
+  // non-word characters in the capture.
+  if (/^\(.+\)$/.test(string) && (string = string.slice(1, -1))) {
+    if (isPipeSeparatedString(string))
+      string.split('|').filter(function (x) {
+        options.string[x] = true
+      })
+    else
+      options.regex = string
+
+    return options
+  }
+}
+
+function isValidSlug(x) {
+  return x === ''
+    || /^[\w\.-]+$/.test(x)
+}
+
+function isPipeSeparatedString(x) {
+  return /^[\w\.\-][\w\.\-\|]+[\w\.\-]$/.test(x)
+}
+
+},{"./routington":89,"assert":64}],89:[function(require,module,exports){
+
+module.exports = Routington
+
+function Routington(options) {
+  if (!(this instanceof Routington)) return new Routington(options)
+
+  this._init(options)
+}
+
+Routington.prototype._init = function (options) {
+  options = options || {}
+
+  this.child = Object.create(null)
+  this.children = []
+  this.name = options.name || ''
+
+  if (typeof options.string === 'string')
+    this.string = options.string
+  else if (typeof options.regex === 'string')
+    this.regex = new RegExp(
+      '^(' + options.regex + ')$',
+      options.flag == null ? 'i' : options.flag
+    )
+  else if (options.regex instanceof RegExp)
+    this.regex = options.regex
+}
+
+// Find || (create && attach) a child node
+Routington.prototype._add = function (options) {
+  return this._find(options)
+    || this._attach(options)
+}
+
+// Find a child node based on a bunch of options
+Routington.prototype._find = function (options) {
+  // Find by string
+  if (typeof options.string === 'string') return this.child[options.string]
+
+  var child
+  var children = this.children
+  var l = children.length
+
+  // Find by name
+  if (options.name)
+    for (var j = 0; j < l; j++)
+      if ((child = children[j]).name === options.name)
+        return child
+}
+
+// Attach a node to this node
+Routington.prototype._attach = function (node) {
+  if (!(node instanceof Routington)) node = new Routington(node)
+
+  node.parent = this
+
+  if (node.string == null) this.children.push(node)
+  else this.child[node.string] = node
+
+  return node
+}
+
+},{}],90:[function(require,module,exports){
+module.exports = function flatten(list, depth) {
+  depth = (typeof depth == 'number') ? depth : Infinity;
+
+  return _flatten(list, 1);
+
+  function _flatten(list, d) {
+    return list.reduce(function (acc, item) {
+      if (Array.isArray(item) && d < depth) {
+        return acc.concat(_flatten(item, d + 1));
+      }
+      else {
+        return acc.concat(item);
+      }
+    }, []);
+  }
+};
+
+},{}],91:[function(require,module,exports){
+var createError = require('http-errors');
+var eql = require('deep-equal');
+
+module.exports = assert;
+
+function assert(value, status, msg, opts) {
+  if (value) return;
+  throw createError(status, msg, opts);
+}
+
+assert.equal = function(a, b, status, msg, opts) {
+  assert(a == b, status, msg, opts);
+};
+
+assert.notEqual = function(a, b, status, msg, opts) {
+  assert(a != b, status, msg, opts);
+};
+
+assert.strictEqual = function(a, b, status, msg, opts) {
+  assert(a === b, status, msg, opts);
+};
+
+assert.notStrictEqual = function(a, b, status, msg, opts) {
+  assert(a !== b, status, msg, opts);
+};
+
+assert.deepEqual = function(a, b, status, msg, opts) {
+  assert(eql(a, b), status, msg, opts);
+};
+
+assert.notDeepEqual = function(a, b, status, msg, opts) {
+  assert(!eql(a, b), status, msg, opts);
+};
+
+},{"deep-equal":92,"http-errors":95}],92:[function(require,module,exports){
+var pSlice = Array.prototype.slice;
+var objectKeys = require('./lib/keys.js');
+var isArguments = require('./lib/is_arguments.js');
+
+var deepEqual = module.exports = function (actual, expected, opts) {
+  if (!opts) opts = {};
+  // 7.1. All identical values are equivalent, as determined by ===.
+  if (actual === expected) {
+    return true;
+
+  } else if (actual instanceof Date && expected instanceof Date) {
+    return actual.getTime() === expected.getTime();
+
+  // 7.3. Other pairs that do not both pass typeof value == 'object',
+  // equivalence is determined by ==.
+  } else if (typeof actual != 'object' && typeof expected != 'object') {
+    return opts.strict ? actual === expected : actual == expected;
+
+  // 7.4. For all other Object pairs, including Array objects, equivalence is
+  // determined by having the same number of owned properties (as verified
+  // with Object.prototype.hasOwnProperty.call), the same set of keys
+  // (although not necessarily the same order), equivalent values for every
+  // corresponding key, and an identical 'prototype' property. Note: this
+  // accounts for both named and indexed properties on Arrays.
+  } else {
+    return objEquiv(actual, expected, opts);
+  }
+}
+
+function isUndefinedOrNull(value) {
+  return value === null || value === undefined;
+}
+
+function isBuffer (x) {
+  if (!x || typeof x !== 'object' || typeof x.length !== 'number') return false;
+  if (typeof x.copy !== 'function' || typeof x.slice !== 'function') {
+    return false;
+  }
+  if (x.length > 0 && typeof x[0] !== 'number') return false;
+  return true;
+}
+
+function objEquiv(a, b, opts) {
+  var i, key;
+  if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
+    return false;
+  // an identical 'prototype' property.
+  if (a.prototype !== b.prototype) return false;
+  //~~~I've managed to break Object.keys through screwy arguments passing.
+  //   Converting to array solves the problem.
+  if (isArguments(a)) {
+    if (!isArguments(b)) {
+      return false;
+    }
+    a = pSlice.call(a);
+    b = pSlice.call(b);
+    return deepEqual(a, b, opts);
+  }
+  if (isBuffer(a)) {
+    if (!isBuffer(b)) {
+      return false;
+    }
+    if (a.length !== b.length) return false;
+    for (i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }
+  try {
+    var ka = objectKeys(a),
+        kb = objectKeys(b);
+  } catch (e) {//happens when one is a string literal and the other isn't
+    return false;
+  }
+  // having the same number of owned properties (keys incorporates
+  // hasOwnProperty)
+  if (ka.length != kb.length)
+    return false;
+  //the same set of keys (although not necessarily the same order),
+  ka.sort();
+  kb.sort();
+  //~~~cheap key test
+  for (i = ka.length - 1; i >= 0; i--) {
+    if (ka[i] != kb[i])
+      return false;
+  }
+  //equivalent values for every corresponding key, and
+  //~~~possibly expensive deep test
+  for (i = ka.length - 1; i >= 0; i--) {
+    key = ka[i];
+    if (!deepEqual(a[key], b[key], opts)) return false;
+  }
+  return typeof a === typeof b;
+}
+
+},{"./lib/is_arguments.js":93,"./lib/keys.js":94}],93:[function(require,module,exports){
+var supportsArgumentsClass = (function(){
+  return Object.prototype.toString.call(arguments)
+})() == '[object Arguments]';
+
+exports = module.exports = supportsArgumentsClass ? supported : unsupported;
+
+exports.supported = supported;
+function supported(object) {
+  return Object.prototype.toString.call(object) == '[object Arguments]';
+};
+
+exports.unsupported = unsupported;
+function unsupported(object){
+  return object &&
+    typeof object == 'object' &&
+    typeof object.length == 'number' &&
+    Object.prototype.hasOwnProperty.call(object, 'callee') &&
+    !Object.prototype.propertyIsEnumerable.call(object, 'callee') ||
+    false;
+};
+
+},{}],94:[function(require,module,exports){
+exports = module.exports = typeof Object.keys === 'function'
+  ? Object.keys : shim;
+
+exports.shim = shim;
+function shim (obj) {
+  var keys = [];
+  for (var key in obj) keys.push(key);
+  return keys;
+}
+
+},{}],95:[function(require,module,exports){
+
+var statuses = require('statuses');
+var inherits = require('inherits');
+
+function toIdentifier(str) {
+  return str.split(' ').map(function (token) {
+    return token.slice(0, 1).toUpperCase() + token.slice(1)
+  }).join('').replace(/[^ _0-9a-z]/gi, '')
+}
+
+exports = module.exports = function httpError() {
+  // so much arity going on ~_~
+  var err;
+  var msg;
+  var status = 500;
+  var props = {};
+  for (var i = 0; i < arguments.length; i++) {
+    var arg = arguments[i];
+    if (arg instanceof Error) {
+      err = arg;
+      status = err.status || err.statusCode || status;
+      continue;
+    }
+    switch (typeof arg) {
+      case 'string':
+        msg = arg;
+        break;
+      case 'number':
+        status = arg;
+        break;
+      case 'object':
+        props = arg;
+        break;
+    }
+  }
+
+  if (typeof status !== 'number' || !statuses[status]) {
+    status = 500
+  }
+
+  // constructor
+  var HttpError = exports[status]
+
+  if (!err) {
+    // create error
+    err = HttpError
+      ? new HttpError(msg)
+      : new Error(msg || statuses[status])
+    Error.captureStackTrace(err, httpError)
+  }
+
+  if (!HttpError || !(err instanceof HttpError)) {
+    // add properties to generic error
+    err.expose = status < 500
+    err.status = err.statusCode = status
+  }
+
+  for (var key in props) {
+    if (key !== 'status' && key !== 'statusCode') {
+      err[key] = props[key]
+    }
+  }
+
+  return err;
+};
+
+// create generic error objects
+var codes = statuses.codes.filter(function (num) {
+  return num >= 400;
+});
+
+codes.forEach(function (code) {
+  var name = toIdentifier(statuses[code])
+  var className = name.match(/Error$/) ? name : name + 'Error'
+
+  if (code >= 500) {
+    var ServerError = function ServerError(msg) {
+      var self = new Error(msg != null ? msg : statuses[code])
+      Error.captureStackTrace(self, ServerError)
+      self.__proto__ = ServerError.prototype
+      Object.defineProperty(self, 'name', {
+        enumerable: false,
+        configurable: true,
+        value: className,
+        writable: true
+      })
+      return self
+    }
+    inherits(ServerError, Error);
+    ServerError.prototype.status =
+    ServerError.prototype.statusCode = code;
+    ServerError.prototype.expose = false;
+    exports[code] =
+    exports[name] = ServerError
+    return;
+  }
+
+  var ClientError = function ClientError(msg) {
+    var self = new Error(msg != null ? msg : statuses[code])
+    Error.captureStackTrace(self, ClientError)
+    self.__proto__ = ClientError.prototype
+    Object.defineProperty(self, 'name', {
+      enumerable: false,
+      configurable: true,
+      value: className,
+      writable: true
+    })
+    return self
+  }
+  inherits(ClientError, Error);
+  ClientError.prototype.status =
+  ClientError.prototype.statusCode = code;
+  ClientError.prototype.expose = true;
+  exports[code] =
+  exports[name] = ClientError
+  return;
+});
+
+// backwards-compatibility
+exports["I'mateapot"] = exports.ImATeapot
+
+},{"inherits":96,"statuses":98}],96:[function(require,module,exports){
+module.exports=require(69)
+},{}],97:[function(require,module,exports){
+module.exports={
+  "100": "Continue",
+  "101": "Switching Protocols",
+  "102": "Processing",
+  "200": "OK",
+  "201": "Created",
+  "202": "Accepted",
+  "203": "Non-Authoritative Information",
+  "204": "No Content",
+  "205": "Reset Content",
+  "206": "Partial Content",
+  "207": "Multi-Status",
+  "208": "Already Reported",
+  "226": "IM Used",
+  "300": "Multiple Choices",
+  "301": "Moved Permanently",
+  "302": "Found",
+  "303": "See Other",
+  "304": "Not Modified",
+  "305": "Use Proxy",
+  "306": "(Unused)",
+  "307": "Temporary Redirect",
+  "308": "Permanent Redirect",
+  "400": "Bad Request",
+  "401": "Unauthorized",
+  "402": "Payment Required",
+  "403": "Forbidden",
+  "404": "Not Found",
+  "405": "Method Not Allowed",
+  "406": "Not Acceptable",
+  "407": "Proxy Authentication Required",
+  "408": "Request Timeout",
+  "409": "Conflict",
+  "410": "Gone",
+  "411": "Length Required",
+  "412": "Precondition Failed",
+  "413": "Payload Too Large",
+  "414": "URI Too Long",
+  "415": "Unsupported Media Type",
+  "416": "Range Not Satisfiable",
+  "417": "Expectation Failed",
+  "418": "I'm a teapot",
+  "422": "Unprocessable Entity",
+  "423": "Locked",
+  "424": "Failed Dependency",
+  "425": "Unordered Collection",
+  "426": "Upgrade Required",
+  "428": "Precondition Required",
+  "429": "Too Many Requests",
+  "431": "Request Header Fields Too Large",
+  "451": "Unavailable For Legal Reasons",
+  "500": "Internal Server Error",
+  "501": "Not Implemented",
+  "502": "Bad Gateway",
+  "503": "Service Unavailable",
+  "504": "Gateway Timeout",
+  "505": "HTTP Version Not Supported",
+  "506": "Variant Also Negotiates",
+  "507": "Insufficient Storage",
+  "508": "Loop Detected",
+  "509": "Bandwidth Limit Exceeded",
+  "510": "Not Extended",
+  "511": "Network Authentication Required"
+}
+},{}],98:[function(require,module,exports){
+
+var codes = require('./codes.json');
+
+module.exports = status;
+
+// [Integer...]
+status.codes = Object.keys(codes).map(function (code) {
+  code = ~~code;
+  var msg = codes[code];
+  status[code] = msg;
+  status[msg] = status[msg.toLowerCase()] = code;
+  return code;
+});
+
+// status codes for redirects
+status.redirect = {
+  300: true,
+  301: true,
+  302: true,
+  303: true,
+  305: true,
+  307: true,
+  308: true,
+};
+
+// status codes for empty bodies
+status.empty = {
+  204: true,
+  205: true,
+  304: true,
+};
+
+// status codes for when you should retry the request
+status.retry = {
+  502: true,
+  503: true,
+  504: true,
+};
+
+function status(code) {
+  if (typeof code === 'number') {
+    if (!status[code]) throw new Error('invalid status code: ' + code);
+    return code;
+  }
+
+  if (typeof code !== 'string') {
+    throw new TypeError('code must be a number or string');
+  }
+
+  // '403'
+  var n = parseInt(code, 10)
+  if (!isNaN(n)) {
+    if (!status[n]) throw new Error('invalid status code: ' + n);
+    return n;
+  }
+
+  n = status[code.toLowerCase()];
+  if (!n) throw new Error('invalid status message: "' + code + '"');
+  return n;
+}
+
+},{"./codes.json":97}]},{},[1])

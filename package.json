@@ -28,11 +28,12 @@
     "flatsheet-api-client": "^2.0.0",
     "geolocation-stream": "0.0.1",
     "handlebars": "~1.3.0",
+    "hash-match": "^1.0.1",
     "leaflet": "~0.7.2",
     "leaflet-providers": "^1.0.3",
     "mapbox.js": "^2.1.0",
     "normalize-css": "git://github.com/sethvincent/normalize-css",
-    "page": "^1.5.0"
+    "wayfarer": "^2.2.0"
   },
   "devDependencies": {
     "brfs": "^1.2.0",
