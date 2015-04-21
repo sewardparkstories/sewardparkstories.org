@@ -422,42 +422,6 @@ table {
   border-spacing: 0;
 }
 
-.scrollbar-scroll-box {
-  position: relative;
-  display: inline-block;
-}
-
-.scrollbar-scroll-box .scrollbar-content-view {
-  overflow: hidden;
-}
-
-.scrollbar-scroll-box .scrollbar-thumb {
-  right: 0;
-  z-index: 1;
-  position: absolute;
-  width: 3px;
-  background-color: hsl(0, 0%, 60%);
-  /*  opacity: 0; */
-  -webkit-transition: opacity .15s;
-  -moz-transition: opacity .15s;
-  transition: opacity .15s;
-}
-
-.scrollbar-scroll-box.scrollbar-no-scroll {
-  opacity: 0;
-}
-
-/*
-.scrollbar-scroll-box:hover .scrollbar-thumb {
-  opacity: 1;
-}
-
-.scrollbar-scroll-box.scrollbar-no-scroll .scrollbar-thumb,
-.scrollbar-scroll-box.scrollbar-no-scroll:hover .scrollbar-thumb {
-  opacity: 0;
-}
-*/
-
 html,
 body,
 input,

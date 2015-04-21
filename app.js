@@ -5,7 +5,6 @@ var Handlebars = require('handlebars');
 var elClass = require('element-class');
 var on = require('component-delegate').bind;
 var movement = require('geolocation-stream')();
-//var Scrollbar = require('scrollbar');
 var Leaflet = require('leaflet');
 require('mapbox.js');
 
@@ -23,6 +22,8 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
   var data = createImageArrays(sheet.rows);
 
   var dataByID = {};
+  var activeMarker;
+
   for (var i = 0, l = data.length; i < l; i++) {
     data[i].id = slugify(data[i].title);
     dataByID[data[i].id] = data[i];
@@ -159,6 +160,24 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
 
   updateWithFilters();
 
+  function moveActiveMarker(latLng){
+    if(activeMarker === undefined){
+      activeMarker = L.marker(L.latLng(latLng), {
+        icon: L.mapbox.marker.icon({
+          'marker-size': 'small',
+          'marker-line-color': '#335966',
+          'marker-line-opacity': 1,
+          'marker-color': '#f00',
+          'zIndexOffset': 99,
+        })
+      });
+      markerGroup.addLayer(activeMarker);
+    } else {
+      activeMarker.setLatLng(latLng);
+    }
+    activeMarker.update();
+  }
+
   function addMarker (row, i) {
     var latlng = { lat: row['lat'], lng: row['long'] };
     
@@ -167,14 +186,15 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
         'marker-size': 'small',
         'marker-line-color': '#335966',
         'marker-line-opacity': 1,
-        'marker-color': '#335966'
+        'marker-color': '#335966',
       })
     });
       
     markerGroup.addLayer(marker);
     
     marker.on('click', function(e) {
-      window.location.hash = '/' + row.id
+      window.location.hash = '/' + row.id;
+      moveActiveMarker(this.getLatLng());
     });
   }
 
@@ -194,6 +214,8 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
   on(document.body, '#close-modal', 'click', function (e) {
     var modal = document.querySelector('.modal');
     main.removeChild(modal);
+    markerGroup.removeLayer(activeMarker);
+    activeMarker = undefined;
     e.preventDefault();
   });
 
