@@ -1,0 +1,15 @@
+html, body {
+   height: 100%;
+}
+#map { height: 100%; }
+
+.leaflet-popup-content { height : 100%; width: 100%; overflow : auto; }
+
+.image {
+  display: block;
+}
+
+.image img {
+  width: 100%;
+  height: auto;
+}
