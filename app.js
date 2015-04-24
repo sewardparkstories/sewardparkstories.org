@@ -263,10 +263,8 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
     
     if (checkedCategories.length > 0) {
       data.filter(filterByCategory).forEach(addMarker);
-    } else {
-      data.forEach(addMarker);
     }
-    
+
     map.addLayer(markerGroup);
   }
 
