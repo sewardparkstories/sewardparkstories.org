@@ -15,7 +15,7 @@ var SewardMap = (function(){
   var templates = {};
 
   templates.info = Handlebars.compile(
-    "<div class=\"popup\">\r\n  <h2 class=\"location-title\">{{ title }}</h2>\r\n\r\n  {{#each images}}\r\n  <div class=\"image\">\r\n    <img src=\"{{ this }}\">\r\n  </div>\r\n  {{/each}}\r\n\r\n  {{#if audio}}\r\n    {{{ audio }}}\r\n  {{/if}}\r\n\r\n  <div class=\"text\">\r\n    {{{ text }}}\r\n  </div>\r\n\r\n  <p><i>{{ credit }}</i></p>\r\n</div>"
+    "<div class=\"popup\">\n  <h2 class=\"location-title\">{{ title }}</h2>\n\n  {{#each images}}\n  <div class=\"image\">\n    <img src=\"{{ this }}\">\n  </div>\n  {{/each}}\n\n  {{#if audio}}\n    {{{ audio }}}\n  {{/if}}\n\n  <div class=\"text\">\n    {{{ text }}}\n  </div>\n\n  <p><i>{{ credit }}</i></p>\n</div>"
   );
 
   function init(){
@@ -16082,7 +16082,7 @@ module.exports={
   },
   "_id": "mapbox.js@2.1.8",
   "_shasum": "150136cd20464e2561f106bfd69be482b8c7f076",
-  "_from": "mapbox.js@^2.1.0",
+  "_from": "mapbox.js@>=2.1.0 <3.0.0",
   "_npmVersion": "2.3.0",
   "_nodeVersion": "0.10.36",
   "_npmUser": {
@@ -16224,7 +16224,8 @@ module.exports={
     "tarball": "http://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz"
   },
   "directories": {},
-  "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz"
+  "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz",
+  "readme": "ERROR: No README data found!"
 }
 
 },{}],37:[function(require,module,exports){
