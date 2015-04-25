@@ -8,9 +8,6 @@ var movement = require('geolocation-stream')();
 var Leaflet = require('leaflet');
 require('mapbox.js');
 
-/* redirect if user is directed to the default gh-pages url */
-if (location.hostname === 'sethvincent.com') location.href = 'http://sewardparkstories.org';
-
 var flatsheet = require('flatsheet-api-client')({
   host: 'http://seward.flatsheet.io'
 });
