@@ -28,6 +28,26 @@ var SewardMap = (function(){
     L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw';
     L.mapbox.tileLayer('sethvincent.de840f5b').addTo(map);
     L.Icon.Default.imagePath = '/node_modules/leaflet/dist/images/';
+
+    map.locate({watch: true, maxZoom: 16});
+
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', onLocationError);
+  }
+
+  function onLocationFound(e) {
+      var radius = e.accuracy / 16;
+      if (map.getBounds().constains(e.latlng)) {
+        if (currentLocation !== undefined) {
+          currentLocation = undefined;
+        }
+        currentLocation = L.circle(e.latlng, radius).addTo(map);
+      }
+  }
+
+  function onLocationError(e) {
+      //alert(e.message);
+      console.log(e.message);
   }
 
   function moveActiveMarker(latLng){
@@ -61,7 +81,7 @@ var SewardMap = (function(){
       maxWidth: maxWidth,
       maxHeight: maxHeight,
     };
-
+    
     var popup = L.popup(options).setContent(content);
     
     return popup;
