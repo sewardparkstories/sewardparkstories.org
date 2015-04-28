@@ -30,7 +30,7 @@ var SewardMap = (function(){
     L.mapbox.tileLayer('sethvincent.de840f5b').addTo(map);
     L.Icon.Default.imagePath = '/node_modules/leaflet/dist/images/';
 
-    map.locate({watch: true, maxZoom: 16});
+    map.locate({watch: false, maxZoom: 16});
 
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
