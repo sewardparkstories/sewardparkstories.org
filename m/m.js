@@ -33,11 +33,18 @@ var SewardMap = (function(){
 
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
+    map.on('popupclose', function(){
+      // remove active marker
+      if (activeMarker !== undefined) {
+        markerGroup.removeLayer(activeMarker);
+        activeMarker = undefined;
+      }
+    })
   }
 
   function onLocationFound(e) {
       var radius = e.accuracy / 16;
-      if (map.getBounds().constains(e.latlng)) {
+      if (map.getBounds().contains(e.latlng)) {
         if (currentLocation !== undefined) {
           currentLocation = undefined;
         }
@@ -81,9 +88,8 @@ var SewardMap = (function(){
       maxWidth: maxWidth,
       maxHeight: maxHeight,
     };
-    
+
     var popup = L.popup(options).setContent(content);
-    
     return popup;
   }
 
@@ -107,7 +113,9 @@ var SewardMap = (function(){
       latLng = L.latLng((latLng.lat + (latLng.lat - south) * 0.75), latLng.lng);
       map.panTo(latLng);
 
-      this.openPopup().update();
+      this.openPopup().on('popupclose', function(e){
+        console.log('close popup');})
+      .update();
       // window.location.hash = '/' + story.id;
       moveActiveMarker(this.getLatLng());
     });
