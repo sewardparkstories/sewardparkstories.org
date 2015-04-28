@@ -12,6 +12,7 @@ var SewardMap = (function(){
   var activeMarker;
   var stories;
   var templates = {};
+  var currentLocation;
 
   templates.info = Handlebars.compile(
     fs.readFileSync('m/popup-template.html', 'utf8')
@@ -49,23 +50,25 @@ var SewardMap = (function(){
 
   function storyPopup(story){
     var content = templates.info(story);
+    var maxWidth = 300;
+    var maxHeight = 300;
+    var sizeFactor = 0.75;
+    if (map.getSize().x < 300) {
+      maxWidth = map.getSize().x * sizeFactor;
+      maxHeight = map.getSize().y * sizeFactor;
+    }
     var options = {
-      offset: L.point(0, 6),
-      maxWidth: map.getSize().x * 0.75,
-      maxHeight: map.getSize().y * 0.75,
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
     };
-    var popup = L.popup(options)
-                .setContent(content);
+
+    var popup = L.popup(options).setContent(content);
     
-    console.log(popup.getLatLng());
     return popup;
-
-
   }
 
   function addMarker (story, i) {
     var latlng = { lat: story['lat'], lng: story['long'] };
-    // console.log(latlng);
     var marker = L.marker(latlng, {
       icon: L.mapbox.marker.icon({
         'marker-size': 'small',
@@ -73,7 +76,7 @@ var SewardMap = (function(){
         'marker-line-opacity': 1,
         'marker-color': '#335966',
       })
-    }).bindPopup(storyPopup(story))
+    }).bindPopup(storyPopup(story));
       
     markerGroup.addLayer(marker);
     
@@ -84,7 +87,7 @@ var SewardMap = (function(){
       latLng = L.latLng((latLng.lat + (latLng.lat - south) * 0.75), latLng.lng);
       map.panTo(latLng);
 
-      this.openPopup();
+      this.openPopup().update();
       // window.location.hash = '/' + story.id;
       moveActiveMarker(this.getLatLng());
     });

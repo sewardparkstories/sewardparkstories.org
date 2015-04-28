@@ -13,9 +13,10 @@ var SewardMap = (function(){
   var activeMarker;
   var stories;
   var templates = {};
+  var currentLocation;
 
   templates.info = Handlebars.compile(
-    "<div class=\"popup\">\n  <h2 class=\"location-title\">{{ title }}</h2>\n\n  {{#each images}}\n  <div class=\"image\">\n    <img src=\"{{ this }}\">\n  </div>\n  {{/each}}\n\n  {{#if audio}}\n    {{{ audio }}}\n  {{/if}}\n\n  <div class=\"text\">\n    {{{ text }}}\n  </div>\n\n  <p><i>{{ credit }}</i></p>\n</div>"
+    "<div class=\"popup\">\r\n  <h2 class=\"location-title\">{{ title }}</h2>\r\n\r\n  {{#each images}}\r\n  <div class=\"image\">\r\n    <img src=\"{{ this }}\">\r\n  </div>\r\n  {{/each}}\r\n\r\n  {{#if audio}}\r\n    {{{ audio }}}\r\n  {{/if}}\r\n\r\n  <div class=\"text\">\r\n    {{{ text }}}\r\n  </div>\r\n\r\n  <p><i>{{ credit }}</i></p>\r\n</div>"
   );
 
   function init(){
@@ -50,23 +51,25 @@ var SewardMap = (function(){
 
   function storyPopup(story){
     var content = templates.info(story);
+    var maxWidth = 300;
+    var maxHeight = 300;
+    var sizeFactor = 0.75;
+    if (map.getSize().x < 300) {
+      maxWidth = map.getSize().x * sizeFactor;
+      maxHeight = map.getSize().y * sizeFactor;
+    }
     var options = {
-      offset: L.point(0, 6),
-      maxWidth: map.getSize().x * 0.75,
-      maxHeight: map.getSize().y * 0.75,
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
     };
-    var popup = L.popup(options)
-                .setContent(content);
+
+    var popup = L.popup(options).setContent(content);
     
-    console.log(popup.getLatLng());
     return popup;
-
-
   }
 
   function addMarker (story, i) {
     var latlng = { lat: story['lat'], lng: story['long'] };
-    // console.log(latlng);
     var marker = L.marker(latlng, {
       icon: L.mapbox.marker.icon({
         'marker-size': 'small',
@@ -74,7 +77,7 @@ var SewardMap = (function(){
         'marker-line-opacity': 1,
         'marker-color': '#335966',
       })
-    }).bindPopup(storyPopup(story))
+    }).bindPopup(storyPopup(story));
       
     markerGroup.addLayer(marker);
     
@@ -85,7 +88,7 @@ var SewardMap = (function(){
       latLng = L.latLng((latLng.lat + (latLng.lat - south) * 0.75), latLng.lng);
       map.panTo(latLng);
 
-      this.openPopup();
+      this.openPopup().update();
       // window.location.hash = '/' + story.id;
       moveActiveMarker(this.getLatLng());
     });
@@ -16082,7 +16085,7 @@ module.exports={
   },
   "_id": "mapbox.js@2.1.8",
   "_shasum": "150136cd20464e2561f106bfd69be482b8c7f076",
-  "_from": "mapbox.js@>=2.1.0 <3.0.0",
+  "_from": "mapbox.js@^2.1.0",
   "_npmVersion": "2.3.0",
   "_nodeVersion": "0.10.36",
   "_npmUser": {
@@ -16224,8 +16227,7 @@ module.exports={
     "tarball": "http://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz"
   },
   "directories": {},
-  "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz",
-  "readme": "ERROR: No README data found!"
+  "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz"
 }
 
 },{}],37:[function(require,module,exports){
