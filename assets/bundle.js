@@ -40,11 +40,11 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
   var templates = {};
 
   templates.info = Handlebars.compile(
-    "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"\" class=\"ignore\">x</a>\n  <h2 class=\"location-title\">{{ title }}</h2>\n\n  {{#each images}}\n  <div class=\"image\">\n    <img src=\"{{ this }}\">\n  </div>\n  {{/each}}\n\n  {{#if audio}}\n    {{{ audio }}}\n  {{/if}}\n\n  <div class=\"text\">\n    {{{ text }}}\n  </div>\n\n  <p><i>{{ credit }}</i></p>\n</section>\n"
+    "<section class=\"modal-inner\">\r\n  <a id=\"close-modal\" href=\"\" class=\"ignore\">x</a>\r\n  <h2 class=\"location-title\">{{ title }}</h2>\r\n\r\n  {{#each images}}\r\n  <div class=\"image\">\r\n    <img src=\"{{ this }}\">\r\n  </div>\r\n  {{/each}}\r\n\r\n  {{#if audio}}\r\n    {{{ audio }}}\r\n  {{/if}}\r\n\r\n  <div class=\"text\">\r\n    {{{ text }}}\r\n  </div>\r\n\r\n  <p><i>{{ credit }}</i></p>\r\n</section>\r\n"
   );
 
   templates.list = Handlebars.compile(
-    "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\" class=\"ignore\">x</a>\n\n  <div class=\"locations\">\n    <h2>All locations</h2>\n  {{#each locations}}\n    <div class=\"list-item\">\n      <h2><a href=\"/#/{{ id }}\">{{ title }}</h2>\n    </div>\n  {{/each}}\n  </div>\n\n</section"
+    "<section class=\"modal-inner\">\r\n  <a id=\"close-modal\" href=\"#\" class=\"ignore\">x</a>\r\n\r\n  <div class=\"locations\">\r\n    <h2>All locations</h2>\r\n  {{#each locations}}\r\n    <div class=\"list-item\">\r\n      <h2><a href=\"/#/{{ id }}\">{{ title }}</h2>\r\n    </div>\r\n  {{/each}}\r\n  </div>\r\n\r\n</section"
   );
 
   /* 
@@ -131,7 +131,7 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
   });
 
   router.on('/about', function () {
-    var content = "<section class=\"modal-inner\">\n  <a id=\"close-modal\" href=\"#\">x</a>\n  \n  <div class=\"modal-content\">\n    \n    <h2>About <b>Sqebeqsed Stories</b></h2>\n    <p>Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.</p>\n    <p>“Place is a story happening many times.” So say the Kwakiutl people of coastal British Columbia.</p>\n    <p>Seward Park is stories happening over and over, many at once. People come here to celebrate, congregate, meditate, race, run, walk, swim, climb, picnic, play, reflect, relax, make art, learn, unlearn, unwind. This place has sustained local residents for ten thousand years.</p>\n    <p>Before it was named “Seward Park” a century ago, this forested peninsula jutting into Lake Washington was known as “Sqebeqsed,” or “fat nose” in the local language, Lushootseed. And so Seward Park Stories are <b>Sqebeqsed Stories</b>.</p>\n    <p>Here, you will find stories about life in Sqebeqsed and the many lives that intersect with it, both human and non-human, present and past.</p>\n    \n    \n    <hr>\n    \n    <p>Sqebeqsed Stories is created and curated by <a href=\"http://www.wendycall.com/\">Wendy Call</a>, in collaboration with photographer <a href=\"http://www.thomasbancroft.com/\">G. Thomas Bancroft</a>, researcher <a href=\"https://plu.academia.edu/ChristinaMontilla\">Christina Montilla</a>, web developer <a href=\"http://sethvincent.com\">Seth Vincent</a>, and many others who love Sqebeqsed. Made possible by an Individual Artist grant from <a href=\"http://www.4culture.org/\">4Culture</a>, with in-kind support from <a href=\"http://www.sewardpark.org/index.html\">Friends of Seward Park</a> and the <a href=\"http://sewardpark.audubon.org/\">Seward Park Audubon Center</a>.</p>\n  \n  <img src=\"assets/4culture.jpg\">\n  </div>\n\n</section>";
+    var content = "<section class=\"modal-inner\">\r\n  <a id=\"close-modal\" href=\"#\">x</a>\r\n  \r\n  <div class=\"modal-content\">\r\n    \r\n    <h2>About <b>Sqebeqsed Stories</b></h2>\r\n    <p>Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.</p>\r\n    <p>“Place is a story happening many times.” So say the Kwakiutl people of coastal British Columbia.</p>\r\n    <p>Seward Park is stories happening over and over, many at once. People come here to celebrate, congregate, meditate, race, run, walk, swim, climb, picnic, play, reflect, relax, make art, learn, unlearn, unwind. This place has sustained local residents for ten thousand years.</p>\r\n    <p>Before it was named “Seward Park” a century ago, this forested peninsula jutting into Lake Washington was known as “Sqebeqsed,” or “fat nose” in the local language, Lushootseed. And so Seward Park Stories are <b>Sqebeqsed Stories</b>.</p>\r\n    <p>Here, you will find stories about life in Sqebeqsed and the many lives that intersect with it, both human and non-human, present and past.</p>\r\n    \r\n    \r\n    <hr>\r\n    \r\n    <p>Sqebeqsed Stories is created and curated by <a href=\"http://www.wendycall.com/\">Wendy Call</a>, in collaboration with photographer <a href=\"http://www.thomasbancroft.com/\">G. Thomas Bancroft</a>, researcher <a href=\"https://plu.academia.edu/ChristinaMontilla\">Christina Montilla</a>, web developer <a href=\"http://sethvincent.com\">Seth Vincent</a>, and many others who love Sqebeqsed. Made possible by an Individual Artist grant from <a href=\"http://www.4culture.org/\">4Culture</a>, with in-kind support from <a href=\"http://www.sewardpark.org/index.html\">Friends of Seward Park</a> and the <a href=\"http://sewardpark.audubon.org/\">Seward Park Audubon Center</a>.</p>\r\n  \r\n  <img src=\"assets/4culture.jpg\">\r\n  </div>\r\n\r\n</section>";
     modal(content);
   })
 
@@ -22223,7 +22223,7 @@ module.exports={
   },
   "_id": "mapbox.js@2.1.8",
   "_shasum": "150136cd20464e2561f106bfd69be482b8c7f076",
-  "_from": "mapbox.js@>=2.1.0 <3.0.0",
+  "_from": "mapbox.js@^2.1.0",
   "_npmVersion": "2.3.0",
   "_nodeVersion": "0.10.36",
   "_npmUser": {
@@ -22365,8 +22365,7 @@ module.exports={
     "tarball": "http://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz"
   },
   "directories": {},
-  "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz",
-  "readme": "ERROR: No README data found!"
+  "_resolved": "https://registry.npmjs.org/mapbox.js/-/mapbox.js-2.1.8.tgz"
 }
 
 },{}],70:[function(require,module,exports){
@@ -24862,7 +24861,7 @@ exports["I'mateapot"] = exports.ImATeapot
 
 },{"inherits":105,"statuses":107}],105:[function(require,module,exports){
 module.exports=require(9)
-},{"/Users/sethvincent/workspace/seward-map/site-seward-map/node_modules/browserify/node_modules/inherits/inherits_browser.js":9}],106:[function(require,module,exports){
+},{"C:\\Users\\alimon808\\Source\\Repos\\seward-park-map\\node_modules\\browserify\\node_modules\\inherits\\inherits_browser.js":9}],106:[function(require,module,exports){
 module.exports={
   "100": "Continue",
   "101": "Switching Protocols",
