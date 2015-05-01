@@ -25,6 +25,7 @@
     "start": "serve -p 3123 & npm run watch"
   },
   "dependencies": {
+    "array-filter": "^0.2.0",
     "component-delegate": "^0.2.3",
     "element-class": "^0.1.1",
     "fastclick": "^1.0.1",

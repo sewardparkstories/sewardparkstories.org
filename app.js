@@ -5,6 +5,7 @@ var Handlebars = require('handlebars');
 var elClass = require('element-class');
 var on = require('component-delegate').bind;
 var movement = require('geolocation-stream')();
+var arrayFilter = require('array-filter');
 var Leaflet = require('leaflet');
 require('mapbox.js');
 
@@ -20,6 +21,11 @@ var mapEl = document.getElementById('map');
 
 flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
   var data = createImageArrays(sheet.rows);
+
+  data = arrayFilter(data, function (item, i, arr) {
+    console.log(item.published, item.published === 'true')
+    return item.published === 'true';
+  });
 
   var dataByID = {};
   var activeMarker;
