@@ -8,7 +8,7 @@ body {
 }
 
 .leaflet-popup-content {
-  height: 100%;
+  height: 300px;
   width: 100%;
   overflow: auto;
 }

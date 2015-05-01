@@ -13,6 +13,7 @@ var SewardMap = (function(){
   var activeMarker;
   var stories;
   var templates = {};
+  var currentLocation;
 
   templates.info = Handlebars.compile(
     "<div class=\"popup\">\n  <h2 class=\"location-title\">{{ title }}</h2>\n\n  {{#each images}}\n  <div class=\"image\">\n    <img src=\"{{ this }}\">\n  </div>\n  {{/each}}\n\n  {{#if audio}}\n    {{{ audio }}}\n  {{/if}}\n\n  <div class=\"text\">\n    {{{ text }}}\n  </div>\n\n  <p><i>{{ credit }}</i></p>\n</div>"
@@ -28,6 +29,33 @@ var SewardMap = (function(){
     L.mapbox.accessToken = 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw';
     L.mapbox.tileLayer('sethvincent.de840f5b').addTo(map);
     L.Icon.Default.imagePath = '/node_modules/leaflet/dist/images/';
+
+    map.locate({watch: false, maxZoom: 16});
+
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', onLocationError);
+    map.on('popupclose', function(){
+      // remove active marker
+      if (activeMarker !== undefined) {
+        markerGroup.removeLayer(activeMarker);
+        activeMarker = undefined;
+      }
+    })
+  }
+
+  function onLocationFound(e) {
+      var radius = e.accuracy / 16;
+      if (map.getBounds().contains(e.latlng)) {
+        if (currentLocation !== undefined) {
+          currentLocation = undefined;
+        }
+        currentLocation = L.circle(e.latlng, radius).addTo(map);
+      }
+  }
+
+  function onLocationError(e) {
+      //alert(e.message);
+      console.log(e.message);
   }
 
   function moveActiveMarker(latLng){
@@ -50,23 +78,24 @@ var SewardMap = (function(){
 
   function storyPopup(story){
     var content = templates.info(story);
+    var maxWidth = 300;
+    var maxHeight = 300;
+    var sizeFactor = 0.75;
+    if (map.getSize().x < 300) {
+      maxWidth = map.getSize().x * sizeFactor;
+      maxHeight = map.getSize().y * sizeFactor;
+    }
     var options = {
-      offset: L.point(0, 6),
-      maxWidth: map.getSize().x * 0.75,
-      maxHeight: map.getSize().y * 0.75,
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
     };
-    var popup = L.popup(options)
-                .setContent(content);
-    
-    console.log(popup.getLatLng());
+
+    var popup = L.popup(options).setContent(content);
     return popup;
-
-
   }
 
   function addMarker (story, i) {
     var latlng = { lat: story['lat'], lng: story['long'] };
-    // console.log(latlng);
     var marker = L.marker(latlng, {
       icon: L.mapbox.marker.icon({
         'marker-size': 'small',
@@ -74,7 +103,7 @@ var SewardMap = (function(){
         'marker-line-opacity': 1,
         'marker-color': '#335966',
       })
-    }).bindPopup(storyPopup(story))
+    }).bindPopup(storyPopup(story));
       
     markerGroup.addLayer(marker);
     
@@ -85,7 +114,9 @@ var SewardMap = (function(){
       latLng = L.latLng((latLng.lat + (latLng.lat - south) * 0.75), latLng.lng);
       map.panTo(latLng);
 
-      this.openPopup();
+      this.openPopup().on('popupclose', function(e){
+        console.log('close popup');})
+      .update();
       // window.location.hash = '/' + story.id;
       moveActiveMarker(this.getLatLng());
     });
