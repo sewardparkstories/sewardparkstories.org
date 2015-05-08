@@ -126,6 +126,10 @@ var SewardMap = (function(){
     flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, sheet) {
       var data = createImageArrays(sheet.rows);
 
+      data = arrayFilter(data, function (item, i, arr) {
+        return item.published === 'true';
+      });
+
       var dataByID = {};
       for (var i = 0, l = data.length; i < l; i++) {
         data[i].id = slugify(data[i].title);
