@@ -1,5 +1,6 @@
 var fs = require('fs');
 var Handlebars = require('handlebars');
+var arrayFilter = require('array-filter');
 require('leaflet');
 require('mapbox.js');
 var flatsheet = require('flatsheet-api-client')({
