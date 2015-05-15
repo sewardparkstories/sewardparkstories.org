@@ -147,7 +147,7 @@ var SewardMap = (function(){
         if (!item['image_1']) return;
         var images = [];
         if (item['image_1'].length > 1) images[0] = item['image_1'];
-        if (item['image_2'].length > 1) images[1] = item['image_2'];
+        if (item['image_2'] && item['image_2'].length > 1) images[1] = item['image_2'];
         item.images = images;
       });
       return data;
