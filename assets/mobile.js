@@ -128,7 +128,7 @@ var SewardMap = (function(){
       var data = createImageArrays(sheet.rows);
 
       data = arrayFilter(data, function (item, i, arr) {
-        return item.published === 'true';
+        return item.published === 'true' && item.lat && item.long;
       });
 
       var dataByID = {};

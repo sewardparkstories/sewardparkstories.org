@@ -23,8 +23,7 @@ flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', function (err, shee
   var data = createImageArrays(sheet.rows);
 
   data = arrayFilter(data, function (item, i, arr) {
-    console.log(item.published, item.published === 'true')
-    return item.published === 'true';
+    return item.published === 'true' && item.lat && item.long;
   });
 
   var dataByID = {};
