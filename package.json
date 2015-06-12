@@ -37,6 +37,7 @@
     "leaflet-providers": "^1.0.3",
     "mapbox.js": "^2.1.0",
     "normalize-css": "git://github.com/sethvincent/normalize-css",
+    "popupjs": "^1.3.0",
     "wayfarer": "^2.2.0"
   },
   "devDependencies": {
