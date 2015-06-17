@@ -4,9 +4,8 @@ var flatsheet = require('flatsheet-api-client')({
   host: 'http://seward.flatsheet.io'
 })
 
-var templates = require('./templates/index')
-
 var app = require('./lib/router')()
+var templates = require('./templates/index')
 var content = require('./lib/content')(document.getElementById('content'))
 flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', response)
 
@@ -24,17 +23,24 @@ function response (error, sheet) {
     }
   })
 
+  var list = require('./lib/list')()
+
+  list.addEventListener('hover', function (e, item) {
+    
+  })
+
   app.on('/', function () {
     content.render(templates.home())
   })
 
   app.on('/:slug', function (slug) {
     var item = find.bySlug(slug.slice(1))
+    if (!item) return app.go('/error')
     content.render(templates.location(item.properties), { height: '70%' })
   })
 
   app.on('/list', function (ctx) {
-    content.render(templates.list(), { height: '70%' })
+    content.render(templates.list(list.render(data)), { height: '70%' })
   })
 
   app.on('/about', function () {

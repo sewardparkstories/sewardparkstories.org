@@ -73,6 +73,15 @@ ul.actions li a {
   margin: 0px 0px 20px 0px;
 }
 
+#home ul.actions li.logo {
+  display: none;  
+}
+
+ul.actions li.logo a {
+  border: 0px;
+  padding: 0px;
+}
+
 .page ul.actions {
   position: absolute;
   z-index: 1;
@@ -112,4 +121,28 @@ span.close {
   right: 16px;
   z-index: 10;
   font-size: 20px;
+}
+
+ul.location-list {
+  margin: 0px;
+  padding: 0px;
+}
+
+ul.location-list li {
+  list-style-type: none;
+}
+
+ul.location-list a {
+  border-left: 5px solid #999;
+  padding-left: 7px;
+  display: block;
+  margin-bottom: 10px;
+  text-decoration: none;
+  color: #666;
+  font-weight: 600;
+}
+
+ul.location-list a:hover {
+  border-left: 5px solid #333;
+  color: #333;
 }

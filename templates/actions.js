@@ -1,10 +1,23 @@
 var h = require('virtual-dom/h')
 
-module.exports = function () {
-  return h('ul.actions', [
-    h('li', [h('img.logo-small', { src: 'assets/logo.png' })]),
-    h('li', [h('a', { href: "#/about" }, 'about')]),
-    h('li', [h('a', { href: "#/list" }, 'list')]),
-    h('li', [h('a', { href: "#/nearby" }, 'nearby')])
-  ])
+module.exports = function (closeButton) {
+  var actions = ['about', 'list', 'nearby'] 
+  
+  function onclick (e) {
+    closeButton.show()
+  }
+
+  var items = [h('li.logo', [
+    h('a', { href: '#', onclick: onclick }, [
+      h('img.logo-small', { src: 'assets/logo.png' })
+    ])
+  ])]
+
+  actions.forEach(function (action) {
+    items.push(h('li', [
+      h('a', { href: '#/'+action, onclick: onclick }, action)
+    ]))
+  })
+
+  return h('ul.actions', items)
 }
