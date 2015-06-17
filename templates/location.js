@@ -3,9 +3,9 @@ var layout = require('./layout')
 var vdom = require('vdom-virtualize').fromHTML
 var md = require('marked')
 
-module.exports = function (data) {
-  return layout('location', [
-    h('h1', data.title),
-    h('div.location-content', vdom(md(data.text)))
+module.exports = function (state) {
+  return layout('location', state, [
+    h('h1', state.item.title),
+    h('div.location-content', vdom(md(state.item.text)))
   ])
 }

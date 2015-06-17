@@ -1,10 +1,10 @@
 var h = require('virtual-dom/h')
 
-module.exports = function (closeButton) {
-  var actions = ['about', 'list', 'nearby'] 
-  
+module.exports = function (closeButton, state) {
+  var actions = ['about', 'list'] 
+
   function onclick (e) {
-    closeButton.show()
+    if (closeButton) closeButton.show(null, state)
   }
 
   var items = [h('li.logo', [

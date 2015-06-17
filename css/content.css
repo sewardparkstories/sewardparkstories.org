@@ -25,11 +25,38 @@ hr {
   transition: max-height .5s ease;
 }
 
+@media (min-width: 800px) {
+  #content {
+    top: 0;
+    left: 0;
+    width: 40%;
+    height: 100% !important;
+    border-right: 1px solid #aaa;
+    border-top: 0px;
+    -moz-transition: max-height 0s;
+    -webkit-transition: max-height 0s;
+    -o-transition: max-height 0s;
+    transition: max-height 0s;
+  }
+}
+
 img.logo {
   width: 200px;
   height: auto;
   display: block;
   margin: 10px auto 20px auto;
+}
+
+@media (min-width: 500px) {
+  img.logo {
+    margin-top: 10%;
+  }
+}
+
+@media (min-width: 800px) {
+  img.logo {
+    margin-top: 30%;
+  }
 }
 
 .wrapper {
@@ -102,8 +129,9 @@ ul.actions img {
 
 div.welcome {
   padding: 0px 20px;
-  margin-bottom: 20px;
+  margin: 0px auto 20px auto;
   text-align: center;
+  max-width: 325px;
 }
 
 #content {
