@@ -8,8 +8,8 @@ var data = require('./data.json')
 test('format data', function (t) {
   data = format(data.rows)
   each(data, function (item, i, done) {
-    t.equals(isarray(item.images), true)
-    t.ok(item.slug)
+    t.equals(isarray(item.properties.images), true)
+    t.ok(item.properties.slug)
     done()
   }, function () { t.end() })
 })
@@ -18,7 +18,7 @@ test('find data by slug', function (t) {
   var find = require('../lib/find-data')(data)
   var item = find.bySlug('in-shallow-water')
   t.ok(item)
-  t.equals(item.slug, 'in-shallow-water')
+  t.equals(item.properties.slug, 'in-shallow-water')
   t.end()
 })
 
