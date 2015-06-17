@@ -22122,7 +22122,6 @@ module.exports = function (id, content) {
     require('./actions')(),
     h('span.close', {
       onclick: function (e) {
-        console.log('weeeeeeeeeeeee')
         var i = e.target
         if (elClass(i).has('fa-chevron-down')) {
           elClass(i).remove('fa-chevron-down')
@@ -22133,7 +22132,6 @@ module.exports = function (id, content) {
           elClass(i).remove('fa-chevron-up')
           elClass(i).add('fa-chevron-down')
         }
-        console.log(e.target)
       }
     }, [h('i.fa.fa-chevron-down')]),
     h('div.scroller', content)
@@ -22155,7 +22153,6 @@ var vdom = require('vdom-virtualize').fromHTML
 var md = require('marked')
 
 module.exports = function (data) {
-  console.log(vdom(md(data.text)))
   return layout('location', [
     h('h1', data.title),
     h('div.location-content', vdom(md(data.text)))
