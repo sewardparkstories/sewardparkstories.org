@@ -29,3 +29,10 @@ test('find data by category', function (t) {
   t.equals(list.length, 13)
   t.end()
 })
+
+test('a location is geojson', function (t) {
+  each(data, function (item, i, done) {
+    t.ok(require('is-geojson')(item))
+    done()
+  }, function () { t.end() })
+})

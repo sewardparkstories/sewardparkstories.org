@@ -55,6 +55,7 @@
     "csv-parser": "^1.4.6",
     "each-async": "^1.1.1",
     "gazer": "0.0.3",
+    "is-geojson": "^1.0.1",
     "isarray": "0.0.1",
     "sheetify": "^2.0.0",
     "tap-spec": "^4.0.0",
