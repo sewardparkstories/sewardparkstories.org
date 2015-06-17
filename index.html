@@ -7,54 +7,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="canonical" href="http://sewardparkstories.org"/>
   <link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css">
-  <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.0/mapbox.css' rel='stylesheet' />
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.9/mapbox.css' rel='stylesheet' />
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700|Lora:400,400italic' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" href="/assets/bundle.css">
   <script>
   /* redirect if user is directed to the default gh-pages url */
   if (location.hostname === 'sethvincent.com') location.href = 'http://sewardparkstories.org';
-
-  // redirect to mobile app if mobile browser is detected
-  var isMobile = {  
-    Android: function() { 
-      return navigator.userAgent.match(/Android/i); }, 
-    BlackBerry: function() { 
-      return navigator.userAgent.match(/BlackBerry/i); }, 
-    iOS: function() { 
-      return navigator.userAgent.match(/iPhone|iPad|iPod/i); }, 
-    Opera: function() { 
-      return navigator.userAgent.match(/Opera Mini/i); }, 
-    Windows: function() { 
-      return navigator.userAgent.match(/IEMobile/i); }, 
-    any: function() { 
-      return (isMobile.Android() || 
-              isMobile.BlackBerry() || 
-              isMobile.iOS() || 
-              isMobile.Opera() || 
-              isMobile.Windows()); 
-      } 
-    };
-    if (isMobile.any()) {
-      location.href = location.protocol + '//' + location.host + '/m';
-    }
   </script>
 </head>
 <body>
 
 <div id="main">
-  <div class="container" id="menu">
-    <header>
-      <h1>Seward Park Stories</h2>
-      <ul class="nav">
-        <li><a href="/#/list" id="list">list</a></li>
-        <!--<li><a href="#" id="nearby-view">nearby</a></li>-->
-        <li><a href="/#/about" id="about">about</a></li>
-      </ul>
-    </header>
-  </div>
-  <div id="filter" class="leaflet-bar"></div>
+  <div id="content"></div>
   <div id="map" class="map-container"></div>
 </div>
+
+<section class="modal-inner" style="display:none">
+  <a id="close-modal" href="#">x</a>
+
+  <div class="modal-content">
+    <h2>About <b>Sqebeqsed Stories</b></h2>
+    <p>Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.</p>
+    <p>“Place is a story happening many times.” So say the Kwakiutl people of coastal British Columbia.</p>
+    <p>Seward Park is stories happening over and over, many at once. People come here to celebrate, congregate, meditate, race, run, walk, swim, climb, picnic, play, reflect, relax, make art, learn, unlearn, unwind. This place has sustained local residents for ten thousand years.</p>
+    <p>Before it was named “Seward Park” a century ago, this forested peninsula jutting into Lake Washington was known as “Sqebeqsed,” or “fat nose” in the local language, Lushootseed. And so Seward Park Stories are <b>Sqebeqsed Stories</b>.</p>
+    <p>Here, you will find stories about life in Sqebeqsed and the many lives that intersect with it, both human and non-human, present and past.</p>
+    <hr>
+    <p>Sqebeqsed Stories is created and curated by <a href="http://www.wendycall.com/">Wendy Call</a>, in collaboration with photographer <a href="http://www.thomasbancroft.com/">G. Thomas Bancroft</a>, researcher <a href="https://plu.academia.edu/ChristinaMontilla">Christina Montilla</a>, web developer <a href="http://sethvincent.com">Seth Vincent</a>, and many others who love Sqebeqsed. Made possible by an Individual Artist grant from <a href="http://www.4culture.org/">4Culture</a>, with in-kind support from <a href="http://www.sewardpark.org/index.html">Friends of Seward Park</a> and the <a href="http://sewardpark.audubon.org/">Seward Park Audubon Center</a>.</p>
+    <img src="assets/4culture.jpg">
+  </div>
+</section>
 
 <script src="/assets/bundle.js"></script>
 </body>
