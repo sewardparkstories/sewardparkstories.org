@@ -1,4 +1,5 @@
 require('fastclick')(document.body)
+var on = require('dom-event')
 
 var flatsheet = require('flatsheet-api-client')({
   host: 'http://seward.flatsheet.io'

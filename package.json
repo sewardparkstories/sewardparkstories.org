@@ -26,6 +26,7 @@
     "array-filter": "^0.2.0",
     "base-element": "^3.0.1",
     "basscss-grid": "^1.0.2",
+    "component-delegate": "^0.2.3",
     "csskit": "^1.1.1",
     "cuid": "^1.2.5",
     "dom-event": "0.0.5",
