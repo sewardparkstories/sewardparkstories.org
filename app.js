@@ -53,8 +53,16 @@ function response (error, sheet) {
     content.render(templates.location, state)
   })
 
-  app.on('/list', function (ctx) {
+  app.on('/list', function () {
     state.list = list.render(locations)
+    map.setGeoJSON(locations)
+    content.render(templates.list, state)
+  })
+
+  app.on('/list/:category', function (path, params) {
+    var locations = find.byCategory(params.category)
+    state.list = list.render(locations)
+    map.setGeoJSON(locations)
     content.render(templates.list, state)
   })
 

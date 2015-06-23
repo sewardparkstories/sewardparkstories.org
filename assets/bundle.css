@@ -1173,6 +1173,34 @@ ul.location-list a:hover {
   color: #333;
 }
 
+#list .filter {
+  margin: 0px;
+  padding: 0px;
+  height: 40px;
+}
+
+#list .filter li {
+  display: inline;
+  margin-right: 3px;
+}
+
+#list .filter a {
+  border: 1px solid #999;
+  border-radius: 2px;
+  padding: 4px 6px;
+  color: #535355;
+  font-weight: 400;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: .02em;
+}
+
+#list .filter a.active {
+  background-color: #999;
+  color: #fff;
+}
+
 *,
 *:before,
 *:after {

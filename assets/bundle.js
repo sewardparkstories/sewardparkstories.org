@@ -54,8 +54,16 @@ function response (error, sheet) {
     content.render(templates.location, state)
   })
 
-  app.on('/list', function (ctx) {
+  app.on('/list', function () {
     state.list = list.render(locations)
+    map.setGeoJSON(locations)
+    content.render(templates.list, state)
+  })
+
+  app.on('/list/:category', function (path, params) {
+    var locations = find.byCategory(params.category)
+    state.list = list.render(locations)
+    map.setGeoJSON(locations)
     content.render(templates.list, state)
   })
 
@@ -165,6 +173,7 @@ module.exports = function (data) {
 
   find.byCategory = function byCategory (category) {
     return arrayFilter(data, function (item, i, arr) {
+      console.log(category, item.properties.category, category === item.properties.category)
       return category === item.properties.category
     })
   }
@@ -314,6 +323,10 @@ module.exports = function (state, options) {
   markerLayer.on('click', function(e) {
     setActive(e, e.layer)
   })
+  
+  function setGeoJSON (locations) {
+    markerLayer.setGeoJSON(locations)
+  }
 
   function setActive (e, layer) {
     closeButton.show(null, state)
@@ -339,6 +352,7 @@ module.exports = function (state, options) {
   return {
     map: map,
     setActive: setActive,
+    setGeoJSON: setGeoJSON,
     markerLayer: markerLayer,
     attributionPosition: attributionPosition
   }
@@ -27089,15 +27103,36 @@ module.exports = function (id, state, content) {
 
 },{"../lib/close-button":2,"./actions":161,"virtual-dom/h":113}],166:[function(require,module,exports){
 var h = require('virtual-dom/h')
+var elClass = require('element-class')
 var layout = require('./layout')
 
 module.exports = function (state) {
+  function onclick (e) {
+    console.log('weeeee', e)
+    var tags = document.querySelectorAll('.filter a')
+    console.log(tags, tags.length)
+    
+    var i=0
+    var l = tags.length
+    for (i; i<l; i++) {
+      elClass(tags[i]).remove('active')
+    }
+    elClass(e.target).add('active')
+  }
+  
   return layout('list', state, [
     h('h1', 'Locations'),
+    h('ul.filter', [
+      h('li', [h('a', { onclick: onclick, href: '#/list' }, 'all')]),
+      h('li', [h('a', { onclick: onclick, href: '#/list/culture' }, 'culture')]),
+      h('li', [h('a', { onclick: onclick, href: '#/list/ecology' }, 'ecology')]),
+      h('li', [h('a', { onclick: onclick, href: '#/list/landscape' }, 'landscape')]),
+    ]),
     state.list
   ])
 }
-},{"./layout":165,"virtual-dom/h":113}],167:[function(require,module,exports){
+
+},{"./layout":165,"element-class":40,"virtual-dom/h":113}],167:[function(require,module,exports){
 var h = require('virtual-dom/h')
 var layout = require('./layout')
 var vdom = require('vdom-virtualize').fromHTML
@@ -27108,10 +27143,6 @@ module.exports = function (state) {
 
   if (state.item.audio) {
     media.push(h('div', vdom(state.item.audio)))
-  }
-
-  if (state.item.video) {
-    media.push(h('div', vdom(state.item.video)))
   }
 
   if (state.item.images.length) {
