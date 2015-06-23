@@ -5,14 +5,16 @@ var flatsheet = require('flatsheet-api-client')({
   host: 'http://seward.flatsheet.io'
 })
 
-var app = require('./lib/router')()
 var templates = require('./templates/index')
 var content = require('./lib/content')(document.getElementById('content'))
+var state = require('./lib/state')(content)
+var app = require('./lib/router')()
+
 flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', response)
 
 function response (error, sheet) {
   if (error) app.go('/error')
-  var state = require('./lib/state')(content)
+  
   var locations = require('./lib/format-data')(sheet.rows)
   var find = require('./lib/find-data')(locations)
   state.locations = locations

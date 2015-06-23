@@ -1136,6 +1136,11 @@ div.location-content {
   line-height: 1.6;
 }
 
+div.location-content img {
+  width: 100%;
+  height: auto;
+}
+
 span.close {
   position: absolute;
   top: 13px;

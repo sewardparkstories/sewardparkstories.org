@@ -4,6 +4,18 @@ var vdom = require('vdom-virtualize').fromHTML
 var md = require('marked')
 
 module.exports = function (state) {
+  var media = []
+
+  if (state.item.audio) {
+    media.push(h('div', vdom(state.item.audio)))
+  }
+
+  if (state.item.images.length) {
+    state.item.images.forEach(function (image) {
+      media.push(h('img', { src: image }))
+    })
+  }
+
   return layout('location', state, [
     h('h1', state.item.title),
     h('div.location-content', {
@@ -16,6 +28,6 @@ module.exports = function (state) {
           }
         }
       }
-    }, vdom(md(state.item.text)))
+    }, [media, vdom(md(state.item.text))])
   ])
 }
