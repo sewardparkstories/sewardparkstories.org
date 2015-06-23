@@ -14,6 +14,7 @@
   "scripts": {
     "test": "node tests/index.js | tap-spec",
     "parse-csv": "node bin/parse-csv.js",
+    "bundle-html": "./bin/bundle-html.js templates/about.html > templates/aboutsrc.js",
     "bundle-css": "sheetify css/index.css > assets/bundle.css",
     "bundle-js": "browserify app.js -o assets/bundle.js -t brfs",
     "bundle": "npm run bundle-css & npm run bundle-js",
@@ -57,6 +58,7 @@
     "csv-parser": "^1.4.6",
     "each-async": "^1.1.1",
     "gazer": "0.0.3",
+    "html2hyperscript": "^1.0.1",
     "is-geojson": "^1.0.1",
     "isarray": "0.0.1",
     "sheetify": "^2.0.0",

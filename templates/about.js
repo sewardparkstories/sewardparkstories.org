@@ -6,6 +6,6 @@ var layout = require('./layout')
 module.exports = function (state) {
   return layout('about', state, [
     h('h1', 'About Sqebeqsed Stories'),
-    h('div.about-text', vdom(fs.readFileSync(__dirname + '/about.html').toString()))
+    h('div.about-text', [require('./aboutsrc.js')])
   ])
 }
