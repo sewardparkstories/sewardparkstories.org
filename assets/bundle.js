@@ -27108,10 +27108,7 @@ var layout = require('./layout')
 
 module.exports = function (state) {
   function onclick (e) {
-    console.log('weeeee', e)
     var tags = document.querySelectorAll('.filter a')
-    console.log(tags, tags.length)
-    
     var i=0
     var l = tags.length
     for (i; i<l; i++) {
@@ -27119,7 +27116,7 @@ module.exports = function (state) {
     }
     elClass(e.target).add('active')
   }
-  
+
   return layout('list', state, [
     h('h1', 'Locations'),
     h('ul.filter', [
