@@ -12,6 +12,7 @@
     ]
   },
   "scripts": {
+    "deploy-demo": "surge . sewardparkstories.surge.sh",
     "test": "node tests/index.js | tap-spec",
     "parse-csv": "node bin/parse-csv.js",
     "bundle-html": "./bin/bundle-html.js templates/about.html > templates/aboutsrc.js",
@@ -62,6 +63,7 @@
     "is-geojson": "^1.0.1",
     "isarray": "0.0.1",
     "sheetify": "^2.0.0",
+    "surge": "^0.14.2",
     "tap-spec": "^4.0.0",
     "tape": "^4.0.0",
     "watchify": "^0.8.3"
