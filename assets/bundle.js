@@ -24,12 +24,22 @@ function response (error, sheet) {
     mapboxToken: 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw',
     tileLayer: 'sethvincent.de840f5b',
     onclick: function (e) {
-      app.go(e.layer.feature.properties.slug)
+      if (e.layer) app.go(e.layer.feature.properties.slug)
     }
   })
 
   var list = require('./lib/list')()
-  list.addEventListener('hover', function (e, item) {})
+  list.addEventListener('click', function (e, item) {
+    var layers = map.markerLayer._layers
+    for (key in layers) {
+      var layer = layers[key]
+      var slug = layer.feature.properties.slug
+      var page = e.target.href.split('#')[1]
+      if (slug === page) {
+        map.setActive(e, layer)
+      }
+    }
+  })
 
   app.on('/', function () {
     content.render(templates.home, state)
@@ -190,7 +200,7 @@ module.exports = function (data) {
         properties: item
       }
 
-      point.properties['marker-size'] = 'small'
+      point.properties['marker-size'] = 'medium'
       point.properties['marker-line-color'] = '#004990'
       point.properties['marker-line-opacity'] = 1
       point.properties['marker-color'] = '#004990';
@@ -269,7 +279,7 @@ module.exports = function (state, options) {
   })
 
   new L.Control.Zoom({ position: 'topright' }).addTo(map)
-  
+
   function attributionPosition (position) {
     new L.control.attribution({ position: state.attribution })
       .setPrefix('')
@@ -294,16 +304,21 @@ module.exports = function (state, options) {
   })
 
   markerLayer.on('click', function(e) {
-    closeButton.show(null, state)
-    resetColors()
-    setColor(e)
-    markerLayer.setGeoJSON(state.locations)
-    options.onclick(e)
+    setActive(e, e.layer)
   })
 
-  function setColor (e) {
-    e.layer.feature.properties['old-color'] = e.layer.feature.properties['marker-color']
-    e.layer.feature.properties['marker-color'] = '#ff8888'
+  function setActive (e, layer) {
+    closeButton.show(null, state)
+    resetColors()
+    setColor(layer)
+    layer.feature.zIndexOffset = 1000
+    markerLayer.setGeoJSON(state.locations)
+    options.onclick(e)
+  }
+
+  function setColor (layer) {
+    layer.feature.properties['old-color'] = layer.feature.properties['marker-color']
+    layer.feature.properties['marker-color'] = '#ff8888'
   }
 
   function resetColors() {
@@ -315,6 +330,7 @@ module.exports = function (state, options) {
 
   return {
     map: map,
+    setActive: setActive,
     markerLayer: markerLayer,
     attributionPosition: attributionPosition
   }

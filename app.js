@@ -23,12 +23,22 @@ function response (error, sheet) {
     mapboxToken: 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw',
     tileLayer: 'sethvincent.de840f5b',
     onclick: function (e) {
-      app.go(e.layer.feature.properties.slug)
+      if (e.layer) app.go(e.layer.feature.properties.slug)
     }
   })
 
   var list = require('./lib/list')()
-  list.addEventListener('hover', function (e, item) {})
+  list.addEventListener('click', function (e, item) {
+    var layers = map.markerLayer._layers
+    for (key in layers) {
+      var layer = layers[key]
+      var slug = layer.feature.properties.slug
+      var page = e.target.href.split('#')[1]
+      if (slug === page) {
+        map.setActive(e, layer)
+      }
+    }
+  })
 
   app.on('/', function () {
     content.render(templates.home, state)
