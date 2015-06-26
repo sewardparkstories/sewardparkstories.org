@@ -54,13 +54,14 @@ function response (error, sheet) {
   })
 
   app.on('/list', function () {
+    state.filteredLocations = null
     state.list = list.render(locations)
     map.setGeoJSON(locations)
     content.render(templates.list, state)
   })
 
   app.on('/list/:category', function (path, params) {
-    var locations = find.byCategory(params.category)
+    var locations = state.filteredLocations = find.byCategory(params.category)
     state.list = list.render(locations)
     map.setGeoJSON(locations)
     content.render(templates.list, state)

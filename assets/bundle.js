@@ -55,13 +55,14 @@ function response (error, sheet) {
   })
 
   app.on('/list', function () {
+    state.filteredLocations = null
     state.list = list.render(locations)
     map.setGeoJSON(locations)
     content.render(templates.list, state)
   })
 
   app.on('/list/:category', function (path, params) {
-    var locations = find.byCategory(params.category)
+    var locations = state.filteredLocations = find.byCategory(params.category)
     state.list = list.render(locations)
     map.setGeoJSON(locations)
     content.render(templates.list, state)
@@ -294,7 +295,6 @@ module.exports = function (state, options) {
   })
 
   state.on('resize', function () {
-    console.log('resize', state)
     map.setZoom(state.map.zoom)
     map.setView(state.map.center)
   })
@@ -337,7 +337,7 @@ module.exports = function (state, options) {
     resetColors()
     setColor(layer)
     layer.feature.zIndexOffset = 1000
-    markerLayer.setGeoJSON(state.locations)
+    markerLayer.setGeoJSON(state.filteredLocations || state.locations)
     options.onclick(e)
   }
 
