@@ -27192,7 +27192,13 @@ module.exports = function (state) {
           }
         }
       }
-    }, [media, vdom(md(state.item.text))])
+    }, [
+      media, 
+      vdom(md(state.item.text)),
+      h('p', [
+        h('i', state.item.credit)
+      ])
+    ])
   ])
 }
 },{"../lib/external":4,"./layout":166,"marked":84,"vdom-virtualize":85,"virtual-dom/h":113}],169:[function(require,module,exports){

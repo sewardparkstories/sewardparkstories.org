@@ -28,6 +28,12 @@ module.exports = function (state) {
           }
         }
       }
-    }, [media, vdom(md(state.item.text))])
+    }, [
+      media, 
+      vdom(md(state.item.text)),
+      h('p', [
+        h('i', state.item.credit)
+      ])
+    ])
   ])
 }
