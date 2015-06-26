@@ -1,13 +1,13 @@
 var h = require('virtual-dom/h')
 var layout = require('./layout')
-var vdom = require('vdom-virtualize').fromHTML
+var vdom = require('virtual-html')
 var md = require('marked')
 
 module.exports = function (state) {
   var media = []
 
   if (state.item.audio) {
-    media.push(h('div', vdom(state.item.audio)))
+    media.push(vdom('<div>' + state.item.audio + '</div>'))
   }
 
   if (state.item.images.length) {
@@ -30,7 +30,7 @@ module.exports = function (state) {
       }
     }, [
       media, 
-      vdom(md(state.item.text)),
+      vdom(md('<div>' + state.item.text + '</div>')),
       h('p', [
         h('i', state.item.credit)
       ])

@@ -15,7 +15,6 @@
     "deploy-demo": "surge . sewardparkstories.surge.sh",
     "test": "node tests/index.js | tap-spec",
     "parse-csv": "node bin/parse-csv.js",
-    "bundle-html": "./bin/bundle-html.js templates/about.html > templates/aboutsrc.js",
     "bundle-css": "sheetify css/index.css > assets/bundle.css",
     "bundle-js": "browserify app.js -o assets/bundle.js -t brfs",
     "bundle": "npm run bundle-css & npm run bundle-js",
@@ -46,9 +45,9 @@
     "marked": "^0.3.3",
     "normalize.css": "^3.0.3",
     "popupjs": "^1.3.0",
-    "vdom-virtualize": "0.0.10",
     "view-list": "^2.0.0",
     "virtual-dom": "^2.0.1",
+    "virtual-html": "^1.3.0",
     "wayfarer": "^2.2.0"
   },
   "devDependencies": {
@@ -58,8 +57,6 @@
     "chokidar-cli": "^0.2.1",
     "csv-parser": "^1.4.6",
     "each-async": "^1.1.1",
-    "gazer": "0.0.3",
-    "html2hyperscript": "^1.0.1",
     "is-geojson": "^1.0.1",
     "isarray": "0.0.1",
     "sheetify": "^2.0.0",
