@@ -79,7 +79,7 @@ function response (error, sheet) {
   app.start()
 }
 
-},{"./lib/content":3,"./lib/find-data":5,"./lib/format-data":6,"./lib/list":7,"./lib/map":8,"./lib/router":9,"./lib/state":11,"./templates/index":188,"dom-event":58,"fastclick":61,"flatsheet-api-client":63}],2:[function(require,module,exports){
+},{"./lib/content":3,"./lib/find-data":5,"./lib/format-data":6,"./lib/list":7,"./lib/map":8,"./lib/router":9,"./lib/state":11,"./templates/index":189,"dom-event":58,"fastclick":61,"flatsheet-api-client":63}],2:[function(require,module,exports){
 var h = require('virtual-dom/h')
 var elClass = require('element-class')
 
@@ -127,7 +127,7 @@ module.exports = function (state) {
     toggle: toggle
   }
 }
-},{"element-class":59,"virtual-dom/h":131}],3:[function(require,module,exports){
+},{"element-class":59,"virtual-dom/h":132}],3:[function(require,module,exports){
 var BaseElement = require('base-element')
 var inherits = require('inherits')
 
@@ -153,7 +153,7 @@ Content.prototype.resize = function (state) {
   else this.el.style['max-height'] = '100%'
 }
 
-},{"base-element":13,"inherits":73}],4:[function(require,module,exports){
+},{"base-element":13,"inherits":74}],4:[function(require,module,exports){
 module.exports = external
 
 function check (url) {
@@ -275,10 +275,11 @@ module.exports = function (opts) {
 
   return list
 }
-},{"extend":60,"view-list":104}],8:[function(require,module,exports){
+},{"extend":60,"view-list":105}],8:[function(require,module,exports){
 var L = require('leaflet')
 require('mapbox.js')
 
+var movement = require('geolocation-stream')()
 var closeButton = require('./close-button')()
 
 module.exports = function (state, options) {
@@ -299,6 +300,17 @@ module.exports = function (state, options) {
     map.setView(state.map.center)
   })
 
+  var location = L.marker([47, -122], {
+    icon: L.mapbox.marker.icon({
+      'marker-size': 'small',
+      'marker-color': '#fa0'
+    })
+  }).addTo(map)
+
+  movement.on('data', function (data) {
+    location.setLatLng(new L.LatLng(data.coords.latitude, data.coords.longitude))
+  })
+
   new L.Control.Zoom({ position: 'topright' }).addTo(map)
 
   function attributionPosition (position) {
@@ -314,20 +326,20 @@ module.exports = function (state, options) {
   markerLayer.setGeoJSON(state.locations)
 
   var clicked = false
-  markerLayer.on('mouseover', function(e) {
+  markerLayer.on('mouseover', function (e) {
     e.layer.openPopup()
     clicked = true
   })
 
-  markerLayer.on('mouseout', function(e) {
+  markerLayer.on('mouseout', function (e) {
     if (!clicked) e.layer.closePopup()
     clicked = false
   })
 
-  markerLayer.on('click', function(e) {
+  markerLayer.on('click', function (e) {
     setActive(e, e.layer)
   })
-  
+
   function setGeoJSON (locations) {
     markerLayer.setGeoJSON(locations)
   }
@@ -346,7 +358,7 @@ module.exports = function (state, options) {
     layer.feature.properties['marker-color'] = '#ff8888'
   }
 
-  function resetColors() {
+  function resetColors () {
     for (var i = 0; i < state.locations.length; i++) {
       var props = state.locations[i].properties
       props['marker-color'] = props['old-color'] || props['marker-color']
@@ -361,7 +373,8 @@ module.exports = function (state, options) {
     attributionPosition: attributionPosition
   }
 }
-},{"./close-button":2,"leaflet":74,"mapbox.js":88}],9:[function(require,module,exports){
+
+},{"./close-button":2,"geolocation-stream":72,"leaflet":75,"mapbox.js":89}],9:[function(require,module,exports){
 var hashMatch = require('hash-match')
 
 module.exports = function () {
@@ -380,7 +393,7 @@ module.exports = function () {
 
   return router
 }
-},{"hash-match":72,"wayfarer":169}],10:[function(require,module,exports){
+},{"hash-match":73,"wayfarer":170}],10:[function(require,module,exports){
 module.exports = function slugify (title) {
   return title.toLowerCase().replace(/[^\w ]+/g,'').replace(/ +/g,'-')
 }
@@ -535,7 +548,7 @@ Onload.prototype.unhook = function (node) {
   }, 10)
 }
 
-},{"vdom-to-html":15,"virtual-dom/create-element":129,"virtual-dom/diff":130,"virtual-dom/h":131,"virtual-dom/patch":139}],14:[function(require,module,exports){
+},{"vdom-to-html":15,"virtual-dom/create-element":130,"virtual-dom/diff":131,"virtual-dom/h":132,"virtual-dom/patch":140}],14:[function(require,module,exports){
 var escape = require('escape-html');
 var propConfig = require('./property-config');
 var types = propConfig.attributeTypes;
@@ -697,7 +710,7 @@ function closeTag(node) {
   var tag = node.tagName.toLowerCase();
   return voidElements[tag] ? '' : '</' + tag + '>';
 }
-},{"./create-attribute":14,"./void-elements":25,"escape-html":16,"param-case":22,"virtual-dom/virtual-hyperscript/hooks/attribute-hook":146,"virtual-dom/virtual-hyperscript/hooks/soft-set-hook":148,"virtual-dom/vnode/is-thunk":152,"virtual-dom/vnode/is-vnode":154,"virtual-dom/vnode/is-vtext":155,"virtual-dom/vnode/is-widget":156,"xtend":23}],16:[function(require,module,exports){
+},{"./create-attribute":14,"./void-elements":25,"escape-html":16,"param-case":22,"virtual-dom/virtual-hyperscript/hooks/attribute-hook":147,"virtual-dom/virtual-hyperscript/hooks/soft-set-hook":149,"virtual-dom/vnode/is-thunk":153,"virtual-dom/vnode/is-vnode":155,"virtual-dom/vnode/is-vtext":156,"virtual-dom/vnode/is-widget":157,"xtend":23}],16:[function(require,module,exports){
 /*!
  * escape-html
  * Copyright(c) 2012-2013 TJ Holowaychuk
@@ -8190,6 +8203,46 @@ Sheets.prototype.delete = function (id, cb) {
 }
 
 },{}],72:[function(require,module,exports){
+var stream = require('stream')
+var util = require('util')
+
+function GeolocationStream(options) {
+  var me = this
+  stream.Stream.call(me)
+  this.readable = true
+  this.startMonitoring(options)
+}
+
+util.inherits(GeolocationStream, stream.Stream)
+
+module.exports = function(options) {
+  return new GeolocationStream(options)
+}
+
+module.exports.GeolocationStream = GeolocationStream
+
+GeolocationStream.prototype.startMonitoring = function(options) {
+  this.watchID = navigator.geolocation.watchPosition(
+    this.onPosition.bind(this),
+    this.onError.bind(this),
+    options
+  )
+}
+
+GeolocationStream.prototype.stopMonitoring = function() {
+  navigator.geolocation.clearWatch(this.watchID)
+  this.emit('end')
+}
+
+GeolocationStream.prototype.onPosition = function(position) {
+  this.emit('data', position)
+}
+
+GeolocationStream.prototype.onError = function(position) {
+  this.emit('error', position)
+}
+
+},{"stream":52,"util":55}],73:[function(require,module,exports){
 module.exports = function hashMatch (hash, prefix) {
   var pre = prefix || '/';
   if (hash.length === 0) return pre;
@@ -8198,9 +8251,9 @@ module.exports = function hashMatch (hash, prefix) {
   if (pre == '/') return hash;
   else return hash.replace(pre, '');
 }
-},{}],73:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 module.exports=require(34)
-},{"/Users/sethvincent/workspace/seward-map/site-seward-map/node_modules/browserify/node_modules/inherits/inherits_browser.js":34}],74:[function(require,module,exports){
+},{"/Users/sethvincent/workspace/seward-map/site-seward-map/node_modules/browserify/node_modules/inherits/inherits_browser.js":34}],75:[function(require,module,exports){
 /*
  Leaflet, a JavaScript library for mobile-friendly interactive maps. http://leafletjs.com
  (c) 2010-2013, Vladimir Agafonkin
@@ -17381,7 +17434,7 @@ L.Map.include({
 
 
 }(window, document));
-},{}],75:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 function corslite(url, callback, cors) {
     var sent = false;
 
@@ -17476,7 +17529,7 @@ function corslite(url, callback, cors) {
 
 if (typeof module !== 'undefined') module.exports = corslite;
 
-},{}],76:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 /*!
  * mustache.js - Logic-less {{mustache}} templates with JavaScript
  * http://github.com/janl/mustache.js
@@ -18029,7 +18082,7 @@ if (typeof module !== 'undefined') module.exports = corslite;
 
 }));
 
-},{}],77:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 var html_sanitize = require('./sanitizer-bundle.js');
 
 module.exports = function(_) {
@@ -18049,7 +18102,7 @@ function cleanUrl(url) {
 
 function cleanId(id) { return id; }
 
-},{"./sanitizer-bundle.js":78}],78:[function(require,module,exports){
+},{"./sanitizer-bundle.js":79}],79:[function(require,module,exports){
 
 // Copyright (C) 2010 Google Inc.
 //
@@ -20498,7 +20551,7 @@ if (typeof module !== 'undefined') {
     module.exports = html_sanitize;
 }
 
-},{}],79:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 module.exports={
   "author": {
     "name": "Mapbox"
@@ -20692,7 +20745,7 @@ module.exports={
   "readme": "ERROR: No README data found!"
 }
 
-},{}],80:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -20702,7 +20755,7 @@ module.exports = {
     REQUIRE_ACCESS_TOKEN: true
 };
 
-},{}],81:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -20831,7 +20884,7 @@ module.exports.featureLayer = function(_, options) {
     return new FeatureLayer(_, options);
 };
 
-},{"./marker":96,"./request":97,"./simplestyle":99,"./url":101,"./util":102,"sanitize-caja":77}],82:[function(require,module,exports){
+},{"./marker":97,"./request":98,"./simplestyle":100,"./url":102,"./util":103,"sanitize-caja":78}],83:[function(require,module,exports){
 'use strict';
 
 var Feedback = L.Class.extend({
@@ -20845,7 +20898,7 @@ var Feedback = L.Class.extend({
 
 module.exports = new Feedback();
 
-},{}],83:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -20946,7 +20999,7 @@ module.exports = function(url, options) {
     return geocoder;
 };
 
-},{"./feedback":82,"./request":97,"./url":101,"./util":102}],84:[function(require,module,exports){
+},{"./feedback":83,"./request":98,"./url":102,"./util":103}],85:[function(require,module,exports){
 'use strict';
 
 var geocoder = require('./geocoder'),
@@ -21138,7 +21191,7 @@ module.exports.geocoderControl = function(_, options) {
     return new GeocoderControl(_, options);
 };
 
-},{"./geocoder":83,"./util":102}],85:[function(require,module,exports){
+},{"./geocoder":84,"./util":103}],86:[function(require,module,exports){
 'use strict';
 
 function utfDecode(c) {
@@ -21156,7 +21209,7 @@ module.exports = function(data) {
     };
 };
 
-},{}],86:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -21356,7 +21409,7 @@ module.exports.gridControl = function(_, options) {
     return new GridControl(_, options);
 };
 
-},{"./util":102,"mustache":76,"sanitize-caja":77}],87:[function(require,module,exports){
+},{"./util":103,"mustache":77,"sanitize-caja":78}],88:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -21581,11 +21634,11 @@ module.exports.gridLayer = function(_, options) {
     return new GridLayer(_, options);
 };
 
-},{"./grid":85,"./load_tilejson":92,"./request":97,"./util":102}],88:[function(require,module,exports){
+},{"./grid":86,"./load_tilejson":93,"./request":98,"./util":103}],89:[function(require,module,exports){
 require('./leaflet');
 require('./mapbox');
 
-},{"./leaflet":90,"./mapbox":94}],89:[function(require,module,exports){
+},{"./leaflet":91,"./mapbox":95}],90:[function(require,module,exports){
 'use strict';
 
 var InfoControl = L.Control.extend({
@@ -21702,10 +21755,10 @@ module.exports.infoControl = function(options) {
     return new InfoControl(options);
 };
 
-},{"sanitize-caja":77}],90:[function(require,module,exports){
+},{"sanitize-caja":78}],91:[function(require,module,exports){
 window.L = require('leaflet/dist/leaflet-src');
 
-},{"leaflet/dist/leaflet-src":74}],91:[function(require,module,exports){
+},{"leaflet/dist/leaflet-src":75}],92:[function(require,module,exports){
 'use strict';
 
 var LegendControl = L.Control.extend({
@@ -21774,7 +21827,7 @@ module.exports.legendControl = function(options) {
     return new LegendControl(options);
 };
 
-},{"sanitize-caja":77}],92:[function(require,module,exports){
+},{"sanitize-caja":78}],93:[function(require,module,exports){
 'use strict';
 
 var request = require('./request'),
@@ -21800,7 +21853,7 @@ module.exports = {
     }
 };
 
-},{"./request":97,"./url":101,"./util":102}],93:[function(require,module,exports){
+},{"./request":98,"./url":102,"./util":103}],94:[function(require,module,exports){
 'use strict';
 
 var util = require('./util'),
@@ -22037,7 +22090,7 @@ module.exports.map = function(element, _, options) {
     return new LMap(element, _, options);
 };
 
-},{"./feature_layer":81,"./feedback":82,"./grid_control":86,"./grid_layer":87,"./info_control":89,"./legend_control":91,"./load_tilejson":92,"./mapbox_logo":95,"./share_control":98,"./tile_layer":100,"./util":102,"sanitize-caja":77}],94:[function(require,module,exports){
+},{"./feature_layer":82,"./feedback":83,"./grid_control":87,"./grid_layer":88,"./info_control":90,"./legend_control":92,"./load_tilejson":93,"./mapbox_logo":96,"./share_control":99,"./tile_layer":101,"./util":103,"sanitize-caja":78}],95:[function(require,module,exports){
 'use strict';
 
 var geocoderControl = require('./geocoder_control'),
@@ -22090,7 +22143,7 @@ window.L.Icon.Default.imagePath =
     '//api.tiles.mapbox.com/mapbox.js/' + 'v' +
     require('../package.json').version + '/images';
 
-},{"../package.json":79,"./config":80,"./feature_layer":81,"./feedback":82,"./geocoder":83,"./geocoder_control":84,"./grid_control":86,"./grid_layer":87,"./info_control":89,"./legend_control":91,"./map":93,"./marker":96,"./share_control":98,"./simplestyle":99,"./tile_layer":100,"mustache":76,"sanitize-caja":77}],95:[function(require,module,exports){
+},{"../package.json":80,"./config":81,"./feature_layer":82,"./feedback":83,"./geocoder":84,"./geocoder_control":85,"./grid_control":87,"./grid_layer":88,"./info_control":90,"./legend_control":92,"./map":94,"./marker":97,"./share_control":99,"./simplestyle":100,"./tile_layer":101,"mustache":77,"sanitize-caja":78}],96:[function(require,module,exports){
 'use strict';
 
 var MapboxLogoControl = L.Control.extend({
@@ -22124,7 +22177,7 @@ module.exports.mapboxLogoControl = function(options) {
     return new MapboxLogoControl(options);
 };
 
-},{}],96:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 'use strict';
 
 var url = require('./url'),
@@ -22191,7 +22244,7 @@ module.exports = {
     createPopup: createPopup
 };
 
-},{"./url":101,"./util":102,"sanitize-caja":77}],97:[function(require,module,exports){
+},{"./url":102,"./util":103,"sanitize-caja":78}],98:[function(require,module,exports){
 'use strict';
 
 var corslite = require('corslite'),
@@ -22223,7 +22276,7 @@ module.exports = function(url, callback) {
     }
 };
 
-},{"./config":80,"./util":102,"corslite":75}],98:[function(require,module,exports){
+},{"./config":81,"./util":103,"corslite":76}],99:[function(require,module,exports){
 'use strict';
 
 var urlhelper = require('./url');
@@ -22326,7 +22379,7 @@ module.exports.shareControl = function(_, options) {
     return new ShareControl(_, options);
 };
 
-},{"./load_tilejson":92,"./url":101}],99:[function(require,module,exports){
+},{"./load_tilejson":93,"./url":102}],100:[function(require,module,exports){
 'use strict';
 
 // an implementation of the simplestyle spec for polygon and linestring features
@@ -22373,7 +22426,7 @@ module.exports = {
     defaults: defaults
 };
 
-},{}],100:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 'use strict';
 
 var util = require('./util');
@@ -22473,7 +22526,7 @@ module.exports.tileLayer = function(_, options) {
     return new TileLayer(_, options);
 };
 
-},{"./load_tilejson":92,"./util":102,"sanitize-caja":77}],101:[function(require,module,exports){
+},{"./load_tilejson":93,"./util":103,"sanitize-caja":78}],102:[function(require,module,exports){
 'use strict';
 
 var config = require('./config'),
@@ -22517,7 +22570,7 @@ module.exports.tileJSON = function(urlOrMapID, accessToken) {
     return url;
 };
 
-},{"../package.json":79,"./config":80}],102:[function(require,module,exports){
+},{"../package.json":80,"./config":81}],103:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -22564,7 +22617,7 @@ function contains(item, list) {
     return false;
 }
 
-},{}],103:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 (function (global){
 /**
  * marked - a markdown parser
@@ -23840,7 +23893,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],104:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 var BaseElement = require('base-element')
 var xtend = require('xtend/mutable')
 var inherits = require('inherits')
@@ -23945,7 +23998,7 @@ ViewList.prototype.css = function () {
   ].join('\n'), this.vtree)
 }
 
-},{"attach-css":105,"base-element":13,"inherits":73,"xtend/mutable":128}],105:[function(require,module,exports){
+},{"attach-css":106,"base-element":13,"inherits":74,"xtend/mutable":129}],106:[function(require,module,exports){
 var css = require('css')
 
 module.exports = function (src, vtree, opts) {
@@ -23985,11 +24038,11 @@ function prefixSelector (rules, vtree) {
   })
 }
 
-},{"css":106}],106:[function(require,module,exports){
+},{"css":107}],107:[function(require,module,exports){
 exports.parse = require('./lib/parse');
 exports.stringify = require('./lib/stringify');
 
-},{"./lib/parse":107,"./lib/stringify":111}],107:[function(require,module,exports){
+},{"./lib/parse":108,"./lib/stringify":112}],108:[function(require,module,exports){
 // http://www.w3.org/TR/CSS21/grammar.html
 // https://github.com/visionmedia/css-parse/pull/49#issuecomment-30088027
 var commentre = /\/\*[^*]*\*+([^/*][^*]*\*+)*\//g
@@ -24593,7 +24646,7 @@ function addParent(obj, parent) {
   return obj;
 }
 
-},{}],108:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 
 /**
  * Expose `Compiler`.
@@ -24645,7 +24698,7 @@ Compiler.prototype.mapVisit = function(nodes, delim){
   return buf;
 };
 
-},{}],109:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -24846,7 +24899,7 @@ Compiler.prototype.declaration = function(node){
 };
 
 
-},{"./compiler":108,"inherits":73}],110:[function(require,module,exports){
+},{"./compiler":109,"inherits":74}],111:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -25102,7 +25155,7 @@ Compiler.prototype.indent = function(level) {
   return Array(this.level).join(this.indentation || '  ');
 };
 
-},{"./compiler":108,"inherits":73}],111:[function(require,module,exports){
+},{"./compiler":109,"inherits":74}],112:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -25151,7 +25204,7 @@ module.exports = function(node, options){
   return code;
 };
 
-},{"./compress":109,"./identity":110,"./source-map-support":112}],112:[function(require,module,exports){
+},{"./compress":110,"./identity":111,"./source-map-support":113}],113:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -25279,7 +25332,7 @@ exports.comment = function(node) {
     return this._comment(node);
 };
 
-},{"fs":26,"path":36,"source-map":116,"source-map-resolve":115,"urix":127}],113:[function(require,module,exports){
+},{"fs":26,"path":36,"source-map":117,"source-map-resolve":116,"urix":128}],114:[function(require,module,exports){
 // Copyright 2014 Simon Lydell
 // X11 (“MIT”) Licensed. (See LICENSE.)
 
@@ -25328,7 +25381,7 @@ void (function(root, factory) {
 
 }));
 
-},{}],114:[function(require,module,exports){
+},{}],115:[function(require,module,exports){
 // Copyright 2014 Simon Lydell
 // X11 (“MIT”) Licensed. (See LICENSE.)
 
@@ -25387,7 +25440,7 @@ void (function(root, factory) {
 
 }));
 
-},{}],115:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 // Copyright 2014 Simon Lydell
 // X11 (“MIT”) Licensed. (See LICENSE.)
 
@@ -25612,7 +25665,7 @@ void (function(root, factory) {
 
 }));
 
-},{"resolve-url":113,"source-map-url":114}],116:[function(require,module,exports){
+},{"resolve-url":114,"source-map-url":115}],117:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -25622,7 +25675,7 @@ exports.SourceMapGenerator = require('./source-map/source-map-generator').Source
 exports.SourceMapConsumer = require('./source-map/source-map-consumer').SourceMapConsumer;
 exports.SourceNode = require('./source-map/source-node').SourceNode;
 
-},{"./source-map/source-map-consumer":122,"./source-map/source-map-generator":123,"./source-map/source-node":124}],117:[function(require,module,exports){
+},{"./source-map/source-map-consumer":123,"./source-map/source-map-generator":124,"./source-map/source-node":125}],118:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -25721,7 +25774,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":125,"amdefine":126}],118:[function(require,module,exports){
+},{"./util":126,"amdefine":127}],119:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -25865,7 +25918,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./base64":119,"amdefine":126}],119:[function(require,module,exports){
+},{"./base64":120,"amdefine":127}],120:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -25909,7 +25962,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":126}],120:[function(require,module,exports){
+},{"amdefine":127}],121:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -25991,7 +26044,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":126}],121:[function(require,module,exports){
+},{"amdefine":127}],122:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2014 Mozilla Foundation and contributors
@@ -26079,7 +26132,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":125,"amdefine":126}],122:[function(require,module,exports){
+},{"./util":126,"amdefine":127}],123:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -26656,7 +26709,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":117,"./base64-vlq":118,"./binary-search":120,"./util":125,"amdefine":126}],123:[function(require,module,exports){
+},{"./array-set":118,"./base64-vlq":119,"./binary-search":121,"./util":126,"amdefine":127}],124:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -27058,7 +27111,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":117,"./base64-vlq":118,"./mapping-list":121,"./util":125,"amdefine":126}],124:[function(require,module,exports){
+},{"./array-set":118,"./base64-vlq":119,"./mapping-list":122,"./util":126,"amdefine":127}],125:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -27474,7 +27527,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./source-map-generator":123,"./util":125,"amdefine":126}],125:[function(require,module,exports){
+},{"./source-map-generator":124,"./util":126,"amdefine":127}],126:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -27795,7 +27848,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":126}],126:[function(require,module,exports){
+},{"amdefine":127}],127:[function(require,module,exports){
 (function (process,__filename){
 /** vim: et:ts=4:sw=4:sts=4
  * @license amdefine 0.1.0 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
@@ -28100,7 +28153,7 @@ function amdefine(module, requireFn) {
 module.exports = amdefine;
 
 }).call(this,require('_process'),"/node_modules/view-list/node_modules/attach-css/node_modules/css/node_modules/source-map/node_modules/amdefine/amdefine.js")
-},{"_process":37,"path":36}],127:[function(require,module,exports){
+},{"_process":37,"path":36}],128:[function(require,module,exports){
 // Copyright 2014 Simon Lydell
 // X11 (“MIT”) Licensed. (See LICENSE.)
 
@@ -28119,7 +28172,7 @@ function urix(aPath) {
 
 module.exports = urix
 
-},{"path":36}],128:[function(require,module,exports){
+},{"path":36}],129:[function(require,module,exports){
 module.exports = extend
 
 function extend(target) {
@@ -28136,22 +28189,22 @@ function extend(target) {
     return target
 }
 
-},{}],129:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
 var createElement = require("./vdom/create-element.js")
 
 module.exports = createElement
 
-},{"./vdom/create-element.js":141}],130:[function(require,module,exports){
+},{"./vdom/create-element.js":142}],131:[function(require,module,exports){
 var diff = require("./vtree/diff.js")
 
 module.exports = diff
 
-},{"./vtree/diff.js":162}],131:[function(require,module,exports){
+},{"./vtree/diff.js":163}],132:[function(require,module,exports){
 var h = require("./virtual-hyperscript/index.js")
 
 module.exports = h
 
-},{"./virtual-hyperscript/index.js":149}],132:[function(require,module,exports){
+},{"./virtual-hyperscript/index.js":150}],133:[function(require,module,exports){
 /*!
  * Cross-Browser Split 1.1.1
  * Copyright 2007-2012 Steven Levithan <stevenlevithan.com>
@@ -28259,7 +28312,7 @@ module.exports = (function split(undef) {
   return self;
 })();
 
-},{}],133:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 'use strict';
 
 var OneVersionConstraint = require('individual/one-version');
@@ -28281,7 +28334,7 @@ function EvStore(elem) {
     return hash;
 }
 
-},{"individual/one-version":135}],134:[function(require,module,exports){
+},{"individual/one-version":136}],135:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -28304,7 +28357,7 @@ function Individual(key, value) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],135:[function(require,module,exports){
+},{}],136:[function(require,module,exports){
 'use strict';
 
 var Individual = require('./index.js');
@@ -28328,7 +28381,7 @@ function OneVersion(moduleName, version, defaultValue) {
     return Individual(key, defaultValue);
 }
 
-},{"./index.js":134}],136:[function(require,module,exports){
+},{"./index.js":135}],137:[function(require,module,exports){
 (function (global){
 var topLevel = typeof global !== 'undefined' ? global :
     typeof window !== 'undefined' ? window : {}
@@ -28347,14 +28400,14 @@ if (typeof document !== 'undefined') {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"min-document":28}],137:[function(require,module,exports){
+},{"min-document":28}],138:[function(require,module,exports){
 "use strict";
 
 module.exports = function isObject(x) {
 	return typeof x === "object" && x !== null;
 };
 
-},{}],138:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 var nativeIsArray = Array.isArray
 var toString = Object.prototype.toString
 
@@ -28364,12 +28417,12 @@ function isArray(obj) {
     return toString.call(obj) === "[object Array]"
 }
 
-},{}],139:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 var patch = require("./vdom/patch.js")
 
 module.exports = patch
 
-},{"./vdom/patch.js":144}],140:[function(require,module,exports){
+},{"./vdom/patch.js":145}],141:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook.js")
 
@@ -28468,7 +28521,7 @@ function getPrototype(value) {
     }
 }
 
-},{"../vnode/is-vhook.js":153,"is-object":137}],141:[function(require,module,exports){
+},{"../vnode/is-vhook.js":154,"is-object":138}],142:[function(require,module,exports){
 var document = require("global/document")
 
 var applyProperties = require("./apply-properties")
@@ -28516,7 +28569,7 @@ function createElement(vnode, opts) {
     return node
 }
 
-},{"../vnode/handle-thunk.js":151,"../vnode/is-vnode.js":154,"../vnode/is-vtext.js":155,"../vnode/is-widget.js":156,"./apply-properties":140,"global/document":136}],142:[function(require,module,exports){
+},{"../vnode/handle-thunk.js":152,"../vnode/is-vnode.js":155,"../vnode/is-vtext.js":156,"../vnode/is-widget.js":157,"./apply-properties":141,"global/document":137}],143:[function(require,module,exports){
 // Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
 // We don't want to read all of the DOM nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
@@ -28603,7 +28656,7 @@ function ascending(a, b) {
     return a > b ? 1 : -1
 }
 
-},{}],143:[function(require,module,exports){
+},{}],144:[function(require,module,exports){
 var applyProperties = require("./apply-properties")
 
 var isWidget = require("../vnode/is-widget.js")
@@ -28757,7 +28810,7 @@ function replaceRoot(oldRoot, newRoot) {
     return newRoot;
 }
 
-},{"../vnode/is-widget.js":156,"../vnode/vpatch.js":159,"./apply-properties":140,"./create-element":141,"./update-widget":145}],144:[function(require,module,exports){
+},{"../vnode/is-widget.js":157,"../vnode/vpatch.js":160,"./apply-properties":141,"./create-element":142,"./update-widget":146}],145:[function(require,module,exports){
 var document = require("global/document")
 var isArray = require("x-is-array")
 
@@ -28835,7 +28888,7 @@ function patchIndices(patches) {
     return indices
 }
 
-},{"./dom-index":142,"./patch-op":143,"global/document":136,"x-is-array":138}],145:[function(require,module,exports){
+},{"./dom-index":143,"./patch-op":144,"global/document":137,"x-is-array":139}],146:[function(require,module,exports){
 var isWidget = require("../vnode/is-widget.js")
 
 module.exports = updateWidget
@@ -28852,7 +28905,7 @@ function updateWidget(a, b) {
     return false
 }
 
-},{"../vnode/is-widget.js":156}],146:[function(require,module,exports){
+},{"../vnode/is-widget.js":157}],147:[function(require,module,exports){
 'use strict';
 
 module.exports = AttributeHook;
@@ -28889,7 +28942,7 @@ AttributeHook.prototype.unhook = function (node, prop, next) {
 
 AttributeHook.prototype.type = 'AttributeHook';
 
-},{}],147:[function(require,module,exports){
+},{}],148:[function(require,module,exports){
 'use strict';
 
 var EvStore = require('ev-store');
@@ -28918,7 +28971,7 @@ EvHook.prototype.unhook = function(node, propertyName) {
     es[propName] = undefined;
 };
 
-},{"ev-store":133}],148:[function(require,module,exports){
+},{"ev-store":134}],149:[function(require,module,exports){
 'use strict';
 
 module.exports = SoftSetHook;
@@ -28937,7 +28990,7 @@ SoftSetHook.prototype.hook = function (node, propertyName) {
     }
 };
 
-},{}],149:[function(require,module,exports){
+},{}],150:[function(require,module,exports){
 'use strict';
 
 var isArray = require('x-is-array');
@@ -29074,7 +29127,7 @@ function errorString(obj) {
     }
 }
 
-},{"../vnode/is-thunk":152,"../vnode/is-vhook":153,"../vnode/is-vnode":154,"../vnode/is-vtext":155,"../vnode/is-widget":156,"../vnode/vnode.js":158,"../vnode/vtext.js":160,"./hooks/ev-hook.js":147,"./hooks/soft-set-hook.js":148,"./parse-tag.js":150,"x-is-array":138}],150:[function(require,module,exports){
+},{"../vnode/is-thunk":153,"../vnode/is-vhook":154,"../vnode/is-vnode":155,"../vnode/is-vtext":156,"../vnode/is-widget":157,"../vnode/vnode.js":159,"../vnode/vtext.js":161,"./hooks/ev-hook.js":148,"./hooks/soft-set-hook.js":149,"./parse-tag.js":151,"x-is-array":139}],151:[function(require,module,exports){
 'use strict';
 
 var split = require('browser-split');
@@ -29130,7 +29183,7 @@ function parseTag(tag, props) {
     return props.namespace ? tagName : tagName.toUpperCase();
 }
 
-},{"browser-split":132}],151:[function(require,module,exports){
+},{"browser-split":133}],152:[function(require,module,exports){
 var isVNode = require("./is-vnode")
 var isVText = require("./is-vtext")
 var isWidget = require("./is-widget")
@@ -29172,14 +29225,14 @@ function renderThunk(thunk, previous) {
     return renderedThunk
 }
 
-},{"./is-thunk":152,"./is-vnode":154,"./is-vtext":155,"./is-widget":156}],152:[function(require,module,exports){
+},{"./is-thunk":153,"./is-vnode":155,"./is-vtext":156,"./is-widget":157}],153:[function(require,module,exports){
 module.exports = isThunk
 
 function isThunk(t) {
     return t && t.type === "Thunk"
 }
 
-},{}],153:[function(require,module,exports){
+},{}],154:[function(require,module,exports){
 module.exports = isHook
 
 function isHook(hook) {
@@ -29188,7 +29241,7 @@ function isHook(hook) {
        typeof hook.unhook === "function" && !hook.hasOwnProperty("unhook"))
 }
 
-},{}],154:[function(require,module,exports){
+},{}],155:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualNode
@@ -29197,7 +29250,7 @@ function isVirtualNode(x) {
     return x && x.type === "VirtualNode" && x.version === version
 }
 
-},{"./version":157}],155:[function(require,module,exports){
+},{"./version":158}],156:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualText
@@ -29206,17 +29259,17 @@ function isVirtualText(x) {
     return x && x.type === "VirtualText" && x.version === version
 }
 
-},{"./version":157}],156:[function(require,module,exports){
+},{"./version":158}],157:[function(require,module,exports){
 module.exports = isWidget
 
 function isWidget(w) {
     return w && w.type === "Widget"
 }
 
-},{}],157:[function(require,module,exports){
+},{}],158:[function(require,module,exports){
 module.exports = "2"
 
-},{}],158:[function(require,module,exports){
+},{}],159:[function(require,module,exports){
 var version = require("./version")
 var isVNode = require("./is-vnode")
 var isWidget = require("./is-widget")
@@ -29290,7 +29343,7 @@ function VirtualNode(tagName, properties, children, key, namespace) {
 VirtualNode.prototype.version = version
 VirtualNode.prototype.type = "VirtualNode"
 
-},{"./is-thunk":152,"./is-vhook":153,"./is-vnode":154,"./is-widget":156,"./version":157}],159:[function(require,module,exports){
+},{"./is-thunk":153,"./is-vhook":154,"./is-vnode":155,"./is-widget":157,"./version":158}],160:[function(require,module,exports){
 var version = require("./version")
 
 VirtualPatch.NONE = 0
@@ -29314,7 +29367,7 @@ function VirtualPatch(type, vNode, patch) {
 VirtualPatch.prototype.version = version
 VirtualPatch.prototype.type = "VirtualPatch"
 
-},{"./version":157}],160:[function(require,module,exports){
+},{"./version":158}],161:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = VirtualText
@@ -29326,7 +29379,7 @@ function VirtualText(text) {
 VirtualText.prototype.version = version
 VirtualText.prototype.type = "VirtualText"
 
-},{"./version":157}],161:[function(require,module,exports){
+},{"./version":158}],162:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook")
 
@@ -29386,7 +29439,7 @@ function getPrototype(value) {
   }
 }
 
-},{"../vnode/is-vhook":153,"is-object":137}],162:[function(require,module,exports){
+},{"../vnode/is-vhook":154,"is-object":138}],163:[function(require,module,exports){
 var isArray = require("x-is-array")
 
 var VPatch = require("../vnode/vpatch")
@@ -29815,7 +29868,7 @@ function appendPatch(apply, patch) {
     }
 }
 
-},{"../vnode/handle-thunk":151,"../vnode/is-thunk":152,"../vnode/is-vnode":154,"../vnode/is-vtext":155,"../vnode/is-widget":156,"../vnode/vpatch":159,"./diff-props":161,"x-is-array":138}],163:[function(require,module,exports){
+},{"../vnode/handle-thunk":152,"../vnode/is-thunk":153,"../vnode/is-vnode":155,"../vnode/is-vtext":156,"../vnode/is-widget":157,"../vnode/vpatch":160,"./diff-props":162,"x-is-array":139}],164:[function(require,module,exports){
 var createVNode = require('virtual-dom/h');
 var htmltree = require("htmltree");
 var camel = require('to-camel-case');
@@ -29905,7 +29958,7 @@ function createDataSet (props) {
   return dataset;
 }
 
-},{"htmltree":164,"to-camel-case":166,"virtual-dom/h":131}],164:[function(require,module,exports){
+},{"htmltree":165,"to-camel-case":167,"virtual-dom/h":132}],165:[function(require,module,exports){
 var sax = require('sax');
 
 //http://dev.w3.org/html5/spec-author-view/syntax.html#syntax-start-tag
@@ -30003,7 +30056,7 @@ function htmltree(str, cb) {
 module.exports = htmltree;
 
 
-},{"sax":165}],165:[function(require,module,exports){
+},{"sax":166}],166:[function(require,module,exports){
 (function (Buffer){
 // wrapper for non-node envs
 ;(function (sax) {
@@ -31336,7 +31389,7 @@ function write (chunk) {
 })(typeof exports === "undefined" ? sax = {} : exports)
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":29,"stream":52,"string_decoder":53}],166:[function(require,module,exports){
+},{"buffer":29,"stream":52,"string_decoder":53}],167:[function(require,module,exports){
 
 var toSpace = require('to-space-case');
 
@@ -31361,7 +31414,7 @@ function toCamelCase (string) {
     return letter.toUpperCase();
   });
 }
-},{"to-space-case":167}],167:[function(require,module,exports){
+},{"to-space-case":168}],168:[function(require,module,exports){
 
 var clean = require('to-no-case');
 
@@ -31386,7 +31439,7 @@ function toSpaceCase (string) {
     return match ? ' ' + match : '';
   });
 }
-},{"to-no-case":168}],168:[function(require,module,exports){
+},{"to-no-case":169}],169:[function(require,module,exports){
 
 /**
  * Expose `toNoCase`.
@@ -31461,7 +31514,7 @@ function uncamelize (string) {
     return previous + ' ' + uppers.toLowerCase().split('').join(' ');
   });
 }
-},{}],169:[function(require,module,exports){
+},{}],170:[function(require,module,exports){
 
 var router = require('routington')
 var assert = require('assert')
@@ -31512,7 +31565,7 @@ wayfarer.match = function(path) {
 wayfarer.path = wayfarer.on
 wayfarer.route = wayfarer.on
 
-},{"assert":27,"routington":171}],170:[function(require,module,exports){
+},{"assert":27,"routington":172}],171:[function(require,module,exports){
 
 var flatten = require('flatten')
 
@@ -31568,7 +31621,7 @@ function Define(frags, root) {
     : nodes
 }
 
-},{"./routington":174,"flatten":175}],171:[function(require,module,exports){
+},{"./routington":175,"flatten":176}],172:[function(require,module,exports){
 
 module.exports = require('./routington');
 
@@ -31576,7 +31629,7 @@ require('./define');
 require('./match');
 require('./parse');
 
-},{"./define":170,"./match":172,"./parse":173,"./routington":174}],172:[function(require,module,exports){
+},{"./define":171,"./match":173,"./parse":174,"./routington":175}],173:[function(require,module,exports){
 
 var assert = require('http-assert')
 
@@ -31656,7 +31709,7 @@ function decode(string) {
   }
 }
 
-},{"./routington":174,"http-assert":176}],173:[function(require,module,exports){
+},{"./routington":175,"http-assert":177}],174:[function(require,module,exports){
 
 var assert = require('assert')
 
@@ -31721,7 +31774,7 @@ function isPipeSeparatedString(x) {
   return /^[\w\.\-][\w\.\-\|]+[\w\.\-]$/.test(x)
 }
 
-},{"./routington":174,"assert":27}],174:[function(require,module,exports){
+},{"./routington":175,"assert":27}],175:[function(require,module,exports){
 
 module.exports = Routington
 
@@ -31783,7 +31836,7 @@ Routington.prototype._attach = function (node) {
   return node
 }
 
-},{}],175:[function(require,module,exports){
+},{}],176:[function(require,module,exports){
 module.exports = function flatten(list, depth) {
   depth = (typeof depth == 'number') ? depth : Infinity;
 
@@ -31801,7 +31854,7 @@ module.exports = function flatten(list, depth) {
   }
 };
 
-},{}],176:[function(require,module,exports){
+},{}],177:[function(require,module,exports){
 var createError = require('http-errors');
 var eql = require('deep-equal');
 
@@ -31836,7 +31889,7 @@ assert.notDeepEqual = function(a, b, status, msg, opts) {
   assert(!eql(a, b), status, msg, opts);
 };
 
-},{"deep-equal":177,"http-errors":180}],177:[function(require,module,exports){
+},{"deep-equal":178,"http-errors":181}],178:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var objectKeys = require('./lib/keys.js');
 var isArguments = require('./lib/is_arguments.js');
@@ -31932,7 +31985,7 @@ function objEquiv(a, b, opts) {
   return typeof a === typeof b;
 }
 
-},{"./lib/is_arguments.js":178,"./lib/keys.js":179}],178:[function(require,module,exports){
+},{"./lib/is_arguments.js":179,"./lib/keys.js":180}],179:[function(require,module,exports){
 var supportsArgumentsClass = (function(){
   return Object.prototype.toString.call(arguments)
 })() == '[object Arguments]';
@@ -31954,7 +32007,7 @@ function unsupported(object){
     false;
 };
 
-},{}],179:[function(require,module,exports){
+},{}],180:[function(require,module,exports){
 exports = module.exports = typeof Object.keys === 'function'
   ? Object.keys : shim;
 
@@ -31965,7 +32018,7 @@ function shim (obj) {
   return keys;
 }
 
-},{}],180:[function(require,module,exports){
+},{}],181:[function(require,module,exports){
 
 var statuses = require('statuses');
 var inherits = require('inherits');
@@ -32087,9 +32140,9 @@ codes.forEach(function (code) {
 // backwards-compatibility
 exports["I'mateapot"] = exports.ImATeapot
 
-},{"inherits":181,"statuses":183}],181:[function(require,module,exports){
+},{"inherits":182,"statuses":184}],182:[function(require,module,exports){
 module.exports=require(34)
-},{"/Users/sethvincent/workspace/seward-map/site-seward-map/node_modules/browserify/node_modules/inherits/inherits_browser.js":34}],182:[function(require,module,exports){
+},{"/Users/sethvincent/workspace/seward-map/site-seward-map/node_modules/browserify/node_modules/inherits/inherits_browser.js":34}],183:[function(require,module,exports){
 module.exports={
   "100": "Continue",
   "101": "Switching Protocols",
@@ -32154,7 +32207,7 @@ module.exports={
   "510": "Not Extended",
   "511": "Network Authentication Required"
 }
-},{}],183:[function(require,module,exports){
+},{}],184:[function(require,module,exports){
 
 var codes = require('./codes.json');
 
@@ -32216,7 +32269,7 @@ function status(code) {
   return n;
 }
 
-},{"./codes.json":182}],184:[function(require,module,exports){
+},{"./codes.json":183}],185:[function(require,module,exports){
 (function (Buffer){
 
 var h = require('virtual-dom/h')
@@ -32230,7 +32283,7 @@ module.exports = function (state) {
   ])
 }
 }).call(this,require("buffer").Buffer)
-},{"./layout":189,"buffer":29,"virtual-dom/h":131,"virtual-html":163}],185:[function(require,module,exports){
+},{"./layout":190,"buffer":29,"virtual-dom/h":132,"virtual-html":164}],186:[function(require,module,exports){
 var h = require('virtual-dom/h')
 
 module.exports = function (closeButton, state) {
@@ -32254,7 +32307,7 @@ module.exports = function (closeButton, state) {
 
   return h('ul.actions', items)
 }
-},{"virtual-dom/h":131}],186:[function(require,module,exports){
+},{"virtual-dom/h":132}],187:[function(require,module,exports){
 var h = require('virtual-dom/h')
 var layout = require('./layout')
 
@@ -32263,7 +32316,7 @@ module.exports = function (state) {
     h('h1', 'error')
   ])
 }
-},{"./layout":189,"virtual-dom/h":131}],187:[function(require,module,exports){
+},{"./layout":190,"virtual-dom/h":132}],188:[function(require,module,exports){
 var h = require('virtual-dom/h')
 
 module.exports = function (state) {
@@ -32273,7 +32326,7 @@ module.exports = function (state) {
     h('div.welcome', 'Welcome to the stories of Southeast Seattle’s Seward Park, home to the city’s last old-growth forest.')
   ])
 }
-},{"./actions":185,"virtual-dom/h":131}],188:[function(require,module,exports){
+},{"./actions":186,"virtual-dom/h":132}],189:[function(require,module,exports){
 module.exports = {
   about: require('./about'),
   error: require('./error'),
@@ -32282,7 +32335,7 @@ module.exports = {
   location: require('./location'),
   nearby: require('./nearby')
 }
-},{"./about":184,"./error":186,"./home":187,"./list":190,"./location":191,"./nearby":192}],189:[function(require,module,exports){
+},{"./about":185,"./error":187,"./home":188,"./list":191,"./location":192,"./nearby":193}],190:[function(require,module,exports){
 var h = require('virtual-dom/h')
 
 module.exports = function (id, state, content) {
@@ -32294,7 +32347,7 @@ module.exports = function (id, state, content) {
   ])
 }
 
-},{"../lib/close-button":2,"./actions":185,"virtual-dom/h":131}],190:[function(require,module,exports){
+},{"../lib/close-button":2,"./actions":186,"virtual-dom/h":132}],191:[function(require,module,exports){
 var h = require('virtual-dom/h')
 var elClass = require('element-class')
 var layout = require('./layout')
@@ -32322,7 +32375,7 @@ module.exports = function (state) {
   ])
 }
 
-},{"./layout":189,"element-class":59,"virtual-dom/h":131}],191:[function(require,module,exports){
+},{"./layout":190,"element-class":59,"virtual-dom/h":132}],192:[function(require,module,exports){
 var h = require('virtual-dom/h')
 var layout = require('./layout')
 var vdom = require('virtual-html')
@@ -32362,7 +32415,7 @@ module.exports = function (state) {
     ])
   ])
 }
-},{"../lib/external":4,"./layout":189,"marked":103,"virtual-dom/h":131,"virtual-html":163}],192:[function(require,module,exports){
+},{"../lib/external":4,"./layout":190,"marked":104,"virtual-dom/h":132,"virtual-html":164}],193:[function(require,module,exports){
 var h = require('virtual-dom/h')
 var layout = require('./layout')
 
@@ -32371,4 +32424,4 @@ module.exports = function (state) {
     h('h1', 'nearby')
   ])
 }
-},{"./layout":189,"virtual-dom/h":131}]},{},[1]);
+},{"./layout":190,"virtual-dom/h":132}]},{},[1]);
