@@ -71,6 +71,7 @@ img.logo {
   z-index: 0;
   margin: 50px 10px 0px 10px;
   overflow-y: auto;
+  width: 97%;
 }
 
 ul.actions {

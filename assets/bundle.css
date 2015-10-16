@@ -758,6 +758,10 @@ th {
   --darken-2: rgba(0,0,0,.125);
   --darken-3: rgba(0,0,0,.25);
   --darken-4: rgba(0,0,0,.5);
+  --lighten-1: rgba(255,255,255,.0625);
+  --lighten-2: rgba(255,255,255,.125);
+  --lighten-3: rgba(255,255,255,.25);
+  --lighten-4: rgba(255,255,255,.5);
   --border-width: 1px;
   --border-radius: 3px;
   --border-color: var(--darken-2);
@@ -1066,6 +1070,7 @@ img.logo {
   z-index: 0;
   margin: 50px 10px 0px 10px;
   overflow-y: auto;
+  width: 97%;
 }
 
 ul.actions {

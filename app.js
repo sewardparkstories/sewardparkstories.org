@@ -1,27 +1,23 @@
 require('fastclick')(document.body)
-var on = require('dom-event')
-
-var flatsheet = require('flatsheet-api-client')({
-  host: 'http://seward.flatsheet.io'
-})
+var request = require('xhr')
 
 var templates = require('./templates/index')
 var content = require('./lib/content')(document.getElementById('content'))
 var state = require('./lib/state')(content)
 var app = require('./lib/router')()
 
-flatsheet.sheets.get('cc13b010-b0e1-11e4-a8bf-61e0a2f359a1', response)
+request('/locations.json', response)
 
-function response (error, sheet) {
+function response (error, res, body) {
   if (error) app.go('/error')
-  
-  var locations = require('./lib/format-data')(sheet.rows)
+  console.log(error, body)
+  var locations = require('./lib/format-data')(JSON.parse(body))
   var find = require('./lib/find-data')(locations)
   state.locations = locations
 
   var map = require('./lib/map')(state, {
     el: 'map',
-    attributionPosition: status.attribution,
+    attributionPosition: state.attribution,
     mapboxToken: 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw',
     tileLayer: 'sethvincent.de840f5b',
     onclick: function (e) {
@@ -32,7 +28,7 @@ function response (error, sheet) {
   var list = require('./lib/list')()
   list.addEventListener('click', function (e, item) {
     var layers = map.markerLayer._layers
-    for (key in layers) {
+    for (var key in layers) {
       var layer = layers[key]
       var slug = layer.feature.properties.slug
       var page = e.target.href.split('#')[1]
