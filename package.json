@@ -46,7 +46,7 @@
     "popupjs": "^1.3.0",
     "view-list": "^2.0.0",
     "virtual-dom": "^2.0.1",
-    "virtual-html": "^1.3.0",
+    "virtual-html": "^2.0.0",
     "wayfarer": "^2.2.0",
     "xhr": "^2.1.0"
   },

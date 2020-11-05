@@ -10,7 +10,7 @@ request('/locations.json', response)
 
 function response (error, res, body) {
   if (error) app.go('/error')
-  console.log(error, body)
+
   var locations = require('./lib/format-data')(JSON.parse(body))
   var find = require('./lib/find-data')(locations)
   state.locations = locations
@@ -19,7 +19,7 @@ function response (error, res, body) {
     el: 'map',
     attributionPosition: state.attribution,
     mapboxToken: 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw',
-    tileLayer: 'sethvincent.de840f5b',
+    tileLayer: 'http://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
     onclick: function (e) {
       if (e.layer) app.go(e.layer.feature.properties.slug)
     }
