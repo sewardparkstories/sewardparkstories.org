@@ -19,7 +19,6 @@ function response (error, res, body) {
     el: 'map',
     attributionPosition: state.attribution,
     mapboxToken: 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw',
-    tileLayer: 'http://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
     onclick: function (e) {
       if (e.layer) app.go(e.layer.feature.properties.slug)
     }

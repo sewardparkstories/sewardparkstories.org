@@ -11,7 +11,7 @@ request('/locations.json', response)
 
 function response (error, res, body) {
   if (error) app.go('/error')
-  console.log(error, body)
+
   var locations = require('./lib/format-data')(JSON.parse(body))
   var find = require('./lib/find-data')(locations)
   state.locations = locations
@@ -20,7 +20,6 @@ function response (error, res, body) {
     el: 'map',
     attributionPosition: state.attribution,
     mapboxToken: 'pk.eyJ1Ijoic2V0aHZpbmNlbnQiLCJhIjoiSXZZXzZnUSJ9.Nr_zKa-4Ztcmc1Ypl0k5nw',
-    tileLayer: 'mapbox://styles/sethvincent/ckazhg14f1o201ipeq9hqosmx',
     onclick: function (e) {
       if (e.layer) app.go(e.layer.feature.properties.slug)
     }
@@ -281,15 +280,17 @@ var closeButton = require('./close-button')()
 module.exports = function (state, options) {
   L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/'
   L.mapbox.accessToken = options.mapboxToken
-  var tileLayer = L.mapbox.tileLayer(options.tileLayer)
 
   var map = L.map(options.el, {
     center: state.map.center,
     zoom: state.map.zoom,
     zoomControl: false,
-    layers: [tileLayer],
     attributionControl: false
   })
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+  }).addTo(map);
 
   state.on('resize', function () {
     map.setZoom(state.map.zoom)
